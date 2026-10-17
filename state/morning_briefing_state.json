@@ -1,0 +1,21 @@
+{
+  "last_sent_date": "2026-10-17",
+  "history": [
+    {
+      "date": "17-Oct-2026",
+      "timestamp": "2026-10-17T11:30:53.586751+05:30",
+      "positive_count": 5,
+      "negative_count": 1,
+      "radar_count": 5,
+      "total_raw_audited": 97
+    },
+    {
+      "date": "Saturday, 17 October 2026",
+      "timestamp": "2026-10-17T11:43:57.073968+05:30",
+      "positive_count": 5,
+      "negative_count": 2,
+      "radar_count": 2,
+      "total_raw_audited": 26
+    }
+  ]
+}
