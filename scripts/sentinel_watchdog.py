@@ -197,6 +197,7 @@ class SentinelWatchdog:
         
         logger.info("[WATCHDOG] Polling both Telegram channels (@pahal_investment vs @stock_aaj_or_kal)...")
         our_posts = self.fetch_channel_recent_posts(self.our_channel)
+        time.sleep(2.0)
         bench_posts = self.fetch_channel_recent_posts(self.bench_channel)
         
         if not our_posts or not bench_posts:
