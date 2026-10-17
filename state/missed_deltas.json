@@ -1,0 +1,47 @@
+{
+  "last_audit_timestamp": "2026-10-17T11:15:00+05:30",
+  "missed_deltas": [
+    {
+      "timestamp": "2026-10-17T11:19:49.396281+05:30",
+      "benchmark_msg_id": 266628,
+      "benchmark_text": "GMRAirports reports;\n⏩\nPassenger Traffic Up 0.9% At 9.2 m Pax (YoY)\n⏩\nDomestic Passenger Traffic Unchanged At 6.9 m Pax (YoY)\n⏩\nInternational Passenger Traffic Up 3.5% At 2.4 m Pax (YoY)\n⏩\nAircraft Movements Up 2.3% At 60,553 (YoY)",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-17T11:19:49.402276+05:30",
+      "benchmark_msg_id": 266633,
+      "benchmark_text": "INDO RAMA SYNTHETICS: \nCO PLANS ₹200 CRORE INVESTMENT OVER NEXT 12-18 MONTHS TO DIVERSIFY INTO SPECIALTY FIBRE AND FILAMENT PRODUCTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "indo"
+    },
+    {
+      "timestamp": "2026-10-17T11:33:40.293527+05:30",
+      "benchmark_msg_id": 266628,
+      "benchmark_text": "GMRAirports reports;\n⏩\nPassenger Traffic Up 0.9% At 9.2 m Pax (YoY)\n⏩\nDomestic Passenger Traffic Unchanged At 6.9 m Pax (YoY)\n⏩\nInternational Passenger Traffic Up 3.5% At 2.4 m Pax (YoY)\n⏩\nAircraft Movements Up 2.3% At 60,553 (YoY)",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-17T11:33:40.308270+05:30",
+      "benchmark_msg_id": 266633,
+      "benchmark_text": "INDO RAMA SYNTHETICS: \nCO PLANS ₹200 CRORE INVESTMENT OVER NEXT 12-18 MONTHS TO DIVERSIFY INTO SPECIALTY FIBRE AND FILAMENT PRODUCTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "indo"
+    },
+    {
+      "timestamp": "2026-10-17T11:33:52.247161+05:30",
+      "benchmark_msg_id": 266628,
+      "benchmark_text": "GMRAirports reports;\n⏩\nPassenger Traffic Up 0.9% At 9.2 m Pax (YoY)\n⏩\nDomestic Passenger Traffic Unchanged At 6.9 m Pax (YoY)\n⏩\nInternational Passenger Traffic Up 3.5% At 2.4 m Pax (YoY)\n⏩\nAircraft Movements Up 2.3% At 60,553 (YoY)",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-17T11:33:52.247161+05:30",
+      "benchmark_msg_id": 266633,
+      "benchmark_text": "INDO RAMA SYNTHETICS: \nCO PLANS ₹200 CRORE INVESTMENT OVER NEXT 12-18 MONTHS TO DIVERSIFY INTO SPECIALTY FIBRE AND FILAMENT PRODUCTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "indo"
+    }
+  ]
+}
