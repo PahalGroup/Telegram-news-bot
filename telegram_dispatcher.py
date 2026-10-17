@@ -125,6 +125,7 @@ class TelegramDispatcher:
 
     def _log_locally(self, text: str):
         try:
+            os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
             with open(LOG_PATH, "a", encoding="utf-8") as f:
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f"[{timestamp}]\n{text}\n\n")
