@@ -164,9 +164,11 @@ def main():
     args = parser.parse_args()
     validate_environment()
     
+    is_live_run = args.live or (os.getenv("GITHUB_ACTIONS") == "true")
+
     if args.morning_briefing:
         briefing = MorningBriefingEngine()
-        briefing.dispatch_briefing(force=True, dry_run=not args.live)
+        briefing.dispatch_briefing(force=True, dry_run=not is_live_run)
         sys.exit(0)
         
     if args.run_delta:
@@ -174,7 +176,7 @@ def main():
         monitor.run_monitor_cycle()
         sys.exit(0)
         
-    engine = MarketWireEngine(dry_run=not args.live)
+    engine = MarketWireEngine(dry_run=not is_live_run)
     
     if args.test or not args.daemon:
         logger.info("[*] Executing Single Engine Pass across All Live Endpoints...")
