@@ -83,18 +83,21 @@ class SentinelWatchdog:
 
     def fetch_channel_recent_posts(self, channel_handle: str) -> List[dict]:
         """Fetches the latest ~20 posts from Telegram web channel preview."""
+        import urllib.request
         url = f"https://t.me/s/{channel_handle}"
         posts = []
         for attempt in range(3):
             try:
-                r = cureq.get(
+                req = urllib.request.Request(
                     url,
-                    headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
-                    impersonate="chrome120",
-                    timeout=15
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                        "Accept-Language": "en-US,en;q=0.9"
+                    }
                 )
-                if r.status_code == 200:
-                    soup = BeautifulSoup(r.text, "html.parser")
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    html = resp.read().decode("utf-8", errors="replace")
+                    soup = BeautifulSoup(html, "html.parser")
                     msg_divs = soup.find_all("div", class_="tgme_widget_message")
                     for m in msg_divs:
                         data_post = m.get("data-post", "")
