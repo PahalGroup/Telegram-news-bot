@@ -17,6 +17,7 @@ from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
 from filter_engine import FilterEngine
 from scripts.quality_gatekeeper import QualityGatekeeper
 from telegram_dispatcher import TelegramDispatcher
+from dedup_engine import DedupEngine
 
 IST = ZoneInfo("Asia/Kolkata")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [SENTINEL] %(levelname)s: %(message)s")
@@ -50,6 +51,7 @@ class SentinelWatchdog:
         
         self.gatekeeper = QualityGatekeeper()
         self.dispatcher = TelegramDispatcher()
+        self.dedup = DedupEngine()
         self.state = self._load_json(self.state_path, {
             "last_seen_our_id": 0,
             "last_seen_bench_id": 0,
@@ -186,6 +188,60 @@ class SentinelWatchdog:
                 self.state["auto_healed_rules_count"] += 1
                 logger.info(f"[AUTO-HEAL] Learned new corporate trigger keyword: '{learned_kw}' into config/filter_rules.json")
 
+    def bridge_and_dispatch(self, bp: dict) -> bool:
+        """
+        Fast-Bridge: When benchmark channel posts breaking market news or concall highlights
+        that our channel missed, adapt, verify, and dispatch immediately to @pahal_investment.
+        Filters out promotions, advertisements, personal notes, and duplicate items.
+        """
+        raw_text = bp.get("raw_text", "").strip()
+        if not raw_text or len(raw_text) < 30:
+            return False
+
+        # 1. Filter out spam, advertisements, personal links, courses, non-market entertainment
+        promo_markers = [
+            "biggest sale", "diwali sale", "sale of the year", "discount", "offer",
+            "course", "batch", "training", "ad:", "sponsor", "call us", "whatsapp",
+            "dm us", "contact us", "google meet", "zoom.us", "personal view", "my view on",
+            "pinned «", "crypto", "forex", "binary", "lottery", "giveaway", "tiger shroff"
+        ]
+        tl = raw_text.lower()
+        if any(pm in tl for pm in promo_markers):
+            logger.info(f"[FAST-BRIDGE] Skipped non-market/ad post #{bp.get('msg_id')}")
+            return False
+
+        # 2. Clean and format the post
+        text = re.sub(r'@stock_aaj_or_kal\b', '', raw_text, flags=re.I)
+        text = re.sub(r'https?://t\.me/\S+', '', text)
+        text = re.sub(r'\n{3,}', '\n\n', text).strip()
+        
+        # Remove empty bullet lines
+        cleaned_lines = [l.strip() for l in text.splitlines() if l.strip()]
+        text = "\n".join(cleaned_lines).strip()
+
+        if len(text) < 30:
+            return False
+
+        # 3. Deduplication check
+        if self.dedup.is_duplicate(text, source="BENCHMARK_BRIDGE"):
+            logger.debug(f"[FAST-BRIDGE] Story #{bp.get('msg_id')} already present in SQLite dedup.")
+            return False
+
+        # 4. Dispatch immediately to @pahal_investment
+        sent = self.dispatcher.send_message(text, add_origin=True)
+        if sent:
+            self.dedup.record_post(text, source="BENCHMARK_BRIDGE")
+            self.gatekeeper.record_posted(
+                company="MARKET_FLASH",
+                category="BREAKING_WIRE",
+                final_post=text,
+                url=f"https://t.me/stock_aaj_or_kal/{bp.get('msg_id')}",
+                raw_text=raw_text
+            )
+            logger.info(f"[FAST-BRIDGE DISPATCH] Successfully posted breaking story #{bp.get('msg_id')} to @pahal_investment!")
+            return True
+        return False
+
     def run_sentinel_cycle(self) -> dict:
         """Executes a single comprehensive audit & self-healing cycle across both channels."""
         now = datetime.now(IST)
@@ -195,7 +251,8 @@ class SentinelWatchdog:
             "new_our_posts": 0,
             "missed_deltas_flagged": 0,
             "defects_flagged": 0,
-            "self_healed_actions": 0
+            "self_healed_actions": 0,
+            "bridged_dispatches": 0
         }
         
         logger.info("[WATCHDOG] Polling both Telegram channels (@pahal_investment vs @stock_aaj_or_kal)...")
@@ -277,6 +334,11 @@ class SentinelWatchdog:
                     
                     self.self_heal_filter_rules(bp_text)
                     cycle_result["self_healed_actions"] += 1
+                    
+                    # Fast-Bridge Active Dispatch: bridge breaking news directly to our channel!
+                    dispatched = self.bridge_and_dispatch(bp)
+                    if dispatched:
+                        cycle_result["bridged_dispatches"] += 1
                     
                     # Log to continuous audit ledger
                     audit_ledger = self._load_json(self.audit_log_path, {"audit_events": []})
