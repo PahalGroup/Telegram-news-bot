@@ -27,7 +27,14 @@ DROP_PATTERNS = [
     r'disclosure\s+under\s+regulation\s*29\s*\(\s*[12]\s*\)',
     r'regulation\s*29\s*\(\s*[12]\s*\)\s*of\s*sebi',
     r'\bsast\s+regulations?\b',
-    r'please\s+find\s+(?:attach(?:ed)?|enclosed|the\s+same)',
+    r'please\s+find\s+(?:the\s+)?(?:attach(?:ed)?|enclosed|the\s+same|letter)',
+    r'please\s+refer\s+(?:the\s+)?(?:detailed\s+)?(?:disclosure|enclosed|file|attachment)',
+    r'refer\s+(?:the\s+)?(?:enclosed\s+file|detailed\s+disclosure)',
+    r'self\s+explanatory',
+    r'covering\s+letter',
+    r'forwarded\s+herewith',
+    r'we\s+submit\s+herewith',
+    r'copy\s+of\s+letter\s+submitted',
     
     # Newspaper publications, media reports & investor meets transcripts
     r'copy\s+of\s+newspaper\s+publication',
@@ -277,18 +284,23 @@ class FilterEngine:
             return True, 'broker_note'
 
         # 2. Exchange Filings Check
-        if source_type in ('nse_filing', 'bse_filing'):
+        st = (source_type or "").lower()
+        if st in ('nse_filing', 'bse_filing', 'bse', 'nse'):
             # Must match company actions whitelist
             if COMPANY_ACTIONS_REGEX.search(text):
                 return True, 'filing'
             return False, None
 
-        # 3. Wire Check (Macro, Commodities, Currency, FII/DII, RBI)
+        # 3. Regulatory / Official updates (SEBI, RBI, PIB)
+        if st in ('sebi', 'rbi', 'pib'):
+            return True, st
+
+        # 4. Wire Check (Macro, Commodities, Currency, FII/DII, RBI)
         if WIRE_REGEX.search(text):
             # Check if it has flash/wire characteristics
             return True, 'wire'
 
-        # 4. Company News Flash Check (From Mint, Moneycontrol, ET)
+        # 5. Company News Flash Check (From Mint, Moneycontrol, ET)
         if COMPANY_ACTIONS_REGEX.search(text):
             return True, 'flash'
 
