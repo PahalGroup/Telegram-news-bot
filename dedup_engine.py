@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import hashlib
 import re
@@ -10,6 +11,9 @@ class DedupEngine:
         self._init_db()
 
     def _init_db(self):
+        dir_name = os.path.dirname(self.db_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
