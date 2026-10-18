@@ -28889,6 +28889,188 @@
       "benchmark_text": "RELIANCE INDUSTRIES: UNUSUALLY LARGE F&O BETS AHEAD OF JIO IPO: MINT \nTwo clients have built exceptionally large positions in Reliance Industries’ F&O contracts, with their positions exceeding 3% of RIL’s Market-Wide Position Limit (MWPL). Such large positions are considered highly unusual for RIL.\nThe aggressive positioning comes just days before the Jio Platforms IPO, which could become a major value-unlocking event for Reliance. A separate listing for Jio would provide a transparent market valuation for RIL’s largest digital asset and could help reduce the conglomerate discount applied to RIL.",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": "reliance"
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266793,
+      "benchmark_text": "AXIS BANK Q2 CONCALL HIGHLIGHTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "axis"
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266794,
+      "benchmark_text": "Akasa Air extends suspension of all flights to and from Riyadh and Jeddah until October 27 amid the Middle East security situation, offering affected passengers full refunds or free rescheduling.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266797,
+      "benchmark_text": "Trent Ltd – RESIGNATION OF NON-EXECUTIVE DIRECTOR\nResignation of Non-Executive Non-Independent Director:\n- Mr. Harish Bhat has tendered his resignation\n- Resignation effective from 17th October 2026\n- Reason cited: existing and growing professional and personal commitments",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "resignation"
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266798,
+      "benchmark_text": "US President Donald Trump claims immigration has destabilised France, urges the country to close its borders and take control",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266799,
+      "benchmark_text": "JUST IN: Zelensky urges support for new US sanctions on Russia",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "just"
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266800,
+      "benchmark_text": "NESTLE ON FSSAI CRACKDOWN\nFSSAI Has Sent Communication Concerning Label Declarations, Classification of Nescafe Ready To Drink Products\nCommunication Does Not Relate To Product Safety Or Product Quality\nMentioned Products Are Safe To Consume And Meet All Applicable Food Safety Requirements\nWe Will Be Submitting Our Response And Will Be Engaging With Authorities",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "nestle"
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266801,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident\n- 3 unidentified people open fire at Tiger Shroff\n- Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:35:44.438143+05:30",
+      "benchmark_msg_id": 266802,
+      "benchmark_text": "RELIANCE INDUSTRIES: UNUSUALLY LARGE F&O BETS AHEAD OF JIO IPO: MINT \nTwo clients have built exceptionally large positions in Reliance Industries’ F&O contracts, with their positions exceeding 3% of RIL’s Market-Wide Position Limit (MWPL). Such large positions are considered highly unusual for RIL.\nThe aggressive positioning comes just days before the Jio Platforms IPO, which could become a major value-unlocking event for Reliance. A separate listing for Jio would provide a transparent market valuation for RIL’s largest digital asset and could help reduce the conglomerate discount applied to RIL.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "reliance"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.957232+05:30",
+      "benchmark_msg_id": 266793,
+      "benchmark_text": "AXIS BANK Q2 CONCALL HIGHLIGHTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "axis"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.957232+05:30",
+      "benchmark_msg_id": 266794,
+      "benchmark_text": "Akasa Air extends suspension of all flights to and from Riyadh and Jeddah until October 27 amid the Middle East security situation, offering affected passengers full refunds or free rescheduling.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.957232+05:30",
+      "benchmark_msg_id": 266797,
+      "benchmark_text": "Trent Ltd – RESIGNATION OF NON-EXECUTIVE DIRECTOR\nResignation of Non-Executive Non-Independent Director:\n- Mr. Harish Bhat has tendered his resignation\n- Resignation effective from 17th October 2026\n- Reason cited: existing and growing professional and personal commitments",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "resignation"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266798,
+      "benchmark_text": "US President Donald Trump claims immigration has destabilised France, urges the country to close its borders and take control",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266799,
+      "benchmark_text": "JUST IN: Zelensky urges support for new US sanctions on Russia",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "just"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266800,
+      "benchmark_text": "NESTLE ON FSSAI CRACKDOWN\nFSSAI Has Sent Communication Concerning Label Declarations, Classification of Nescafe Ready To Drink Products\nCommunication Does Not Relate To Product Safety Or Product Quality\nMentioned Products Are Safe To Consume And Meet All Applicable Food Safety Requirements\nWe Will Be Submitting Our Response And Will Be Engaging With Authorities",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "nestle"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266801,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident\n- 3 unidentified people open fire at Tiger Shroff\n- Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266802,
+      "benchmark_text": "RELIANCE INDUSTRIES: UNUSUALLY LARGE F&O BETS AHEAD OF JIO IPO: MINT \nTwo clients have built exceptionally large positions in Reliance Industries’ F&O contracts, with their positions exceeding 3% of RIL’s Market-Wide Position Limit (MWPL). Such large positions are considered highly unusual for RIL.\nThe aggressive positioning comes just days before the Jio Platforms IPO, which could become a major value-unlocking event for Reliance. A separate listing for Jio would provide a transparent market valuation for RIL’s largest digital asset and could help reduce the conglomerate discount applied to RIL.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "reliance"
+    },
+    {
+      "timestamp": "2026-10-18T21:41:20.965692+05:30",
+      "benchmark_msg_id": 266803,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident  - 3 unidentified people open fire at Tiger Shroff  - Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.894595+05:30",
+      "benchmark_msg_id": 266793,
+      "benchmark_text": "AXIS BANK Q2 CONCALL HIGHLIGHTS",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "axis"
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.894595+05:30",
+      "benchmark_msg_id": 266794,
+      "benchmark_text": "Akasa Air extends suspension of all flights to and from Riyadh and Jeddah until October 27 amid the Middle East security situation, offering affected passengers full refunds or free rescheduling.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.894595+05:30",
+      "benchmark_msg_id": 266797,
+      "benchmark_text": "Trent Ltd – RESIGNATION OF NON-EXECUTIVE DIRECTOR\nResignation of Non-Executive Non-Independent Director:\n- Mr. Harish Bhat has tendered his resignation\n- Resignation effective from 17th October 2026\n- Reason cited: existing and growing professional and personal commitments",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "resignation"
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.894595+05:30",
+      "benchmark_msg_id": 266798,
+      "benchmark_text": "US President Donald Trump claims immigration has destabilised France, urges the country to close its borders and take control",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.896605+05:30",
+      "benchmark_msg_id": 266799,
+      "benchmark_text": "JUST IN: Zelensky urges support for new US sanctions on Russia",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "just"
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.896605+05:30",
+      "benchmark_msg_id": 266800,
+      "benchmark_text": "NESTLE ON FSSAI CRACKDOWN\nFSSAI Has Sent Communication Concerning Label Declarations, Classification of Nescafe Ready To Drink Products\nCommunication Does Not Relate To Product Safety Or Product Quality\nMentioned Products Are Safe To Consume And Meet All Applicable Food Safety Requirements\nWe Will Be Submitting Our Response And Will Be Engaging With Authorities",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "nestle"
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.896605+05:30",
+      "benchmark_msg_id": 266801,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident\n- 3 unidentified people open fire at Tiger Shroff\n- Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.896605+05:30",
+      "benchmark_msg_id": 266802,
+      "benchmark_text": "RELIANCE INDUSTRIES: UNUSUALLY LARGE F&O BETS AHEAD OF JIO IPO: MINT \nTwo clients have built exceptionally large positions in Reliance Industries’ F&O contracts, with their positions exceeding 3% of RIL’s Market-Wide Position Limit (MWPL). Such large positions are considered highly unusual for RIL.\nThe aggressive positioning comes just days before the Jio Platforms IPO, which could become a major value-unlocking event for Reliance. A separate listing for Jio would provide a transparent market valuation for RIL’s largest digital asset and could help reduce the conglomerate discount applied to RIL.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "reliance"
+    },
+    {
+      "timestamp": "2026-10-18T21:46:45.896605+05:30",
+      "benchmark_msg_id": 266803,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident  - 3 unidentified people open fire at Tiger Shroff  - Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
     }
   ]
 }
