@@ -74,8 +74,9 @@ class TelegramDispatcher:
                 r = self.session.post(url, json=payload, timeout=10)
                 res = r.json()
                 if res.get("ok"):
-                    logger.info(f"Dispatched to Telegram: {formatted_text[:60]}...")
-                    return True
+                    msg_id = res.get("result", {}).get("message_id")
+                    logger.info(f"Dispatched to Telegram [ID {msg_id}]: {formatted_text[:60]}...")
+                    return msg_id or True
                 else:
                     logger.error(f"Telegram API Error: {res}")
                     if res.get("error_code") == 400 and "parse" in res.get("description", "").lower():
@@ -84,8 +85,10 @@ class TelegramDispatcher:
                         payload.pop("parse_mode", None)
                         payload["text"] = text
                         r_plain = self.session.post(url, json=payload, timeout=10)
-                        if r_plain.json().get("ok"):
-                            return True
+                        plain_res = r_plain.json()
+                        if plain_res.get("ok"):
+                            msg_id = plain_res.get("result", {}).get("message_id")
+                            return msg_id or True
                     if res.get("error_code") == 429: # Rate limit
                         retry_after = res.get("parameters", {}).get("retry_after", 3)
                         time.sleep(retry_after)
@@ -96,6 +99,30 @@ class TelegramDispatcher:
                 time.sleep(2)
 
         return False
+
+    def delete_message(self, message_id: int) -> bool:
+        """Deletes a message from the Telegram channel."""
+        if not self.is_live:
+            return False
+
+        url = f"https://api.telegram.org/bot{self.bot_token}/deleteMessage"
+        payload = {
+            "chat_id": self.channel_id,
+            "message_id": message_id
+        }
+
+        try:
+            r = self.session.post(url, json=payload, timeout=10)
+            res = r.json()
+            if res.get("ok"):
+                logger.info(f"Deleted message {message_id} from channel.")
+                return True
+            else:
+                logger.warning(f"Failed to delete message {message_id}: {res}")
+                return False
+        except Exception as e:
+            logger.error(f"Error deleting message {message_id}: {e}")
+            return False
 
     def edit_message(self, message_id: int, text: str) -> bool:
         """Edits an existing message in-place on the Telegram channel."""
