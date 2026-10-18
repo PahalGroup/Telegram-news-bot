@@ -37,7 +37,7 @@ class TelegramDispatcher:
         formatted = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
         return formatted
 
-    def send_message(self, text: str, parse_mode: Optional[str] = "HTML", add_origin: bool = False) -> bool:
+    def send_message(self, text: str, parse_mode: Optional[str] = "HTML", add_origin: bool = True) -> bool:
         """
         Dispatches a message to the Telegram channel.
         Rule: One new headline is one post.
