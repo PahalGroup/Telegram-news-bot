@@ -24,6 +24,7 @@ from scrapers.sebi_scraper import SEBIScraper
 from scrapers.live_quote_wire import LiveQuoteWire
 from scripts.quality_gatekeeper import QualityGatekeeper
 from scripts.live_delta_monitor import LiveDeltaMonitor
+from scripts.sentinel_watchdog import SentinelWatchdog
 from scripts.morning_briefing import MorningBriefingEngine
 from telegram_dispatcher import TelegramDispatcher
 
@@ -64,6 +65,7 @@ class MarketWireEngine:
         self.wire = LiveQuoteWire()
         self.gatekeeper = QualityGatekeeper()
         self.delta_monitor = LiveDeltaMonitor()
+        self.sentinel = SentinelWatchdog()
         self.morning_briefing = MorningBriefingEngine()
         self.dispatcher = TelegramDispatcher()
 
@@ -145,7 +147,12 @@ class MarketWireEngine:
             else:
                 logger.debug(f"[Gatekeeper Skipped] {item.get('company')}: {audit_meta.get('reason', 'Duplicate or ungrounded')}")
                 
-        # Run Live Delta Monitor pass to audit against benchmark channel
+        # Run Live Sentinel Watchdog & Delta Monitor to audit against benchmark channel
+        try:
+            self.sentinel.run_sentinel_cycle()
+        except Exception as e:
+            logger.warning(f"[SentinelWatchdog Error]: {e}")
+
         try:
             self.delta_monitor.run_monitor_cycle()
         except Exception as e:
