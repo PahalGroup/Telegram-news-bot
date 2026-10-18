@@ -20762,6 +20762,216 @@
       "benchmark_text": "Amber Enterprises India Ltd – SHARE SWAP AGREEMENT FOR WHOLLY OWNED SUBSIDIARY\nMaterial subsidiary IL JIN Electronics (India) Limited enters share swap agreement to acquire remaining stake in Ascent Circuits Private Limited:\n- IL JIN to acquire 23,401 equity shares (1.50% stake) of Ascent Circuits\n- Acquisition via issuance of 13,120 Compulsorily Convertible Preference Shares (CCPS A2)\n- CCPS A2 issued at INR 10,000 per share (Face value INR 10 plus INR 9,990 premium)\n- Transaction results in Ascent Circuits becoming a 100% wholly-owned subsidiary of IL JIN\n- Ascent Circuits FY25-26 turnover reported at INR 401.87 Cr\n- Ascent Circuits FY24-25 turnover reported at INR 325.17 Cr",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": "share"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.081502+05:30",
+      "benchmark_msg_id": 266775,
+      "benchmark_text": "⚡\n URBAN COMPANY — INSTAHELP UPDATE  • Orders: 6.23 Million (+63% QoQ).  • Loss per Order reduced 19% QoQ to ₹279 from ₹346.  • Around 45% of new users in InstaHelp micro-markets are coming through the platform.  • Management says current losses are deliberate…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.086922+05:30",
+      "benchmark_msg_id": 266776,
+      "benchmark_text": "💰\n URBAN COMPANY — PROFITABILITY & GUIDANCE  \n📈\n PROFITABILITY • Consolidated Adjusted EBITDA Breakeven Target: Q3 FY28.  • FY31 Adjusted EBITDA Target: ₹1,000 Cr.  • Management expects operating leverage across Core, International and Native to drive profitability.…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.093026+05:30",
+      "benchmark_msg_id": 266777,
+      "benchmark_text": "🏠\n CAN FIN HOMES — Q2 FY27 CONCALL HIGHLIGHTS\n📊\n BUSINESS UPDATE\n• Q2 Disbursements: ₹2,375 Cr, net of cancellations as per NHB reporting guidelines.\n• FY27 Disbursement Target: ₹13,000 Cr.\n• FY27 AUM Growth Guidance: 13–14%, closer to 14%.\n• Q3 Disbursement Target: ~₹3,500 Cr.\n• FY28 Disbursement Plan: ~₹16,000 Cr.\n• FY28 AUM Growth Target: 15%+, closer to 15.5%.\n⚠️\n Q2 operations were temporarily disrupted by the core-system migration, Project Tejas, rather than weak underlying demand.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.093026+05:30",
+      "benchmark_msg_id": 266778,
+      "benchmark_text": "💻\n CAN FIN HOMES — PROJECT TEJAS UPDATE\n• Core-system migration across all branches completed, with full rollout effective October 1.\n• Disbursements at branches during migration fell around 70–75%, followed by recovery to 80–90% of the previous run rate the next month.\n• Automation is expected to improve digital sourcing, customer journeys and operational efficiency.\n• Around 129 employees deployed in migration, testing and training are being redeployed to business and support functions.\n• 25 of the 28 planned FY27 branches are already operational.\n• Sales team to expand from around 90 to 150 people.\n🎯\n FY27 Sales-Team Disbursement Target: ₹1,500–1,600 Cr.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.093026+05:30",
+      "benchmark_msg_id": 266779,
+      "benchmark_text": "💰\n CAN FIN HOMES — MARGINS & FUNDING\n• Spread Guidance: 2.75%+.\n• NIM Guidance: 3.75%+.\n• Current Operating Range: ~2.8% spread and ~3.8% NIM.\n• Housing Loan Rates: Increased by 10 bps, effective October 8.\n• Around 65% of liabilities are floating-rate, making funding costs sensitive to policy-rate changes.\n🏦\n FUNDING UPDATE\n• NHB Refinance Sanction: ₹1,350 Cr.\n• Expected Blended Funding Cost: ~6.6–6.7%.\n• Available Undrawn Sanctions: ~₹2,500 Cr.\n• Management is prioritising cost-effective borrowings over relatively expensive NCDs.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.093026+05:30",
+      "benchmark_msg_id": 266780,
+      "benchmark_text": "🟢\n CAN FIN HOMES — ASSET QUALITY UPDATE\n• Q2 Prepayments: ₹1,795 Cr vs ₹1,857 Cr in Q1.\n• Credit Cost Guidance: ~10 bps.\n• Q2 Credit Cost Run Rate: ~9 bps.\n• H1 GNPA Increase: ₹35 Cr vs ₹40 Cr in the previous year.\n• Management expects GNPA to improve in H2, potentially easing provisioning pressure.\n📌\n PREPAYMENT TREND\nMonthly prepayments declined from ₹655 Cr in July to below ₹600 Cr in both August and September.\nManagement believes narrowing differences in lending rates could support better customer retention.\n⚠️\n A slight rise in SMA-0 was attributed partly to the new system's daily overdue-recognition method.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.097296+05:30",
+      "benchmark_msg_id": 266781,
+      "benchmark_text": "🎯\n CAN FIN HOMES — MANAGEMENT OUTLOOK\n• FY27 Disbursements: ₹13,000 Cr — guidance maintained.\n• FY27 AUM Growth: 13–14%.\n• FY28 Disbursements: ~₹16,000 Cr.\n• FY28 AUM Growth: 15%+, with a target closer to 15.5%.\n• Project Tejas is expected to support productivity and business growth in coming quarters.\n• Insurance commission changes are expected to have a limited earnings impact, according to management.\n📌\n KEY TAKEAWAY\nCan Fin Homes sees Q2 as a temporary operational setback due to its technology migration. Management has maintained FY27 growth guidance, with recovery in disbursements, branch productivity and lower prepayments being key monitorables in H2.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.097296+05:30",
+      "benchmark_msg_id": 266782,
+      "benchmark_text": "CHAIRMAN NOEL TATA TATA TRUSTS FY26 ANNUAL REPORT\nTata Trusts guided by a simple idea: to do what India needs.\nOur founders did not set out to build the largest group of companies.\nFounders believed enterprise carried a social responsibility.\nTrue progress meant improving people's quality of life.\nThere are moments an institution must relook its own role.\nNeed more institutions in India capable of nurturing talent.\nGiving young people opportunities without having to look elsewhere.\nMay seek partnerships with philanthropies, like-minded organizations.\nContinue to support families facing medical crises.\nStrengthening distributed cancer care to bring it closer to home.\nBuilding a nationwide network of 40-50 not-for-profit general hospitals.\nModel that allows those who can afford to pay for care help make quality treatment accessible to those who cannot.\nMeasure philanthropy by impact, not reach or spending.\nMust be able to show, in meaningful and measurable terms.\nRemain conscious every rupee entrusted to us carries a responsibility.\nTata Trusts disbursed ₹1,556.31 crore ($167.35 million) in FY26.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "chairman"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.099536+05:30",
+      "benchmark_msg_id": 266783,
+      "benchmark_text": "⚠️\n DODLA DAIRY: FSSAI MATTER CLARIFICATION\n• Dodla Dairy clarified media reports regarding an FSSAI regulatory matter involving its Batlagundu plant.\n• Initial lab report found milk substandard on fat content; detergent and neutralisers were reported absent.\n• Referral lab later classified the sample as unsafe and substandard, reporting detergent/caustic soda.\n• Company highlighted discrepancies between the two lab reports, including adulterant findings.\n• Referral analysis took place around two months after the sample’s best-before date.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "dodla"
+    },
+    {
+      "timestamp": "2026-10-18T16:20:50.100705+05:30",
+      "benchmark_msg_id": 266784,
+      "benchmark_text": "Amber Enterprises India Ltd – SHARE SWAP AGREEMENT FOR WHOLLY OWNED SUBSIDIARY\nMaterial subsidiary IL JIN Electronics (India) Limited enters share swap agreement to acquire remaining stake in Ascent Circuits Private Limited:\n- IL JIN to acquire 23,401 equity shares (1.50% stake) of Ascent Circuits\n- Acquisition via issuance of 13,120 Compulsorily Convertible Preference Shares (CCPS A2)\n- CCPS A2 issued at INR 10,000 per share (Face value INR 10 plus INR 9,990 premium)\n- Transaction results in Ascent Circuits becoming a 100% wholly-owned subsidiary of IL JIN\n- Ascent Circuits FY25-26 turnover reported at INR 401.87 Cr\n- Ascent Circuits FY24-25 turnover reported at INR 325.17 Cr",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "share"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.336654+05:30",
+      "benchmark_msg_id": 266775,
+      "benchmark_text": "⚡\n URBAN COMPANY — INSTAHELP UPDATE  • Orders: 6.23 Million (+63% QoQ).  • Loss per Order reduced 19% QoQ to ₹279 from ₹346.  • Around 45% of new users in InstaHelp micro-markets are coming through the platform.  • Management says current losses are deliberate…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.336654+05:30",
+      "benchmark_msg_id": 266776,
+      "benchmark_text": "💰\n URBAN COMPANY — PROFITABILITY & GUIDANCE  \n📈\n PROFITABILITY • Consolidated Adjusted EBITDA Breakeven Target: Q3 FY28.  • FY31 Adjusted EBITDA Target: ₹1,000 Cr.  • Management expects operating leverage across Core, International and Native to drive profitability.…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.338494+05:30",
+      "benchmark_msg_id": 266777,
+      "benchmark_text": "🏠\n CAN FIN HOMES — Q2 FY27 CONCALL HIGHLIGHTS\n📊\n BUSINESS UPDATE\n• Q2 Disbursements: ₹2,375 Cr, net of cancellations as per NHB reporting guidelines.\n• FY27 Disbursement Target: ₹13,000 Cr.\n• FY27 AUM Growth Guidance: 13–14%, closer to 14%.\n• Q3 Disbursement Target: ~₹3,500 Cr.\n• FY28 Disbursement Plan: ~₹16,000 Cr.\n• FY28 AUM Growth Target: 15%+, closer to 15.5%.\n⚠️\n Q2 operations were temporarily disrupted by the core-system migration, Project Tejas, rather than weak underlying demand.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.339514+05:30",
+      "benchmark_msg_id": 266778,
+      "benchmark_text": "💻\n CAN FIN HOMES — PROJECT TEJAS UPDATE\n• Core-system migration across all branches completed, with full rollout effective October 1.\n• Disbursements at branches during migration fell around 70–75%, followed by recovery to 80–90% of the previous run rate the next month.\n• Automation is expected to improve digital sourcing, customer journeys and operational efficiency.\n• Around 129 employees deployed in migration, testing and training are being redeployed to business and support functions.\n• 25 of the 28 planned FY27 branches are already operational.\n• Sales team to expand from around 90 to 150 people.\n🎯\n FY27 Sales-Team Disbursement Target: ₹1,500–1,600 Cr.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.339514+05:30",
+      "benchmark_msg_id": 266779,
+      "benchmark_text": "💰\n CAN FIN HOMES — MARGINS & FUNDING\n• Spread Guidance: 2.75%+.\n• NIM Guidance: 3.75%+.\n• Current Operating Range: ~2.8% spread and ~3.8% NIM.\n• Housing Loan Rates: Increased by 10 bps, effective October 8.\n• Around 65% of liabilities are floating-rate, making funding costs sensitive to policy-rate changes.\n🏦\n FUNDING UPDATE\n• NHB Refinance Sanction: ₹1,350 Cr.\n• Expected Blended Funding Cost: ~6.6–6.7%.\n• Available Undrawn Sanctions: ~₹2,500 Cr.\n• Management is prioritising cost-effective borrowings over relatively expensive NCDs.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.341583+05:30",
+      "benchmark_msg_id": 266780,
+      "benchmark_text": "🟢\n CAN FIN HOMES — ASSET QUALITY UPDATE\n• Q2 Prepayments: ₹1,795 Cr vs ₹1,857 Cr in Q1.\n• Credit Cost Guidance: ~10 bps.\n• Q2 Credit Cost Run Rate: ~9 bps.\n• H1 GNPA Increase: ₹35 Cr vs ₹40 Cr in the previous year.\n• Management expects GNPA to improve in H2, potentially easing provisioning pressure.\n📌\n PREPAYMENT TREND\nMonthly prepayments declined from ₹655 Cr in July to below ₹600 Cr in both August and September.\nManagement believes narrowing differences in lending rates could support better customer retention.\n⚠️\n A slight rise in SMA-0 was attributed partly to the new system's daily overdue-recognition method.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.341583+05:30",
+      "benchmark_msg_id": 266781,
+      "benchmark_text": "🎯\n CAN FIN HOMES — MANAGEMENT OUTLOOK\n• FY27 Disbursements: ₹13,000 Cr — guidance maintained.\n• FY27 AUM Growth: 13–14%.\n• FY28 Disbursements: ~₹16,000 Cr.\n• FY28 AUM Growth: 15%+, with a target closer to 15.5%.\n• Project Tejas is expected to support productivity and business growth in coming quarters.\n• Insurance commission changes are expected to have a limited earnings impact, according to management.\n📌\n KEY TAKEAWAY\nCan Fin Homes sees Q2 as a temporary operational setback due to its technology migration. Management has maintained FY27 growth guidance, with recovery in disbursements, branch productivity and lower prepayments being key monitorables in H2.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.345227+05:30",
+      "benchmark_msg_id": 266782,
+      "benchmark_text": "CHAIRMAN NOEL TATA TATA TRUSTS FY26 ANNUAL REPORT\nTata Trusts guided by a simple idea: to do what India needs.\nOur founders did not set out to build the largest group of companies.\nFounders believed enterprise carried a social responsibility.\nTrue progress meant improving people's quality of life.\nThere are moments an institution must relook its own role.\nNeed more institutions in India capable of nurturing talent.\nGiving young people opportunities without having to look elsewhere.\nMay seek partnerships with philanthropies, like-minded organizations.\nContinue to support families facing medical crises.\nStrengthening distributed cancer care to bring it closer to home.\nBuilding a nationwide network of 40-50 not-for-profit general hospitals.\nModel that allows those who can afford to pay for care help make quality treatment accessible to those who cannot.\nMeasure philanthropy by impact, not reach or spending.\nMust be able to show, in meaningful and measurable terms.\nRemain conscious every rupee entrusted to us carries a responsibility.\nTata Trusts disbursed ₹1,556.31 crore ($167.35 million) in FY26.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "chairman"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.345227+05:30",
+      "benchmark_msg_id": 266783,
+      "benchmark_text": "⚠️\n DODLA DAIRY: FSSAI MATTER CLARIFICATION\n• Dodla Dairy clarified media reports regarding an FSSAI regulatory matter involving its Batlagundu plant.\n• Initial lab report found milk substandard on fat content; detergent and neutralisers were reported absent.\n• Referral lab later classified the sample as unsafe and substandard, reporting detergent/caustic soda.\n• Company highlighted discrepancies between the two lab reports, including adulterant findings.\n• Referral analysis took place around two months after the sample’s best-before date.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "dodla"
+    },
+    {
+      "timestamp": "2026-10-18T16:21:48.346984+05:30",
+      "benchmark_msg_id": 266784,
+      "benchmark_text": "Amber Enterprises India Ltd – SHARE SWAP AGREEMENT FOR WHOLLY OWNED SUBSIDIARY\nMaterial subsidiary IL JIN Electronics (India) Limited enters share swap agreement to acquire remaining stake in Ascent Circuits Private Limited:\n- IL JIN to acquire 23,401 equity shares (1.50% stake) of Ascent Circuits\n- Acquisition via issuance of 13,120 Compulsorily Convertible Preference Shares (CCPS A2)\n- CCPS A2 issued at INR 10,000 per share (Face value INR 10 plus INR 9,990 premium)\n- Transaction results in Ascent Circuits becoming a 100% wholly-owned subsidiary of IL JIN\n- Ascent Circuits FY25-26 turnover reported at INR 401.87 Cr\n- Ascent Circuits FY24-25 turnover reported at INR 325.17 Cr",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "share"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.327334+05:30",
+      "benchmark_msg_id": 266775,
+      "benchmark_text": "⚡\n URBAN COMPANY — INSTAHELP UPDATE  • Orders: 6.23 Million (+63% QoQ).  • Loss per Order reduced 19% QoQ to ₹279 from ₹346.  • Around 45% of new users in InstaHelp micro-markets are coming through the platform.  • Management says current losses are deliberate…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.328343+05:30",
+      "benchmark_msg_id": 266776,
+      "benchmark_text": "💰\n URBAN COMPANY — PROFITABILITY & GUIDANCE  \n📈\n PROFITABILITY • Consolidated Adjusted EBITDA Breakeven Target: Q3 FY28.  • FY31 Adjusted EBITDA Target: ₹1,000 Cr.  • Management expects operating leverage across Core, International and Native to drive profitability.…",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "urban"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.328343+05:30",
+      "benchmark_msg_id": 266777,
+      "benchmark_text": "🏠\n CAN FIN HOMES — Q2 FY27 CONCALL HIGHLIGHTS\n📊\n BUSINESS UPDATE\n• Q2 Disbursements: ₹2,375 Cr, net of cancellations as per NHB reporting guidelines.\n• FY27 Disbursement Target: ₹13,000 Cr.\n• FY27 AUM Growth Guidance: 13–14%, closer to 14%.\n• Q3 Disbursement Target: ~₹3,500 Cr.\n• FY28 Disbursement Plan: ~₹16,000 Cr.\n• FY28 AUM Growth Target: 15%+, closer to 15.5%.\n⚠️\n Q2 operations were temporarily disrupted by the core-system migration, Project Tejas, rather than weak underlying demand.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.328343+05:30",
+      "benchmark_msg_id": 266778,
+      "benchmark_text": "💻\n CAN FIN HOMES — PROJECT TEJAS UPDATE\n• Core-system migration across all branches completed, with full rollout effective October 1.\n• Disbursements at branches during migration fell around 70–75%, followed by recovery to 80–90% of the previous run rate the next month.\n• Automation is expected to improve digital sourcing, customer journeys and operational efficiency.\n• Around 129 employees deployed in migration, testing and training are being redeployed to business and support functions.\n• 25 of the 28 planned FY27 branches are already operational.\n• Sales team to expand from around 90 to 150 people.\n🎯\n FY27 Sales-Team Disbursement Target: ₹1,500–1,600 Cr.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.330843+05:30",
+      "benchmark_msg_id": 266779,
+      "benchmark_text": "💰\n CAN FIN HOMES — MARGINS & FUNDING\n• Spread Guidance: 2.75%+.\n• NIM Guidance: 3.75%+.\n• Current Operating Range: ~2.8% spread and ~3.8% NIM.\n• Housing Loan Rates: Increased by 10 bps, effective October 8.\n• Around 65% of liabilities are floating-rate, making funding costs sensitive to policy-rate changes.\n🏦\n FUNDING UPDATE\n• NHB Refinance Sanction: ₹1,350 Cr.\n• Expected Blended Funding Cost: ~6.6–6.7%.\n• Available Undrawn Sanctions: ~₹2,500 Cr.\n• Management is prioritising cost-effective borrowings over relatively expensive NCDs.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.332629+05:30",
+      "benchmark_msg_id": 266780,
+      "benchmark_text": "🟢\n CAN FIN HOMES — ASSET QUALITY UPDATE\n• Q2 Prepayments: ₹1,795 Cr vs ₹1,857 Cr in Q1.\n• Credit Cost Guidance: ~10 bps.\n• Q2 Credit Cost Run Rate: ~9 bps.\n• H1 GNPA Increase: ₹35 Cr vs ₹40 Cr in the previous year.\n• Management expects GNPA to improve in H2, potentially easing provisioning pressure.\n📌\n PREPAYMENT TREND\nMonthly prepayments declined from ₹655 Cr in July to below ₹600 Cr in both August and September.\nManagement believes narrowing differences in lending rates could support better customer retention.\n⚠️\n A slight rise in SMA-0 was attributed partly to the new system's daily overdue-recognition method.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.332629+05:30",
+      "benchmark_msg_id": 266781,
+      "benchmark_text": "🎯\n CAN FIN HOMES — MANAGEMENT OUTLOOK\n• FY27 Disbursements: ₹13,000 Cr — guidance maintained.\n• FY27 AUM Growth: 13–14%.\n• FY28 Disbursements: ~₹16,000 Cr.\n• FY28 AUM Growth: 15%+, with a target closer to 15.5%.\n• Project Tejas is expected to support productivity and business growth in coming quarters.\n• Insurance commission changes are expected to have a limited earnings impact, according to management.\n📌\n KEY TAKEAWAY\nCan Fin Homes sees Q2 as a temporary operational setback due to its technology migration. Management has maintained FY27 growth guidance, with recovery in disbursements, branch productivity and lower prepayments being key monitorables in H2.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "can"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.335382+05:30",
+      "benchmark_msg_id": 266782,
+      "benchmark_text": "CHAIRMAN NOEL TATA TATA TRUSTS FY26 ANNUAL REPORT\nTata Trusts guided by a simple idea: to do what India needs.\nOur founders did not set out to build the largest group of companies.\nFounders believed enterprise carried a social responsibility.\nTrue progress meant improving people's quality of life.\nThere are moments an institution must relook its own role.\nNeed more institutions in India capable of nurturing talent.\nGiving young people opportunities without having to look elsewhere.\nMay seek partnerships with philanthropies, like-minded organizations.\nContinue to support families facing medical crises.\nStrengthening distributed cancer care to bring it closer to home.\nBuilding a nationwide network of 40-50 not-for-profit general hospitals.\nModel that allows those who can afford to pay for care help make quality treatment accessible to those who cannot.\nMeasure philanthropy by impact, not reach or spending.\nMust be able to show, in meaningful and measurable terms.\nRemain conscious every rupee entrusted to us carries a responsibility.\nTata Trusts disbursed ₹1,556.31 crore ($167.35 million) in FY26.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "chairman"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.337394+05:30",
+      "benchmark_msg_id": 266783,
+      "benchmark_text": "⚠️\n DODLA DAIRY: FSSAI MATTER CLARIFICATION\n• Dodla Dairy clarified media reports regarding an FSSAI regulatory matter involving its Batlagundu plant.\n• Initial lab report found milk substandard on fat content; detergent and neutralisers were reported absent.\n• Referral lab later classified the sample as unsafe and substandard, reporting detergent/caustic soda.\n• Company highlighted discrepancies between the two lab reports, including adulterant findings.\n• Referral analysis took place around two months after the sample’s best-before date.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "dodla"
+    },
+    {
+      "timestamp": "2026-10-18T16:22:32.337394+05:30",
+      "benchmark_msg_id": 266784,
+      "benchmark_text": "Amber Enterprises India Ltd – SHARE SWAP AGREEMENT FOR WHOLLY OWNED SUBSIDIARY\nMaterial subsidiary IL JIN Electronics (India) Limited enters share swap agreement to acquire remaining stake in Ascent Circuits Private Limited:\n- IL JIN to acquire 23,401 equity shares (1.50% stake) of Ascent Circuits\n- Acquisition via issuance of 13,120 Compulsorily Convertible Preference Shares (CCPS A2)\n- CCPS A2 issued at INR 10,000 per share (Face value INR 10 plus INR 9,990 premium)\n- Transaction results in Ascent Circuits becoming a 100% wholly-owned subsidiary of IL JIN\n- Ascent Circuits FY25-26 turnover reported at INR 401.87 Cr\n- Ascent Circuits FY24-25 turnover reported at INR 325.17 Cr",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "share"
     }
   ]
 }
