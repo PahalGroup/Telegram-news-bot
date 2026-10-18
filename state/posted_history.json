@@ -2,71 +2,6 @@
   "last_updated": "2026-10-17T11:15:00+05:30",
   "posts": [
     {
-      "timestamp": "2026-10-17T19:51:13.829920+05:30",
-      "company": "Cupid Breweries And Distilleries Ltd",
-      "category": "BSE",
-      "numbers": [
-        "17",
-        "2026",
-        "17",
-        "2026"
-      ],
-      "headline": "📢 <b>CUPID BREWERIES AND DISTILLERIES LTD</b> — The Board of Director of the Company at their meeting held on Saturday, October 17, 2026 have approv",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/77655104-dbde-4053-a170-ad2862330e3b.pdf"
-    },
-    {
-      "timestamp": "2026-10-17T19:51:14.253366+05:30",
-      "company": "Yes Bank Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30",
-        "30",
-        "2015"
-      ],
-      "headline": "📢 <b>YES BANK LTD</b> — Disclosure under Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7ecea185-4291-4dd8-8df7-129ffe44f458.pdf"
-    },
-    {
-      "timestamp": "2026-10-17T19:51:14.641136+05:30",
-      "company": "Kross Ltd",
-      "category": "BSE",
-      "numbers": [
-        "2",
-        "1",
-        "2027",
-        "2",
-        "1",
-        "2027"
-      ],
-      "headline": "📢 <b>KROSS LTD</b> — Q2 & H1 FY 2027 - Press Release",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/402d34a0-4eed-4858-8427-cd75b3dee22e.pdf"
-    },
-    {
-      "timestamp": "2026-10-17T19:51:15.006394+05:30",
-      "company": "Bampsl Securities Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30",
-        "2026",
-        "30",
-        "2026"
-      ],
-      "headline": "📢 <b>BAMPSL SECURITIES LTD</b> — certificate by RTA for the quarter ended 30 september 2026",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/3856775d-61f4-4f18-987e-93ee6f994f78.pdf"
-    },
-    {
-      "timestamp": "2026-10-17T19:51:15.370118+05:30",
-      "company": "Rossari Biotech Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30",
-        "30",
-        "2015"
-      ],
-      "headline": "📢 <b>ROSSARI BIOTECH LTD</b> — Intimation under Regulation 30 of SEBI (Listing Obligations and Disclosure Requirements) Regulations",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9df6e753-4dae-4413-878a-b290944a8f5a.pdf"
-    },
-    {
       "timestamp": "2026-10-18T12:23:44.330312+05:30",
       "company": "ZEN Technologies Ltd",
       "category": "BSE",
@@ -425,6 +360,26 @@
       "headline": "📢 <b>TRENT LTD</b> — Intimation of resignation of Non-Executive Non-Independent Director of the Company",
       "norm_headline": "trent ltd intimation of resignation of non executive non independent director of the company trent ltd intimation of resignation of non executive non independent director of the company",
       "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5f2619df-b01f-4905-978f-00de8477b2f8.pdf"
+    },
+    {
+      "timestamp": "2026-10-18T21:49:20.375921+05:30",
+      "company": "Ritco Logistics Ltd",
+      "category": "BSE",
+      "numbers": [
+        "25"
+      ],
+      "headline": "📢 <b>RITCO LOGISTICS LTD</b> — Outcome of the 25th Annual General Meeting (''AGM'') of Ritco Logistics Limited with Clarification",
+      "norm_headline": "ritco logistics ltd outcome of the 25th annual general meeting agm of ritco logistics limited with clarification ritco logistics ltd outcome of the 25th annual general meeting agm of ritco logistics limited with c",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/022d484a-ab96-404d-9b2a-376c96a350ce.pdf"
+    },
+    {
+      "timestamp": "2026-10-18T21:49:20.971246+05:30",
+      "company": "Choksi Laboratories Ltd",
+      "category": "BSE",
+      "numbers": [],
+      "headline": "📢 <b>CHOKSI LABORATORIES LTD</b> — Summary of proceedings of EGM enclosed herewith",
+      "norm_headline": "choksi laboratories ltd summary of proceedings of egm enclosed herewith choksi laboratories ltd summary of proceedings of egm enclosed herewith corporate office central lab",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dca9f2b7-993d-49e2-ad71-e25789b91ca1.pdf"
     }
   ]
 }
