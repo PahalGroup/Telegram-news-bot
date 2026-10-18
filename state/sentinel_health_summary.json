@@ -1,16 +1,16 @@
 {
-  "last_audit_time_ist": "2026-10-18 16:22:24 IST",
+  "last_audit_time_ist": "2026-10-18 21:30:33 IST",
   "status": "HEALTHY_AND_MONITORING",
   "channels": {
     "our_channel": "@pahal_investment",
     "benchmark_channel": "@stock_aaj_or_kal"
   },
   "coverage_metrics": {
-    "total_our_posts_audited": 952,
-    "total_benchmark_posts_audited": 153,
+    "total_our_posts_audited": 958,
+    "total_benchmark_posts_audited": 171,
     "manual_posts_safely_ignored": 0,
-    "missed_deltas_flagged": 96,
-    "rules_auto_healed": 48
+    "missed_deltas_flagged": 107,
+    "rules_auto_healed": 55
   },
   "engine_breakdown": {
     "antigravity_local_posts": 1,
