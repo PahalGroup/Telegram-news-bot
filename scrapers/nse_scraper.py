@@ -61,8 +61,13 @@ class NSEScraper:
                             pdf_url = att_file if att_file.startswith("http") else f"https://nsearchives.nseindia.com/corporate/{att_file}" if att_file else ""
                             more = desc
                             
-                            # High-Speed PDF Reading: Extract clean subject & operative bullets from attached PDF
-                            if pdf_url and pdf_url.lower().endswith(".pdf"):
+                            # Fast pre-check: Skip downloading PDFs for routine non-material paperwork
+                            is_routine = any(r in desc.lower() for r in [
+                                "loss of share", "duplicate share", "closure of trading",
+                                "newspaper publication", "loss of certificate", "compliance certificate",
+                                "kyc", "investor grievance"
+                            ])
+                            if not is_routine and pdf_url and pdf_url.lower().endswith(".pdf"):
                                 try:
                                     pdf_data = self.pdf_reader.extract_from_url(pdf_url)
                                     if pdf_data:
