@@ -27,6 +27,8 @@ from scripts.live_delta_monitor import LiveDeltaMonitor
 from scripts.sentinel_watchdog import SentinelWatchdog
 from scripts.morning_briefing import MorningBriefingEngine
 from telegram_dispatcher import TelegramDispatcher
+from dedup_engine import DedupEngine
+from filter_engine import FilterEngine
 
 IST = ZoneInfo("Asia/Kolkata")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -64,6 +66,7 @@ class MarketWireEngine:
         self.sebi = SEBIScraper()
         self.wire = LiveQuoteWire()
         self.gatekeeper = QualityGatekeeper()
+        self.dedup = DedupEngine()
         self.delta_monitor = LiveDeltaMonitor()
         self.sentinel = SentinelWatchdog()
         self.morning_briefing = MorningBriefingEngine()
@@ -111,15 +114,29 @@ class MarketWireEngine:
             if len(approved_dispatches) >= max_posts_per_cycle:
                 break
                 
-            # Stage-1 Pre-Filtration Check: Drop routine paperwork (newspaper clippings, PIT closures, shareholding patterns)
-            from filter_engine import FilterEngine
             pre_check_text = f"{item.get('company', '')} {item.get('headline', '')} {item.get('body', '')}"
-            if FilterEngine.should_drop(pre_check_text):
+            source_type = item.get("source", "BSE")
+
+            # Stage-1 Pre-Filtration Check: Drop routine paperwork & validate substance
+            is_valid, category = FilterEngine.classify_and_validate(pre_check_text, source_type)
+            if not is_valid:
+                logger.debug(f"[FilterEngine Dropped] {item.get('company')}: Not matching corporate action whitelist or is routine paperwork")
                 continue
 
+            # Stage-2 SQLite DedupEngine Check (Sha256 hash, fact keys, event roots)
+            if self.dedup.is_duplicate(pre_check_text, source=source_type):
+                logger.debug(f"[DedupEngine Duplicate] {item.get('company')} already recorded in SQLite.")
+                continue
+
+            # Stage-3 Gatekeeper Deterministic Audit & 24h Semantic Gate
             formatted_post, score, audit_meta = self.gatekeeper.generate_verified_post(item)
             
             if audit_meta.get("status") == "APPROVED" and formatted_post:
+                # Extra safety check against formatted text in SQLite dedup
+                if self.dedup.is_duplicate(formatted_post, source=source_type):
+                    logger.debug(f"[DedupEngine Post Duplicate] {item.get('company')} formatted post already in SQLite.")
+                    continue
+
                 logger.info(f"[Gatekeeper APPROVED] {item.get('company')} (Authenticity: {score*100:.0f}%)")
                 
                 # Dispatch to Telegram or log to console
@@ -128,6 +145,15 @@ class MarketWireEngine:
                     print(f"RAW LINK: {item.get('url')}")
                     print(f"FORMATTED TELEGRAM POST:\n{formatted_post}")
                     print(f"{'='*60}\n")
+                    self.gatekeeper.record_posted(
+                        company=item.get("company", ""),
+                        category=item.get("source", "GENERAL"),
+                        final_post=formatted_post,
+                        url=item.get("url", ""),
+                        raw_text=item.get("raw_text", "")
+                    )
+                    self.dedup.record_post(formatted_post, source=source_type)
+                    self.dedup.record_post(pre_check_text, source=source_type)
                 else:
                     sent = self.dispatcher.send_message(formatted_post)
                     if sent:
@@ -135,8 +161,11 @@ class MarketWireEngine:
                             company=item.get("company", ""),
                             category=item.get("source", "GENERAL"),
                             final_post=formatted_post,
-                            url=item.get("url", "")
+                            url=item.get("url", ""),
+                            raw_text=item.get("raw_text", "")
                         )
+                        self.dedup.record_post(formatted_post, source=source_type)
+                        self.dedup.record_post(pre_check_text, source=source_type)
                         
                 approved_dispatches.append({
                     "item": item,
