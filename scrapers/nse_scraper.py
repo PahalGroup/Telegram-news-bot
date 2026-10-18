@@ -4,11 +4,14 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from curl_cffi import requests as cureq
 
+from scripts.pdf_disclosure_reader import PDFDisclosureReader
+
 IST = ZoneInfo("Asia/Kolkata")
 
 class NSEScraper:
     def __init__(self):
         self.session = None
+        self.pdf_reader = PDFDisclosureReader(timeout=8)
         self.init_session()
 
     def init_session(self):
@@ -56,6 +59,22 @@ class NSEScraper:
                             an_dt = (row.get("an_dt") or "").strip()
                             
                             pdf_url = att_file if att_file.startswith("http") else f"https://nsearchives.nseindia.com/corporate/{att_file}" if att_file else ""
+                            more = desc
+                            
+                            # High-Speed PDF Reading: Extract clean subject & operative bullets from attached PDF
+                            if pdf_url and pdf_url.lower().endswith(".pdf"):
+                                try:
+                                    pdf_data = self.pdf_reader.extract_from_url(pdf_url)
+                                    if pdf_data:
+                                        if pdf_data.get("clean_subject"):
+                                            desc = pdf_data["clean_subject"]
+                                        if pdf_data.get("bullets"):
+                                            bullet_str = "\n".join(f"- {b}" for b in pdf_data["bullets"])
+                                            more = f"Transaction Details:\n{bullet_str}"
+                                        elif pdf_data.get("raw_snippet") and not more:
+                                            more = pdf_data["raw_snippet"]
+                                except Exception:
+                                    pass
                             
                             items.append({
                                 "source": "NSE",
@@ -63,8 +82,8 @@ class NSEScraper:
                                 "company": company,
                                 "symbol": symbol,
                                 "headline": desc,
-                                "body": desc,
-                                "raw_text": f"{company} ({symbol}): {desc}".strip(),
+                                "body": more or desc,
+                                "raw_text": f"{company} ({symbol}): {desc}\n{more}".strip(),
                                 "timestamp": an_dt,
                                 "url": pdf_url or f"https://www.nseindia.com/get-quotes/equity?symbol={symbol}"
                             })
