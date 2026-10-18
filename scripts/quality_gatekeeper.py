@@ -66,10 +66,32 @@ class QualityGatekeeper:
         is_passed = (len(ungrounded) == 0)
         return is_passed, ungrounded
 
-    def is_duplicate_24h(self, company: str, category: str, text: str) -> bool:
+    @staticmethod
+    def normalize_company(company: str) -> str:
+        if not company:
+            return ""
+        c = company.strip().upper()
+        # Strip trailing exchange suffixes like -$ or -RE or LTD or LIMITED
+        c = re.sub(r'[-\$]+$', '', c).strip()
+        c = re.sub(r'\b(?:LTD|LIMITED|PVT|PRIVATE|CORP|CORPORATION|INC)\b', '', c, flags=re.I).strip()
+        c = re.sub(r'[^A-Z0-9]', '', c)
+        return c
+
+    @staticmethod
+    def normalize_text_key(text: str) -> str:
+        if not text:
+            return ""
+        # Strip html tags
+        t = re.sub(r'<[^>]+>', ' ', text)
+        # Strip emojis and punctuation
+        t = re.sub(r'[^\w\s]', ' ', t.lower())
+        # Collapse whitespace
+        return re.sub(r'\s+', ' ', t).strip()
+
+    def is_duplicate_24h(self, company: str, category: str, text: str, url: str = "") -> bool:
         """
         24-Hour Semantic Deduplication:
-        Checks state/posted_history.json by (company_or_ministry, event_category, key_numbers).
+        Checks state/posted_history.json by URL, normalized company, numbers, and text content.
         """
         now = datetime.now(IST)
         cutoff = now - timedelta(hours=24)
@@ -85,30 +107,64 @@ class QualityGatekeeper:
                 pass
         self.posted_history["posts"] = valid_posts
         
-        company_clean = (company or "").strip().upper()
+        # Check 1: URL match (immediate duplicate for same exchange filing PDF or wire link)
+        if url:
+            for p in valid_posts:
+                if p.get("url") and p.get("url") == url:
+                    return True
+
+        company_clean = self.normalize_company(company)
         current_numbers = set(self.extract_numbers(text))
+        norm_text = self.normalize_text_key(text)
         
         for p in valid_posts:
-            p_comp = (p.get("company") or "").strip().upper()
+            # Check direct normalized headline / text match
+            p_norm = p.get("norm_headline") or self.normalize_text_key(p.get("headline", ""))
+            if norm_text and p_norm:
+                if norm_text[:80] in p_norm or p_norm[:80] in norm_text:
+                    return True
+
+            p_comp = self.normalize_company(p.get("company", ""))
             if company_clean and p_comp and company_clean == p_comp:
                 p_nums = set(p.get("numbers", []))
-                # If companies match and share key numbers or category
+                # If companies match and share key numbers
                 if current_numbers and p_nums and bool(current_numbers & p_nums):
                     return True
-                if p.get("category") == category and p.get("headline") == text[:100]:
-                    return True
+                # Cross-exchange event matching: if both share event root (e.g. director, resignation, results)
+                event_roots = [
+                    'director', 'resignation', 'appointment', 'order', 'contract', 'result',
+                    'q1', 'q2', 'q3', 'q4', 'bonus', 'dividend', 'split', 'allotment', 'rating',
+                    'merger', 'acquisition', 'tenure', 'kmp'
+                ]
+                for ev in event_roots:
+                    if ev in norm_text and ev in p_norm:
+                        return True
+                # If companies match and category matches, compare text overlap
+                if p.get("category") == category:
+                    if norm_text and p_norm and (norm_text[:40] in p_norm or p_norm[:40] in norm_text):
+                        return True
+                    if not current_numbers and not p_nums:
+                        if norm_text[:30] and norm_text[:30] in p_norm:
+                            return True
                     
         return False
 
-    def record_posted(self, company: str, category: str, final_post: str, url: str):
+    def record_posted(self, company: str, category: str, final_post: str, url: str, raw_text: str = ""):
         """Records successfully sent post into 24h state history."""
         nums = self.extract_numbers(final_post)
+        first_line = final_post.splitlines()[0] if final_post else ""
+        norm_head = self.normalize_text_key(first_line)
+        if raw_text:
+            norm_raw = self.normalize_text_key(raw_text)
+            norm_head = f"{norm_head} {norm_raw[:100]}".strip()
+
         self.posted_history["posts"].append({
             "timestamp": datetime.now(IST).isoformat(),
             "company": company,
             "category": category,
             "numbers": nums,
-            "headline": final_post.splitlines()[0] if final_post else "",
+            "headline": first_line,
+            "norm_headline": norm_head,
             "url": url
         })
         self._save_history()
@@ -118,7 +174,7 @@ class QualityGatekeeper:
         """
         Enforces Benchmark Scannable Structure:
         Line 1 (Header): 📢 <b>[COMPANY / GOV BODY]</b> — [1-Line Action Headline]
-        Line 2 (The Facts): Plain-English summary with exact verified numbers
+        Line 2 (The Facts): Plain-English summary with exact verified numbers (only if distinct from header)
         Line 3 (Market Context): 1-line objective takeaway
         """
         comp_tag = company_or_body.strip().upper()
@@ -127,15 +183,22 @@ class QualityGatekeeper:
         facts = fact_details.strip()
         context = f"• {context_line.strip()}" if not context_line.startswith("•") else context_line.strip()
         
+        # If facts is identical or near-identical to action_headline, do NOT duplicate it
+        norm_h = re.sub(r'[^\w]', '', action_clean.lower())
+        norm_f = re.sub(r'[^\w]', '', facts.lower())
+        if not facts or norm_h == norm_f or norm_h in norm_f or norm_f in norm_h:
+            return f"{header}\n\n{context}"
+        
         return f"{header}\n\n{facts}\n\n{context}"
 
     def generate_verified_post(self, item: dict) -> Tuple[Optional[str], float, dict]:
         """
         Full Gatekeeper Execution:
-        1. Checks 24h deduplication.
-        2. Drafts post using deterministic fact extraction (or Gemini LLM if key available).
-        3. Deterministic numeric audit.
-        4. Enforces 3-line format.
+        1. Checks zero-substance boilerplate rejection.
+        2. Checks 24h deduplication.
+        3. Drafts post using deterministic fact extraction (or Gemini LLM if key available).
+        4. Deterministic numeric audit.
+        5. Enforces 3-line format.
         Returns (formatted_post, authenticity_score, audit_metadata).
         """
         company = item.get("company", "").strip() or "MARKET WIRE"
@@ -143,8 +206,28 @@ class QualityGatekeeper:
         raw_text = item.get("raw_text", "").strip()
         url = item.get("url", "")
         
-        # 1. Deduplication check
-        if self.is_duplicate_24h(company, category, raw_text):
+        # 1. Zero-substance boilerplate rejection
+        boilerplate_patterns = [
+            r'please\s+find\s+(?:the\s+)?(?:attach|enclosed|letter|same)',
+            r'self\s+explanatory',
+            r'please\s+refer\s+(?:the\s+)?(?:detailed\s+)?(?:disclosure|enclosed|file|attachment)',
+            r'refer\s+(?:the\s+)?(?:enclosed\s+file|detailed\s+disclosure)',
+            r'covering\s+letter',
+            r'forwarded\s+herewith',
+            r'we\s+submit\s+herewith',
+            r'copy\s+of\s+letter\s+submitted',
+        ]
+        is_boilerplate = any(re.search(pat, raw_text, re.I) for pat in boilerplate_patterns)
+        has_concrete_action = bool(re.search(
+            r'\b(?:order|contract|awarded|result|q[1-4]|profit|loss|revenue|ebitda|margin|dividend|bonus|split|buyback|acquisition|stake|resigned|appointed|ceo|cfo|md|usfda|approval|capacity|expansion|patent)\b',
+            raw_text, re.I
+        ))
+
+        if is_boilerplate and not has_concrete_action:
+            return None, 0.0, {"status": "REJECTED_BOILERPLATE", "reason": "Cover letter placeholder without corporate action"}
+
+        # 2. Deduplication check (URL + Semantic 24h)
+        if self.is_duplicate_24h(company, category, raw_text, url=url):
             return None, 0.0, {"status": "REJECTED_DUPLICATE", "reason": "Already posted within last 24 hours"}
             
         # 2. Extract facts deterministically
