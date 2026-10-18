@@ -4,6 +4,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from curl_cffi import requests as cureq
 
+from scripts.pdf_disclosure_reader import PDFDisclosureReader
+
 IST = ZoneInfo("Asia/Kolkata")
 
 class BSEScraper:
@@ -16,6 +18,7 @@ class BSEScraper:
         }
         self.primary_url = "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w"
         self.fallback_url = "https://api.bseindia.com/BseIndiaAPI/api/CorpAnn/w"
+        self.pdf_reader = PDFDisclosureReader(timeout=8)
 
     def fetch_recent(self) -> list[dict]:
         """Fetches latest corporate filings from BSE with fallback and resilient headers."""
@@ -40,8 +43,23 @@ class BSEScraper:
                     
                     pdf_url = f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/{pdf_file}" if pdf_file else ""
                     
-                    # Extract clean subject
+                    # Extract clean subject from web form
                     subj = news_sub.split(" - ")[-1].strip() if " - " in news_sub else news_sub
+                    
+                    # High-Speed PDF Reading: Extract clean subject & operative bullets from attached PDF
+                    if pdf_url and pdf_url.lower().endswith(".pdf"):
+                        try:
+                            pdf_data = self.pdf_reader.extract_from_url(pdf_url)
+                            if pdf_data:
+                                if pdf_data.get("clean_subject"):
+                                    subj = pdf_data["clean_subject"]
+                                if pdf_data.get("bullets"):
+                                    bullet_str = "\n".join(f"- {b}" for b in pdf_data["bullets"])
+                                    more = f"Transaction Details:\n{bullet_str}"
+                                elif pdf_data.get("raw_snippet") and not more:
+                                    more = pdf_data["raw_snippet"]
+                        except Exception:
+                            pass
                     
                     items.append({
                         "source": "BSE",
