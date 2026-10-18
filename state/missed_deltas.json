@@ -42,6 +42,118 @@
       "benchmark_text": "INDO RAMA SYNTHETICS: \nCO PLANS ₹200 CRORE INVESTMENT OVER NEXT 12-18 MONTHS TO DIVERSIFY INTO SPECIALTY FIBRE AND FILAMENT PRODUCTS",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": "indo"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.710995+05:30",
+      "benchmark_msg_id": 266704,
+      "benchmark_text": "PUNJAB & SIND BANK Q2 FY27\nNet Profit: ₹411 Cr ↑40% YoY | ↑24% QoQ\nNII: ₹1,161 Cr ↑22% YoY | ↑12% QoQ\nOperating Profit: ₹617 Cr ↑13% QoQ\nProvisions: ₹52 Cr ↓45% QoQ\nGross NPA: 2.09% vs 2.21% QoQ\nNet NPA: 0.61% vs 0.65% QoQ",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "punjab"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.712996+05:30",
+      "benchmark_msg_id": 266705,
+      "benchmark_text": "Alembic Pharmaceuticals Ltd – USFDA FINAL APPROVAL RECEIVED\nCompany receives USFDA approval for Ciprofloxacin and Dexamethasone Otic Suspension USP, 0.3% / 0.1%:\n- Received final approval for Abbreviated New Drug Application (ANDA)\n- Product is therapeutically equivalent to Ciprodex Otic Suspension by Sandoz Inc.\n- Indicated for Acute Otitis Media (AOM) and Acute Otitis Externa (AOE)\n- Estimated market size for this product was US$110 million for 12 months ending June 2026\n- Company now holds a cumulative total of 246 USFDA ANDA approvals",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "usfda"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.713995+05:30",
+      "benchmark_msg_id": 266706,
+      "benchmark_text": "YES BANK Q2 FY27\nNet Profit: ₹1,084.10 Cr ↑63% YoY | ↑1% QoQ\nNII: ₹2,819.80 Cr ↑23% YoY | ↑1% QoQ\nOperating Profit: ₹1,683 Cr ↑29% YoY | ↓1% QoQ\nProvisions: ₹317 Cr ↓24% YoY | ↓20% QoQ",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "yes"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.713995+05:30",
+      "benchmark_msg_id": 266707,
+      "benchmark_text": "ROSSARI BIOTECH Q2 FY27\nNet Profit: ₹38.90 Cr ↑5% YoY | ↑11% QoQ\nRevenue: ₹697.60 Cr ↑19% YoY | Flat QoQ\nEBITDA: ₹87 Cr ↑21% YoY | ↑8% QoQ\nMargins: 12.5% vs 12.3% YoY | 11.6% QoQ",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "rossari"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.713995+05:30",
+      "benchmark_msg_id": 266708,
+      "benchmark_text": "AXIS BANK TO NDTV PROFIT\nHave Seen 11 BPS Impact On NIMs Due To FCNR-B\nShould Be Able To See Some Improvement In NIMS\nWorking Towards The Improvement Of NIMs\nAsset, Product Mix May Help In Improving NIMS\nWill Be Adaptive To The Environment w.r.t. FCNR-B Deployment\nHave Multiple Levers On Cost Of Funds, Asset Side\nDon't Expect Any Material Impact Of ECL Transition",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "axis"
+    },
+    {
+      "timestamp": "2026-10-17T19:51:16.714998+05:30",
+      "benchmark_msg_id": 266710,
+      "benchmark_text": "Himadri Speciality Chemical Ltd – INVESTOR PRESENTATION\nQ2 FY27 business update and strategic roadmap:\n- Proposed demerger of Tyre Business of DBRL into HSCL with appointed date 1 Oct 2026\n- Completed 100% acquisition of Advano (USA) and incorporated Ardent Impex FZCO in Dubai\n- LFP Cathode Active Material: Phase 1 (40,000 MTPA) planned for Q3FY27; 2,000 MTPA demo capacity expected Q3FY27\n- Carbon Nano Tube (CNT): 200 MTPA capacity target for Q4FY27 with INR 70 Cr capex\n- Super Speciality Carbon Black (SSCB): 6,000 MTPA capacity target for Q4FY28 with INR 170 Cr capex\n- Speciality Chemicals expansion: 5,300 MTPA capacity target for Q4FY27 with INR 248 Cr capex",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "investor"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266738,
+      "benchmark_text": "Rubio Says Trump Is Assessing Global and US Economic Impact of Sanctions and Tariffs During 60-Day Pause - \nThe Kyiv Independent",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266739,
+      "benchmark_text": "Trump Says Russia Sanctions Decision Is in the US Interest",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266740,
+      "benchmark_text": "UNITED SPIRITS\nDRI Concluded Search At Multiple Locations On Oct 16\nAlert: DRI Is Directorate Of Revenue Intelligence\nFully Cooperated With Officials During Search: Company\nSee No Financial, Operational Impact Of Search: Company",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "united"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266741,
+      "benchmark_text": "ANTONY WASTE - Q2 BUSINESS UPDATE\nTotal Tonnage Rises 0.8% Το 1.3 Million Tonne YoY, C&T Volumes Rise 11.5% At 6 Lakh Tonne YoY\nProcessing Volume Grew 3.3% YoY, Saw 70% Volume Increase In Mumbai's C&D Waste Processing Unit\nEfforts To Bring WtE Unit Back Into Operation Ongoing, Unit Likely To Be Functional By December\nMRF, Composting Operations Have Resumed At WtE Unit\nCollection, Transportation Across Projects Remains Unaffected",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "antony"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266744,
+      "benchmark_text": "Scenes from France \n🇫🇷\n:\nJoin \n👇\n@Stock_aaj_or_kal",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266746,
+      "benchmark_text": "🚨\n OUR ONCE-A-YEAR SALE IS COMING SOON! \n🚨\n🔥\n FLAT 50% OFF ON ALL OUR PLANS! \n🔥\nThis is your chance to join us at an unbeatable price.\n⏳\n Stay tuned for the big announcement!\nDon't miss out! \n🚀\nAng queries?\n@Stockaajorkal_bot",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "our"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266748,
+      "benchmark_text": "POSTIVE FOR DIVIS LABS \nOrforglipron has received positive CHMP in Europe. \nThis is +Ve for Divi's Lab as ANALYSTS think Divis is most likely to be intermediate supplier of Orforglipron.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "postive"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266749,
+      "benchmark_text": "Camlin Fine Sciences Ltd – CHANGE IN MANAGEMENT\nCompletion of tenure of Independent Director:\n- Mr. Pradip Kanakia ceased to be Independent Director\n- Tenure completed after 5 consecutive years\n- Effective date: October 18, 2026",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "change"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266750,
+      "benchmark_text": "Oil India Ltd – SPECIAL CBM BLOCK RSC SIGNING\nSigning of Revenue Sharing Contract for Special Coal Bed Methane Block:\n- Signed Revenue Sharing Contract (RSC) for Special CBM Block SR-ONHP-(CBM)-2026/1 on 15-10-2026\n- Block area spread across 272.14 sq. km in Singrauli Coalfield region\n- Expected coal seam depths of 600-800 metres\n- Average seam thickness of approximately 40 metres",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "special"
+    },
+    {
+      "timestamp": "2026-10-18T12:03:07.603283+05:30",
+      "benchmark_msg_id": 266751,
+      "benchmark_text": "🚨\nPro\ntests across countries\nIndia: CJP protests calling for regime change.\nFrance and Italy: Rising prices and public spending.\nAlbania: Corruption and demands for the PM's resignation.\nNepal: Corruption and political privilege.\nBangladesh: Student protests that led to the fall of Sheikh Hasina's government.\nOut of all this our country has handled very well\n.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "cjp"
     }
   ]
 }
