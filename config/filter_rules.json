@@ -1,29 +1,35 @@
 {
   "drop_patterns": [
-    "shareholding pattern",
-    "reg(?:ulation)?\\.?\\s*31",
-    "trading window",
-    "closure of trading window",
-    "pit regulations?",
-    "lost certificate",
-    "loss of (?:share )?certificate",
-    "duplicate (?:share )?certificate",
-    "reg(?:ulation)?\\.?\\s*39\\s*\\(\\s*3\\s*\\)",
     "certificate under (?:reg(?:ulation)?\\.?\\s*)?74\\s*\\(\\s*5\\s*\\)",
-    "newspaper clipping",
-    "newspaper advertisement",
-    "newspaper publication",
-    "investor grievance",
-    "investor complaints?",
-    "reconciliation of share capital",
-    "voting results?",
-    "scrutinizer'?s? report",
-    "good morning",
-    "jai shree",
+    "closure of trading window",
+    "compliance certificate under reg 74(5)",
     "devotional",
-    "tipster",
+    "duplicate (?:share )?certificate",
+    "duplicate share certificate",
+    "general meeting intimation without outcome",
+    "good morning",
+    "hypermarket",
+    "investor complaints?",
+    "investor grievance",
+    "investor presentation upload placeholder",
+    "jai shree",
+    "loss of (?:share )?certificate",
+    "loss of share certificate",
+    "lost certificate",
+    "newspaper advertisement",
+    "newspaper clipping",
+    "newspaper publication",
+    "pit regulations?",
+    "reconciliation of share capital",
+    "reg(?:ulation)?\\.?\\s*31",
+    "reg(?:ulation)?\\.?\\s*39\\s*\\(\\s*3\\s*\\)",
+    "scrutinizer'?s? report",
+    "shareholding pattern",
     "stocks to buy today",
-    "hypermarket"
+    "submission of disclosure / intimation attached",
+    "tipster",
+    "trading window",
+    "voting results?"
   ],
   "keep_keywords": {
     "corporate_actions": [
@@ -243,10 +249,41 @@
       "uae",
       "earnings",
       "force",
-      "equity",
-      "wholly"
+      "gspl",
+      "revised",
+      "voluntary",
+      "incorporation",
+      "ireda"
     ]
   },
   "min_character_length": 50,
-  "max_character_length": 350
+  "max_character_length": 350,
+  "empirical_materiality": {
+    "order_win_minimum_cr": 1.0,
+    "ratings_actions": [
+      "upgrade",
+      "downgrade",
+      "reaffirmed"
+    ],
+    "results_must_have_metrics": true,
+    "management_tiers": [
+      "MD",
+      "CEO",
+      "CFO",
+      "CHAIRMAN",
+      "DIRECTOR",
+      "AUDITOR"
+    ]
+  },
+  "verified_categories": [
+    "FINANCIAL_RESULTS",
+    "ORDER_WIN",
+    "MANAGEMENT_CHANGE",
+    "CREDIT_RATING",
+    "CORP_RESTRUCTURE",
+    "DIVIDEND_OR_SPLIT",
+    "FII_DII_FLOWS",
+    "IPO_GMP",
+    "GOV_AND_MACRO"
+  ]
 }
