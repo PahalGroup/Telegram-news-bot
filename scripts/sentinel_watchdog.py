@@ -84,48 +84,76 @@ class SentinelWatchdog:
             logger.error(f"Failed to save {path}: {e}")
 
     def fetch_channel_recent_posts(self, channel_handle: str) -> List[dict]:
-        """Fetches the latest ~20 posts from Telegram web channel preview."""
+        """Fetches the latest ~20 posts from Telegram web channel preview with IPv4 reliability."""
+        import subprocess
         import urllib.request
         url = f"https://t.me/s/{channel_handle}"
         posts = []
+        html = ""
+
+        # Attempt 1: High-reliability native IPv4 curl (avoids ISP IPv6 reset)
         for attempt in range(3):
             try:
-                req = urllib.request.Request(
-                    url,
-                    headers={
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                        "Accept-Language": "en-US,en;q=0.9"
-                    }
+                curl_cmd = "curl.exe" if sys.platform == "win32" else "curl"
+                res = subprocess.run(
+                    [curl_cmd, "-4", "-s", "-L", "--max-time", "12", url],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace"
                 )
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-                    soup = BeautifulSoup(html, "html.parser")
-                    msg_divs = soup.find_all("div", class_="tgme_widget_message")
-                    for m in msg_divs:
-                        data_post = m.get("data-post", "")
-                        if not data_post:
-                            continue
-                        msg_id = int(data_post.split("/")[-1])
-                        time_elem = m.find("time")
-                        dt = None
-                        if time_elem and time_elem.get("datetime"):
-                            try:
-                                dt = datetime.fromisoformat(time_elem["datetime"].replace("Z", "+00:00")).astimezone(IST)
-                            except Exception:
-                                pass
-                        text_div = m.find("div", class_="tgme_widget_message_text")
-                        raw_text = text_div.get_text(separator="\n").strip() if text_div else ""
-                        
-                        posts.append({
-                            "channel": channel_handle,
-                            "msg_id": msg_id,
-                            "dt": dt,
-                            "raw_text": raw_text
-                        })
+                if res.returncode == 0 and "tgme_widget_message" in res.stdout:
+                    html = res.stdout
                     break
             except Exception as e:
-                logger.warning(f"Error fetching {channel_handle} (attempt {attempt+1}): {e}")
-                time.sleep(1.0 + attempt * 0.5)
+                logger.debug(f"Native curl attempt {attempt+1} failed for {channel_handle}: {e}")
+                time.sleep(1.0)
+
+        # Attempt 2: Fallback to urllib if curl is unavailable or failed
+        if not html:
+            for attempt in range(2):
+                try:
+                    req = urllib.request.Request(
+                        url,
+                        headers={
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                            "Accept-Language": "en-US,en;q=0.9"
+                        }
+                    )
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        html = resp.read().decode("utf-8", errors="replace")
+                        if "tgme_widget_message" in html:
+                            break
+                except Exception as e:
+                    logger.warning(f"urllib fetch error {channel_handle} (attempt {attempt+1}): {e}")
+                    time.sleep(1.0)
+
+        if not html:
+            return posts
+
+        soup = BeautifulSoup(html, "html.parser")
+        msg_divs = soup.find_all("div", class_="tgme_widget_message")
+        for m in msg_divs:
+            data_post = m.get("data-post", "")
+            if not data_post:
+                continue
+            msg_id = int(data_post.split("/")[-1])
+            time_elem = m.find("time")
+            dt = None
+            if time_elem and time_elem.get("datetime"):
+                try:
+                    dt = datetime.fromisoformat(time_elem["datetime"].replace("Z", "+00:00")).astimezone(IST)
+                except Exception:
+                    pass
+            text_div = m.find("div", class_="tgme_widget_message_text")
+            raw_text = text_div.get_text(separator="\n").strip() if text_div else ""
+            
+            posts.append({
+                "channel": channel_handle,
+                "msg_id": msg_id,
+                "dt": dt,
+                "raw_text": raw_text
+            })
         return posts
 
     @staticmethod
@@ -203,7 +231,10 @@ class SentinelWatchdog:
             "biggest sale", "diwali sale", "sale of the year", "discount", "offer",
             "course", "batch", "training", "ad:", "sponsor", "call us", "whatsapp",
             "dm us", "contact us", "google meet", "zoom.us", "personal view", "my view on",
-            "pinned «", "crypto", "forex", "binary", "lottery", "giveaway", "tiger shroff"
+            "pinned «", "crypto", "forex", "binary", "lottery", "giveaway", "tiger shroff",
+            "cosmofeed", "cosmofeed.com", "option pick", "option plan", "option tips",
+            "option strategy", "nifty 50 call", "banknifty put", "buy call", "buy put",
+            "calls by staok", "calls by stock", "paid channel", "vip group"
         ]
         tl = raw_text.lower()
         if any(pm in tl for pm in promo_markers):
@@ -302,8 +333,8 @@ class SentinelWatchdog:
                     self._save_json(self.defects_path, defects_history)
                     logger.warning(f"[DEFECT DETECTED] Post #{p_id} ({origin}): {defects}")
                     
-                    # Notify Telegram channel directly
-                    self.notify_defect_telegram(p_id, origin, defects, text)
+                    # Defect recorded to internal audit ledger (suppress public channel spam)
+                    # self.notify_defect_telegram(p_id, origin, defects, text)
                 else:
                     logger.info(f"[AUDIT PASSED] Post #{p_id} from {origin}: Clean typography, properly paragraphed.")
 
@@ -418,8 +449,8 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="24/7 Continuous Sentinel Watchdog & Self-Healing Agent")
     parser.add_argument("--once", action="store_true", help="Run a single audit & self-healing cycle")
-    parser.add_argument("--daemon", action="store_true", help="Run continuously every 45 seconds")
-    parser.add_argument("--interval", type=int, default=45, help="Polling interval in seconds (default: 45s)")
+    parser.add_argument("--daemon", action="store_true", help="Run continuously every 20 seconds")
+    parser.add_argument("--interval", type=int, default=20, help="Polling interval in seconds (default: 20s)")
     parser.add_argument("--report", action="store_true", help="Dispatch live executive audit & defect report to Telegram channel")
     
     args = parser.parse_args()
@@ -439,11 +470,27 @@ def main():
         print("="*60 + "\n")
     else:
         logger.info(f"[*] Launching Continuous 24/7 Sentinel Watchdog Daemon (Interval: {args.interval}s)...")
+        last_cloud_ping = time.time()
         while True:
             try:
                 sentinel.run_sentinel_cycle()
             except Exception as e:
                 logger.error(f"Error in sentinel cycle: {e}")
+
+            # Every 14 minutes, trigger GitHub Actions workflow to ensure cloud engine is continuously active
+            if time.time() - last_cloud_ping > 840:
+                last_cloud_ping = time.time()
+                try:
+                    import subprocess
+                    gh_path = "C:\\Program Files\\GitHub CLI\\gh.exe" if sys.platform == "win32" else "gh"
+                    subprocess.run(
+                        [gh_path, "workflow", "run", "corn.yml", "-R", "PahalGroup/Telegram-news-bot"],
+                        capture_output=True, text=True, timeout=12
+                    )
+                    logger.info("[HEARTBEAT] Triggered continuous cloud runner on GitHub Actions.")
+                except Exception as e:
+                    logger.debug(f"Cloud heartbeat ping notice: {e}")
+
             time.sleep(args.interval)
 
 if __name__ == "__main__":
