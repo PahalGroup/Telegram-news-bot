@@ -37,17 +37,13 @@ class TelegramDispatcher:
         formatted = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
         return formatted
 
-    def send_message(self, text: str, parse_mode: Optional[str] = "HTML", add_origin: bool = True) -> bool:
+    def send_message(self, text: str, parse_mode: Optional[str] = "HTML", add_origin: bool = False) -> bool:
         """
         Dispatches a message to the Telegram channel.
-        Rule: One new headline is one post.
+        Rule: One new headline is one post. Pure institutional layout with zero origin/source tags.
         """
         if not text:
             return False
-
-        if add_origin:
-            origin_tag = "📡 <i>Dispatched via GitHub Cloud (24/7 Engine)</i>" if os.getenv("GITHUB_ACTIONS") == "true" else "🛠️ <i>Dispatched via Antigravity IDE (Local Session)</i>"
-            text = f"{text}\n\n{origin_tag}"
 
         formatted_text = self.format_html(text) if parse_mode == "HTML" else text
 
