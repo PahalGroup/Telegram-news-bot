@@ -176,9 +176,9 @@ class MarketWireEngine:
             else:
                 logger.debug(f"[Gatekeeper Skipped] {item.get('company')}: {audit_meta.get('reason', 'Duplicate or ungrounded')}")
                 
-        # Run Live Sentinel Watchdog & Delta Monitor periodically (every 5 minutes to prevent Telegram rate-limits)
+        # Run Live Sentinel Watchdog & Delta Monitor on every cycle for sub-30s ultra-low latency
         now_ts = time.time()
-        if now_ts - getattr(self, '_last_watchdog_time', 0) > 300:
+        if now_ts - getattr(self, '_last_watchdog_time', 0) > 25:
             self._last_watchdog_time = now_ts
             try:
                 self.sentinel.run_sentinel_cycle()
