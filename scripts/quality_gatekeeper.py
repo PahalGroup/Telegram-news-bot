@@ -170,35 +170,64 @@ class QualityGatekeeper:
         self._save_history()
 
     @staticmethod
-    def format_3line_post(company_or_body: str, action_headline: str, fact_details: str, context_line: str) -> str:
+    def format_3line_post(company_or_body: str, action_headline: str, fact_details: str = "", context_line: str = "") -> str:
         """
         Enforces Benchmark Scannable Structure:
-        Line 1 (Header): 📢 <b>[COMPANY / GOV BODY]</b> — [1-Line Action Headline]
-        Line 2 (The Facts): Plain-English summary with exact verified numbers (only if distinct from header)
-        Line 3 (Market Context): 1-line objective takeaway
+        Line 1 (Header): <b>COMPANY : ACTION HEADLINE</b>
+        Followed by clean bullet points:
+        ▪️ Fact 1
+        ▪️ Fact 2
+        (ZERO disclosure footers, ZERO boilerplate, tight single-spaced layout)
         """
         comp_tag = company_or_body.strip().upper()
         action_clean = action_headline.strip()
-        header = f"📢 <b>{comp_tag}</b> — {action_clean}"
-        facts = fact_details.strip()
-        context = f"• {context_line.strip()}" if not context_line.startswith("•") else context_line.strip()
         
-        # If facts is identical or near-identical to action_headline, do NOT duplicate it
-        norm_h = re.sub(r'[^\w]', '', action_clean.lower())
-        norm_f = re.sub(r'[^\w]', '', facts.lower())
-        if not facts or norm_h == norm_f or norm_h in norm_f or norm_f in norm_h:
-            return f"{header}\n\n{context}"
+        # Strip common regulatory / exchange boilerplate prefixes from action
+        action_clean = re.sub(
+            r'^(?:Announcement\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Intimation\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Disclosure\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|General\s+Updates|Outcome\s+of\s+Board\s+Meeting|Compliances)\s*[-–:]\s*',
+            '',
+            action_clean,
+            flags=re.IGNORECASE
+        ).strip(' -:–')
         
-        return f"{header}\n\n{facts}\n\n{context}"
+        # Avoid repeating company name if action starts with it
+        if action_clean.upper().startswith(comp_tag):
+            action_clean = action_clean[len(comp_tag):].strip(' -:–')
+        
+        # Clean trailing sources or urls
+        action_clean = re.sub(r'\s*-\s*(?:The\s+Economic\s+Times|CNBC|Moneycontrol|NDTV|Business\s+Today|Reuters|Bloomberg|Taxo\s+Online).*$', '', action_clean, flags=re.IGNORECASE).strip()
+        
+        header = f"<b>{comp_tag} : {action_clean.upper()}</b>" if action_clean else f"<b>{comp_tag}</b>"
+        
+        bullets = []
+        if fact_details:
+            clean_facts = fact_details.strip()
+            norm_h = re.sub(r'[^\w]', '', action_clean.lower())
+            norm_f = re.sub(r'[^\w]', '', clean_facts.lower())
+            # Only add facts if not redundant with header
+            if norm_h != norm_f and norm_h not in norm_f and norm_f not in norm_h:
+                for fl in clean_facts.splitlines():
+                    fl_clean = fl.strip()
+                    if fl_clean and not any(bp in fl_clean.lower() for bp in [
+                        'verified from', 'official disclosure', 'dear sir', 'please find enclosed',
+                        'pursuant to regulation', 'forwarded herewith', 'we submit herewith'
+                    ]):
+                        bullet_txt = re.sub(r'^[-•*●▪️\s]+', '', fl_clean).strip()
+                        if len(bullet_txt) > 12:
+                            bullets.append(f"▪️ {bullet_txt}")
+        
+        if bullets:
+            return f"{header}\n\n" + "\n".join(bullets[:3])
+        return header
 
     def generate_verified_post(self, item: dict) -> Tuple[Optional[str], float, dict]:
         """
         Full Gatekeeper Execution:
         1. Checks zero-substance boilerplate rejection.
         2. Checks 24h deduplication.
-        3. Drafts post using deterministic fact extraction (or Gemini LLM if key available).
+        3. Drafts post using deterministic fact extraction.
         4. Deterministic numeric audit.
-        5. Enforces 3-line format.
+        5. Zero disclosure footers.
         Returns (formatted_post, authenticity_score, audit_metadata).
         """
         company = item.get("company", "").strip() or "MARKET WIRE"
@@ -239,49 +268,18 @@ class QualityGatekeeper:
         body = item.get("body", "").strip()
         clean_body = re.sub(r'\b(?:pursuant to regulation \d+|we wish to inform that|this is to inform you that)\b.*', '', body, flags=re.I).strip()
         
-        # Extract verified numbers
-        raw_nums = self.extract_numbers(raw_text)
-        
-        # If Gemini API key is configured in env, attempt LLM polish with strict temperature 0.0
-        gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
         drafted_post = None
-        
-        if gemini_key and gemini_key != "YOUR_GEMINI_API_KEY":
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=gemini_key)
-                model = genai.GenerativeModel("gemini-1.5-flash")
-                prompt = (
-                    f"You are the Zero-Hallucination Gatekeeper for an Indian stock market wire.\n"
-                    f"Format the following raw news item into exactly 3 lines:\n"
-                    f"Line 1: 🚨 [{company.upper()}] — <Concise 1-Line Action Headline with Key Number>\n"
-                    f"Line 2: <1 Plain-English sentence stating the core verified facts>\n"
-                    f"Line 3: <1 Objective context bullet, e.g. segment, date, or comparison>\n"
-                    f"CRITICAL: Do NOT invent ANY numbers, names, or targets. Use only numbers in the raw text:\n"
-                    f"RAW TEXT: {raw_text}"
-                )
-                resp = model.generate_content(prompt, generation_config={"temperature": 0.0, "max_output_tokens": 250})
-                if resp.text:
-                    drafted_post = resp.text.strip()
-            except Exception as e:
-                logger.warning(f"Gemini LLM polish skipped ({e}), falling back to deterministic formatter.")
 
-        # Fallback to deterministic 3-line assembly
-        if not drafted_post:
-            fact_line = clean_body if (clean_body and len(clean_body) < 220) else headline
-            context_line = f"Verified from official {category} disclosure"
-            drafted_post = self.format_3line_post(company, headline[:100], fact_line, context_line)
+        # Assemble deterministically without disclosure footers
+        fact_line = clean_body if (clean_body and len(clean_body) < 220) else ""
+        drafted_post = self.format_3line_post(company, headline[:120], fact_line)
 
         # 3. Deterministic Numeric & Entity Audit
         is_passed, ungrounded = self.audit_numbers(raw_text, drafted_post)
         
         if not is_passed:
-            # Hallucination blocked! Regenerate deterministically with zero risk
             logger.warning(f"HALLUCINATION_BLOCKED: Draft contained ungrounded numbers {ungrounded}")
-            fact_line = headline
-            context_line = f"Verified from official {category} disclosure"
-            drafted_post = self.format_3line_post(company, headline[:100], fact_line, context_line)
-            # Re-audit
+            drafted_post = self.format_3line_post(company, headline[:120], "")
             is_passed, ungrounded = self.audit_numbers(raw_text, drafted_post)
 
         authenticity_score = 1.0 if is_passed else 0.5
