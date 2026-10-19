@@ -29204,6 +29204,27 @@
       "benchmark_text": "RESULTS IMPACT\n📅\n 19 OCTOBER 2026\n🟢\n GAP-UP STOCKS\n▪️\n LAGNAM: +20.0%\n▪️\n KROSS: +15.3%\n▪️\n IXIGO: +6.8%\n▪️\n PARIN: +4.7%\n▪️\n PSB: +4.1%\n🔴\n GAP-DOWN STOCKS\n▪️\n PAUSHAKLTD: -5.8%\n▪️\n URBANCO: -5.5%\n▪️\n JINDALSAW: -4.8%\n📌\n Indicative pre-open gaps; auction not settled.",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": "results"
+    },
+    {
+      "timestamp": "2026-10-19T09:48:28.251825+05:30",
+      "benchmark_msg_id": 266861,
+      "benchmark_text": "Kotak Securities upgrades Ashok Leyland to 'Buy' ratings on with a target price of Rs 180.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-19T09:48:28.256645+05:30",
+      "benchmark_msg_id": 266862,
+      "benchmark_text": "Ashok Leyland and Tata Motors CV In Focus\nJefferies says the festive season has started strong for trucks and tractors as well\nTruck registrations in the first 7 days are 2x YoY",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-19T09:48:28.257646+05:30",
+      "benchmark_msg_id": 266863,
+      "benchmark_text": "RAHUL ARORA ASHIKA INSTITUTIONAL EQUITIES\nIT Upside Remains Uncertain, Rally Could Be A Sell-On-Rise Opportunity\nStill Room To Buy Indian Private Sector Banks\nHUL Analyst Meet Signals Optimism, Sustaining 10-12% Growth In Staples Will Be Challenging\nPositive On Pondy Oxides, Gravita & Jain Resource Recycling",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "rahul"
     }
   ]
 }
