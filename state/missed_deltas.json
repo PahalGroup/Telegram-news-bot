@@ -29225,6 +29225,55 @@
       "benchmark_text": "RAHUL ARORA ASHIKA INSTITUTIONAL EQUITIES\nIT Upside Remains Uncertain, Rally Could Be A Sell-On-Rise Opportunity\nStill Room To Buy Indian Private Sector Banks\nHUL Analyst Meet Signals Optimism, Sustaining 10-12% Growth In Staples Will Be Challenging\nPositive On Pondy Oxides, Gravita & Jain Resource Recycling",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": "rahul"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.798302+05:30",
+      "benchmark_msg_id": 267064,
+      "benchmark_text": "🚘\n FORCE MOTORS: CREDIT RATINGS REAFFIRMED\n🔹\n Total Bank Loan Facilities: ₹765 Cr\n⭐\n Long-Term Rating: CRISIL AA+ / Stable — Reaffirmed\n⭐\n Short-Term Rating: CRISIL A1+ — Reaffirmed\n📅\n Rating Date: October 19, 2026",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "force"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.802363+05:30",
+      "benchmark_msg_id": 267066,
+      "benchmark_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n MANAGEMENT GUIDANCE\n• FY27 revenue growth guidance raised to at least 80% YoY, against earlier guidance of 40%.\n• ₹10,000 Cr revenue target, originally planned for FY29, expected to be achieved much earlier.\n• Order book stands at approximately ₹28,900 Cr, providing multi-year revenue visibility.\n• Management expects margins to improve further, supported by higher-value connectivity products, capacity expansion and backward integration.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "hfcl"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.802363+05:30",
+      "benchmark_msg_id": 267067,
+      "benchmark_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n OPTICAL FIBRE & DATA CENTRE BUSINESS\n• ₹1,800 Cr planned investment across optical fibre, cable and preform manufacturing.\n• Optical fibre capacity to increase from 28 million to 43 million units; cable capacity to rise from 34 million to 63 million fibre-kilometres.\n• Connectivity solutions revenue targeted at over ₹800 Cr in FY27 and ₹2,000 Cr in FY28.\n• Management sees strong demand from AI infrastructure, hyperscalers, data centres and telecom operators, with no significant slowdown currently observed.\n• Around 70% of the ₹18,500 Cr optical fibre and data centre interconnect order book was indicated to be linked to hyperscalers.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "hfcl"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.803399+05:30",
+      "benchmark_msg_id": 267068,
+      "benchmark_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n DEFENCE & AEROSPACE GUIDANCE\n• FY27 defence revenue target: ₹500–600 Cr.\n• FY28 defence revenue target: At least ₹2,000 Cr.\n• Three-year defence revenue aspiration: Approximately ₹5,000 Cr.\n• Aerospace acquisition expected to be completed during the current quarter, with an existing order book of approximately ₹1,600–1,800 Cr.\n• Andhra Pradesh ammunition manufacturing complex planned on 1,000 acres; revenue contribution expected in around two years.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "hfcl"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.803916+05:30",
+      "benchmark_msg_id": 267069,
+      "benchmark_text": "Bansal Wire Industries Ltd – EQUITY SHARE SUB-DIVISION COMPLETED\nCredit confirmation received from NSDL and CDSL regarding the split of equity shares:\n- One equity share of face value Rs. 5 split into five equity shares of face value Rs. 1 each\n- New ISIN for sub-divided shares: INE0B9K01033\n- Authorized Share Capital (After Split): 89,00,00,000 (89,00,00,000 equity shares of Rs. 1 each)\n- Issued, Subscribed and Paid-up Equity Share Capital (After Split): 78,27,79,760 (78,27,79,760 equity shares of Rs. 1 each)\n- Preference Share Capital remains unchanged at INR 1 Cr",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "equity"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.806696+05:30",
+      "benchmark_msg_id": 267071,
+      "benchmark_text": "PI Industries Ltd – INCORPORATION OF WHOLLY OWNED SUBSIDIARY\nIncorporation of PI Foundation as a Section 8 not-for-profit entity:\n- Entity Name: PI Foundation\n- Incorporation Date: October 19, 2026\n- Status: Wholly owned subsidiary of PI Industries Limited\n- Purpose: Carrying out Corporate Social Responsibility (CSR) activities\n- Initial Share Capital: INR 1 Lakh (subscribed in cash)\n- Registered Office: Udaipur, Rajasthan",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "wholly"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:42.811167+05:30",
+      "benchmark_msg_id": 267076,
+      "benchmark_text": "HFCL Ltd – MONITORING AGENCY REPORT UPDATE\nMonitoring agency report for the quarter ended September 30, 2026:\n- QIP proceeds of INR 550 Cr: INR 25.73 Cr utilized for R&D against target of INR 50 Cr\n- Unutilized QIP proceeds of INR 21.22 Cr parked in FDRs and monitoring account\n- Preferential Issue of Warrants (INR 555 Cr): INR 138.75 Cr received in Q1FY27\n- Remaining INR 416.25 Cr from warrant issue is yet to be received\n- Delay in utilizing INR 90 Cr for HFCL Advance Systems Private Limited; timeline extended to December 31, 2026",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "hfcl"
     }
   ]
 }
