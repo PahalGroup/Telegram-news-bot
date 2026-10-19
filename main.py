@@ -220,12 +220,13 @@ def main():
     is_github_actions = (os.getenv("GITHUB_ACTIONS") == "true")
 
     if is_github_actions:
-        # 24/7 Cloud Continuous Shift: Run actively for 15 minutes per GitHub invocation
-        shift_duration_sec = 900  # 15 minutes continuous cloud runtime
-        logger.info(f"[*] Starting GitHub Cloud Continuous Shift ({shift_duration_sec // 60} minutes live polling)...")
+        # 24/7 Cloud Continuous Shift: 3 Hours (10,800s) continuous live polling per runner
+        shift_duration_sec = 10800  # 3 hours continuous cloud runtime
+        logger.info(f"[*] Starting GitHub Cloud Continuous Shift ({shift_duration_sec // 3600} hours live polling)...")
         shift_start = time.time()
         cycle_count = 0
         total_posted = 0
+        relayed = False
         while time.time() - shift_start < shift_duration_sec:
             cycle_count += 1
             try:
@@ -233,6 +234,18 @@ def main():
                 total_posted += len(dispatches)
             except Exception as e:
                 logger.error(f"[Cloud Shift Cycle {cycle_count}] Error: {e}")
+
+            # Seamless Cloud Relay: Trigger next runner 2 minutes before shift ends
+            if not relayed and (time.time() - shift_start > shift_duration_sec - 120):
+                relayed = True
+                try:
+                    import subprocess
+                    gh_bin = "gh" if sys.platform != "win32" else "C:\\Program Files\\GitHub CLI\\gh.exe"
+                    subprocess.run([gh_bin, "workflow", "run", "corn.yml", "-R", "PahalGroup/Telegram-news-bot"], capture_output=True, timeout=15)
+                    logger.info("[✓] Seamlessly relayed next 3-hour shift on GitHub Cloud!")
+                except Exception as ex:
+                    logger.warning(f"Cloud relay notice: {ex}")
+
             time.sleep(25)
         logger.info(f"[✓] GitHub Cloud Shift Complete. Executed {cycle_count} cycles, dispatched {total_posted} stories.")
 
