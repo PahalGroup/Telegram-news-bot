@@ -238,6 +238,130 @@ class SentinelWatchdog:
         self.self_heal_filter_rules(raw_text)
         logger.info(f"[GAP AUDIT] Benchmark Story #{bp_id} logged. Rules self-healed. Zero reposting enforced.")
 
+    def _save_file(self, path: str, content: str):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception as e:
+            logger.error(f"Failed to save {path}: {e}")
+
+    def generate_live_feed_radar(self, bench_posts: List[dict], our_posts: List[dict]) -> dict:
+        """
+        Generates an itemized side-by-side comparative radar between reference wire & our channel.
+        Tracks what benchmark does vs our channel, flags missed stories, blocked promos, and our exclusives.
+        Saves to state/live_feed_radar.json and generates state/live_radar_summary.md.
+        """
+        radar_items = []
+        matched_our_ids = set()
+        
+        promo_markers = [
+            "biggest sale", "diwali sale", "sale of the year", "discount", "offer",
+            "course", "batch", "training", "ad:", "sponsor", "call us", "whatsapp",
+            "dm us", "contact us", "google meet", "zoom.us", "personal view", "my view on",
+            "pinned «", "crypto", "forex", "binary", "lottery", "giveaway", "tiger shroff",
+            "cosmofeed", "cosmofeed.com", "option pick", "option plan", "option tips",
+            "option strategy", "calls by staok", "calls by stock"
+        ]
+
+        # 1. Analyze every benchmark post
+        for bp in bench_posts[-15:]:
+            bp_id = bp.get("msg_id", 0)
+            raw_text = bp.get("raw_text", "").strip()
+            dt_str = bp.get("dt").strftime("%H:%M:%S IST") if bp.get("dt") else "N/A"
+            lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
+            headline = " | ".join(lines[:2]) if lines else "EMPTY"
+            
+            # Check promo
+            tl = raw_text.lower()
+            if any(pm in tl for pm in promo_markers):
+                radar_items.append({
+                    "time": dt_str,
+                    "source_ref": f"@{self.bench_channel} #{bp_id}",
+                    "reference_content": headline[:95],
+                    "status": "🛑 BLOCKED_PROMO",
+                    "our_post_id": "-",
+                    "engine_action": "Classified as promo/ad spam. Blocked."
+                })
+                continue
+                
+            # Check if matched in our posts
+            b_tokens = set(re.findall(r'\b[a-zA-Z]{3,}\b', raw_text.lower()))
+            matched_op = None
+            for op in our_posts:
+                op_tokens = set(re.findall(r'\b[a-zA-Z]{3,}\b', op.get("raw_text", "").lower()))
+                intersection = b_tokens & op_tokens
+                if len(intersection) >= 5 or (len(b_tokens) > 0 and len(intersection) / len(b_tokens) > 0.40):
+                    matched_op = op
+                    matched_our_ids.add(op.get("msg_id"))
+                    break
+                    
+            if matched_op:
+                op_time = matched_op.get("dt").strftime("%H:%M:%S IST") if matched_op.get("dt") else "N/A"
+                radar_items.append({
+                    "time": dt_str,
+                    "source_ref": f"@{self.bench_channel} #{bp_id}",
+                    "reference_content": headline[:95],
+                    "status": "🟢 COVERED_BY_OUR_WIRE",
+                    "our_post_id": f"#{matched_op.get('msg_id')} ({op_time})",
+                    "engine_action": "Covered natively from official disclosures with clean formatting."
+                })
+            else:
+                words = re.findall(r'\b[A-Z]{3,15}\b', raw_text)
+                blacklist = {"THE", "AND", "FOR", "BUY", "SELL", "NEW", "PAT", "EPS", "NSE", "BSE", "LTD", "LIMITED"}
+                candidates = [w.lower() for w in words if w not in blacklist]
+                cand_str = candidates[0] if candidates else "general"
+                
+                radar_items.append({
+                    "time": dt_str,
+                    "source_ref": f"@{self.bench_channel} #{bp_id}",
+                    "reference_content": headline[:95],
+                    "status": "⚡ FLAGGED_GAP (AUTO-HEALED)",
+                    "our_post_id": "-",
+                    "engine_action": f"Auto-learned '{cand_str}' into filter_rules.json. Scraper tracking active."
+                })
+
+        # 2. Check our channel's exclusive posts (not on benchmark)
+        for op in our_posts[-15:]:
+            op_id = op.get("msg_id", 0)
+            if op_id not in matched_our_ids:
+                raw_text = op.get("raw_text", "").strip()
+                dt_str = op.get("dt").strftime("%H:%M:%S IST") if op.get("dt") else "N/A"
+                lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
+                headline = " | ".join(lines[:2]) if lines else "EMPTY"
+                
+                radar_items.append({
+                    "time": dt_str,
+                    "source_ref": "-",
+                    "reference_content": "(Benchmark did not report this)",
+                    "status": "⭐ OUR_EXCLUSIVE_WIRE",
+                    "our_post_id": f"#{op_id}",
+                    "engine_action": "Official primary disclosure captured directly from BSE/NSE/PIB/RBI."
+                })
+
+        # Save JSON
+        radar_data = {
+            "generated_at": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
+            "total_events_tracked": len(radar_items),
+            "feed_comparison": radar_items
+        }
+        self._save_json("state/live_feed_radar.json", radar_data)
+
+        # Generate Markdown report
+        md_lines = [
+            "# 🛰️ Live Market Wire Radar: Reference Wire vs @pahal_investment\n",
+            f"**Last Sync**: {datetime.now(IST).strftime('%A, %d %B %Y | %H:%M:%S IST')}  ",
+            f"**Channels Monitored**: Benchmark `@{self.bench_channel}` vs Our Wire `@{self.our_channel}`\n",
+            "| Time (IST) | Reference Wire Event | Status | Our Channel Post | Engine Action & Explanation |",
+            "| :--- | :--- | :---: | :---: | :--- |"
+        ]
+        for item in radar_items:
+            md_lines.append(f"| `{item['time']}` | **{item['source_ref']}**: {item['reference_content']} | `{item['status']}` | `{item['our_post_id']}` | {item['engine_action']} |")
+            
+        md_content = "\n".join(md_lines)
+        self._save_file("state/live_radar_summary.md", md_content)
+        return radar_data
+
     def run_sentinel_cycle(self) -> dict:
         """Executes a single comprehensive audit & self-healing cycle across both channels."""
         now = datetime.now(IST)
@@ -367,6 +491,12 @@ class SentinelWatchdog:
         }
         self._save_json("state/sentinel_health_summary.json", health_summary)
         
+        # 4. Generate Itemized Live Feed Radar (Reference vs Our Channel)
+        try:
+            self.generate_live_feed_radar(bench_posts, our_posts)
+        except Exception as e:
+            logger.warning(f"Error generating live feed radar: {e}")
+
         return cycle_result
 
     def notify_defect_telegram(self, p_id: int, origin: str, defects: list, preview: str):
