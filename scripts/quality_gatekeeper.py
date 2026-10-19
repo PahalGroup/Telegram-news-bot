@@ -184,11 +184,14 @@ class QualityGatekeeper:
         
         # Strip common regulatory / exchange boilerplate prefixes from action
         action_clean = re.sub(
-            r'^(?:Announcement\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Intimation\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Disclosure\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|General\s+Updates|Outcome\s+of\s+Board\s+Meeting|Compliances)\s*[-–:]\s*',
+            r'^(?:Announcement\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Intimation\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|Disclosure\s+under\s+Regulation\s*\d+(?:\s*\([^)]+\))?|General\s+Updates|Outcome\s+of\s+Board\s+Meeting|Compliances|We\s+wish\s+to\s+inform\s+you\s+that|This\s+is\s+to\s+inform\s+you\s+that)\s*[-–:]\s*',
             '',
             action_clean,
             flags=re.IGNORECASE
         ).strip(' -:–')
+        
+        # If action starts with "Pursuant to Regulation 30...", strip the entire clause
+        action_clean = re.sub(r'^Pursuant\s+to\s+Regulation\s+\d+.*?(?:hereby\s+inform\s+that|intimates\s+that|regarding)\s*', '', action_clean, flags=re.IGNORECASE).strip(' -:–')
         
         # Avoid repeating company name if action starts with it
         if action_clean.upper().startswith(comp_tag):
@@ -197,7 +200,11 @@ class QualityGatekeeper:
         # Clean trailing sources or urls
         action_clean = re.sub(r'\s*-\s*(?:The\s+Economic\s+Times|CNBC|Moneycontrol|NDTV|Business\s+Today|Reuters|Bloomberg|Taxo\s+Online).*$', '', action_clean, flags=re.IGNORECASE).strip()
         
-        header = f"<b>{comp_tag} : {action_clean.upper()}</b>" if action_clean else f"<b>{comp_tag}</b>"
+        # If action is completely empty or just "DISCLOSURE ATTACHED", reject
+        if not action_clean or re.match(r'^(?:DISCLOSURE\s+ATTACHED|ATTACHMENT|COVERING\s+LETTER|ENCLOSED|ANNEXURE)\.?$', action_clean, re.I):
+            return ""
+
+        header = f"<b>{comp_tag} : {action_clean.upper()}</b>"
         
         bullets = []
         if fact_details:
@@ -210,7 +217,7 @@ class QualityGatekeeper:
                     fl_clean = fl.strip()
                     if fl_clean and not any(bp in fl_clean.lower() for bp in [
                         'verified from', 'official disclosure', 'dear sir', 'please find enclosed',
-                        'pursuant to regulation', 'forwarded herewith', 'we submit herewith'
+                        'pursuant to regulation', 'forwarded herewith', 'we submit herewith', 'disclosure attached'
                     ]):
                         bullet_txt = re.sub(r'^[-•*●▪️\s]+', '', fl_clean).strip()
                         if len(bullet_txt) > 12:
@@ -245,10 +252,16 @@ class QualityGatekeeper:
             r'forwarded\s+herewith',
             r'we\s+submit\s+herewith',
             r'copy\s+of\s+letter\s+submitted',
+            r'^disclosure\s+attached\.?$',
+            r'^attachment\s+attached\.?$',
+            r'pursuant\s+to\s+regulation\s+30\s+of\s+securities\s+and\s+exchange',
+            r'loss\s+of\s+share\s+certificate',
+            r'duplicate\s+share\s+certificate',
+            r'newspaper\s+publication\s+prior\s+to',
         ]
         is_boilerplate = any(re.search(pat, raw_text, re.I) for pat in boilerplate_patterns)
         has_concrete_action = bool(re.search(
-            r'\b(?:order|contract|awarded|result|q[1-4]|profit|loss|revenue|ebitda|margin|dividend|bonus|split|buyback|acquisition|stake|resigned|appointed|ceo|cfo|md|usfda|approval|capacity|expansion|patent)\b',
+            r'\b(?:order|contract|awarded|result|q[1-4]|profit|loss|revenue|ebitda|margin|dividend|bonus|split|buyback|acquisition|stake|resigned|appointed|ceo|cfo|md|usfda|approval|capacity|expansion|patent|incorporation|subsidiary|ncd|allotment)\b',
             raw_text, re.I
         ))
 
