@@ -217,18 +217,51 @@ def main():
         
     engine = MarketWireEngine(dry_run=not is_live_run)
     
-    if args.test or not args.daemon:
+    is_github_actions = (os.getenv("GITHUB_ACTIONS") == "true")
+
+    if is_github_actions:
+        # 24/7 Cloud Continuous Shift: Run actively for 15 minutes per GitHub invocation
+        shift_duration_sec = 900  # 15 minutes continuous cloud runtime
+        logger.info(f"[*] Starting GitHub Cloud Continuous Shift ({shift_duration_sec // 60} minutes live polling)...")
+        shift_start = time.time()
+        cycle_count = 0
+        total_posted = 0
+        while time.time() - shift_start < shift_duration_sec:
+            cycle_count += 1
+            try:
+                dispatches = engine.process_and_dispatch(max_posts_per_cycle=3)
+                total_posted += len(dispatches)
+            except Exception as e:
+                logger.error(f"[Cloud Shift Cycle {cycle_count}] Error: {e}")
+            time.sleep(25)
+        logger.info(f"[✓] GitHub Cloud Shift Complete. Executed {cycle_count} cycles, dispatched {total_posted} stories.")
+
+    elif args.test or not args.daemon:
         logger.info("[*] Executing Single Engine Pass across All Live Endpoints...")
         dispatches = engine.process_and_dispatch(max_posts_per_cycle=5)
         logger.info(f"[✓] Engine cycle complete. Approved dispatches: {len(dispatches)}")
     else:
-        logger.info("[*] Starting Continuous 24/7 Market Wire Daemon...")
+        logger.info("[*] Starting Continuous 24/7 Market Wire Daemon (Antigravity Local)...")
+        last_cloud_kick = time.time()
         while True:
             try:
                 engine.process_and_dispatch(max_posts_per_cycle=3)
             except Exception as e:
                 logger.error(f"Daemon cycle error: {e}")
-            time.sleep(30)
+            
+            # Cloud Heartbeat: Every 15 minutes, trigger GitHub Actions to ensure cloud runner is active
+            if time.time() - last_cloud_kick > 900:
+                last_cloud_kick = time.time()
+                try:
+                    import subprocess
+                    subprocess.run(
+                        ["C:\\Program Files\\GitHub CLI\\gh.exe", "workflow", "run", "corn.yml", "-R", "PahalGroup/Telegram-news-bot"],
+                        capture_output=True, text=True, timeout=10
+                    )
+                    logger.info("[HEARTBEAT] Pushed cloud workflow trigger to GitHub Actions.")
+                except Exception:
+                    pass
+            time.sleep(25)
 
 if __name__ == "__main__":
     main()
