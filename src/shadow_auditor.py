@@ -32,29 +32,38 @@ class ShadowAuditor:
         """Fetch latest posts from public Telegram channel preview."""
         posts = []
         url = f"https://t.me/s/{channel_username}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
         try:
-            r = self.session.get(url, headers=headers, timeout=15)
-            if r.status_code != 200:
-                logger.warning(f"Could not reach https://t.me/s/{channel_username}: Status {r.status_code}")
+            import subprocess
+            from bs4 import BeautifulSoup
+            cmd = ["curl.exe" if sys.platform == "win32" else "curl", "-4", "-s", "-L", "--max-time", "15", url]
+            res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            html_text = res.stdout if (res.returncode == 0 and "tgme_widget_message" in res.stdout) else ""
+            
+            if not html_text:
+                r = self.session.get(url, timeout=15)
+                html_text = r.text if r.status_code == 200 else ""
+
+            if not html_text:
                 return posts
 
-            html_text = r.text
-            import re
-            msg_blocks = re.findall(
-                r'<div class="tgme_widget_message_wrap[^"]*"[^>]*data-post="([^"]+)".*?<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>.*?<time[^>]*datetime="([^"]+)"',
-                html_text,
-                re.DOTALL
-            )
-            for post_id, text_html, dt_str in msg_blocks[-limit:]:
-                clean_text = re.sub(r"<[^>]+>", " ", text_html).strip()
-                clean_text = re.sub(r"\s+", " ", clean_text)
+            soup = BeautifulSoup(html_text, "html.parser")
+            msg_wraps = soup.find_all("div", class_="tgme_widget_message_wrap")
+            for wrap in msg_wraps[-limit:]:
+                msg_elem = wrap.find("div", class_="tgme_widget_message")
+                if not msg_elem:
+                    continue
+                data_post = msg_elem.get("data-post", "")
+                text_elem = wrap.find("div", class_="tgme_widget_message_text")
+                if not text_elem:
+                    continue
+                clean_text = text_elem.get_text(" ").strip()
+                time_elem = wrap.find("time")
+                dt_str = time_elem.get("datetime", "") if time_elem else ""
+                
                 posts.append({
                     "channel": channel_username,
-                    "post_id": post_id,
-                    "raw_html": text_html,
+                    "post_id": data_post,
+                    "raw_html": str(text_elem),
                     "clean_text": clean_text,
                     "datetime": dt_str
                 })
