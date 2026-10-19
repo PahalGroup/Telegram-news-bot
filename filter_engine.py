@@ -265,15 +265,24 @@ class FilterEngine:
         return bool(DROP_REGEX.search(text))
 
     @staticmethod
-    def classify_and_validate(text: str, source_type: str) -> Tuple[bool, Optional[str]]:
+    def classify_and_validate(text: str, source_type: str = "filing") -> Tuple[bool, Optional[str]]:
         """
-        Classifies incoming item into:
-        - 'filing': Exchange company announcement
-        - 'flash': Fast company news/earnings flash
-        - 'broker_note': Brokerage upgrade/downgrade/target
-        - 'wire': Macro/market one-liner
-        Returns (is_kept, category)
+        Two-Stage Filtration Pipeline Delegator:
+        Uses Phase 2 src.filter_engine calibrated against Reference Channel ground truth.
         """
+        try:
+            from src.filter_engine import FilterEngine as Phase2Engine
+            engine = Phase2Engine()
+            passed_s1, reason, cand = engine.evaluate_stage_1({"title": text, "source": source_type})
+            if not passed_s1:
+                return False, None
+            eval_data = engine.evaluate_stage_2(cand)
+            if eval_data.get("publish") and eval_data.get("materiality_score", 0) >= 70:
+                return True, eval_data.get("category", "filing")
+            return False, None
+        except Exception:
+            pass
+
         if FilterEngine.should_drop(text):
             return False, None
 
