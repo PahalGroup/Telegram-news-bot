@@ -107,6 +107,25 @@ class MarketWireEngine:
             logger.info("[*] Morning Window: Generating and Dispatching Master Morning Briefing...")
             self.morning_briefing.dispatch_briefing(dry_run=self.dry_run)
 
+        # Evening FII/DII Net Activity Trigger (Trading days after 17:30 IST)
+        if now_ist.weekday() < 5 and now_ist.hour >= 17:
+            try:
+                from sources.nse_fetcher import NSEFetcher
+                from formatter import Formatter
+                nse_fetcher = NSEFetcher()
+                fii_data = nse_fetcher.fetch_fii_dii()
+                if fii_data:
+                    formatted_fii = Formatter.format_fii_dii(fii_data)
+                    date_line = formatted_fii.splitlines()[0]
+                    if not self.dedup.is_duplicate(date_line, source="NSE_FII_DII"):
+                        logger.info(f"[*] Dispatching Official NSE FII/DII Flows: {date_line}")
+                        if not self.dry_run:
+                            mid = self.dispatcher.send_message(formatted_fii)
+                            if mid:
+                                self.dedup.record_post(date_line, source="NSE_FII_DII")
+            except Exception as e:
+                logger.warning(f"FII/DII processing note: {e}")
+
         raw_items = self.run_all_scrapers()
         approved_dispatches = []
         
