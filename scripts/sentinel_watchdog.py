@@ -10,6 +10,11 @@ from typing import Optional, Dict, List, Tuple
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cureq
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(line_buffering=True, encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(line_buffering=True, encoding='utf-8', errors='replace')
+
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -216,66 +221,22 @@ class SentinelWatchdog:
                 self.state["auto_healed_rules_count"] += 1
                 logger.info(f"[AUTO-HEAL] Learned new corporate trigger keyword: '{learned_kw}' into config/filter_rules.json")
 
-    def bridge_and_dispatch(self, bp: dict) -> bool:
+    def audit_and_log_gap(self, bp: dict) -> None:
         """
-        Fast-Bridge: When benchmark channel posts breaking market news or concall highlights
-        that our channel missed, adapt, verify, and dispatch immediately to @pahal_investment.
-        Filters out promotions, advertisements, personal notes, and duplicate items.
+        Pure Audit & Intelligence Engine:
+        Analyzes benchmark coverage gaps, updates continuous audit records,
+        and triggers self-healing of filter rules.
+        CRITICAL RULE: NEVER copy, bridge, or forward benchmark channel text to @pahal_investment.
+        All posts on @pahal_investment MUST originate exclusively from official primary scrapers (BSE/NSE/PIB/SEBI/RBI).
         """
         raw_text = bp.get("raw_text", "").strip()
+        bp_id = bp.get("msg_id", 0)
         if not raw_text or len(raw_text) < 30:
-            return False
+            return
 
-        # 1. Filter out spam, advertisements, personal links, courses, non-market entertainment
-        promo_markers = [
-            "biggest sale", "diwali sale", "sale of the year", "discount", "offer",
-            "course", "batch", "training", "ad:", "sponsor", "call us", "whatsapp",
-            "dm us", "contact us", "google meet", "zoom.us", "personal view", "my view on",
-            "pinned «", "crypto", "forex", "binary", "lottery", "giveaway", "tiger shroff",
-            "cosmofeed", "cosmofeed.com", "option pick", "option plan", "option tips",
-            "option strategy", "nifty 50 call", "banknifty put", "buy call", "buy put",
-            "calls by staok", "calls by stock", "paid channel", "vip group"
-        ]
-        tl = raw_text.lower()
-        if any(pm in tl for pm in promo_markers):
-            logger.info(f"[FAST-BRIDGE] Skipped non-market/ad post #{bp.get('msg_id')}")
-            return False
-
-        # 2. Clean and format the post
-        text = re.sub(r'@stock_aaj_or_kal\b', '', raw_text, flags=re.I)
-        text = re.sub(r'https?://t\.me/\S+', '', text)
-        
-        # Preserve distinct paragraph/bullet separation with clean double linebreaks
-        raw_paragraphs = [p.strip() for p in text.splitlines() if p.strip()]
-        if len(raw_paragraphs) > 1:
-            title = raw_paragraphs[0]
-            bullets = raw_paragraphs[1:]
-            text = f"<b>{title}</b>\n\n" + "\n\n".join(bullets)
-        else:
-            text = "\n\n".join(raw_paragraphs).strip()
-
-        if len(text) < 30:
-            return False
-
-        # 3. Deduplication check
-        if self.dedup.is_duplicate(text, source="BENCHMARK_BRIDGE"):
-            logger.debug(f"[FAST-BRIDGE] Story #{bp.get('msg_id')} already present in SQLite dedup.")
-            return False
-
-        # 4. Dispatch immediately to @pahal_investment (strictly NO origin tag)
-        sent = self.dispatcher.send_message(text, add_origin=False)
-        if sent:
-            self.dedup.record_post(text, source="BENCHMARK_BRIDGE")
-            self.gatekeeper.record_posted(
-                company="MARKET_FLASH",
-                category="BREAKING_WIRE",
-                final_post=text,
-                url=f"https://t.me/stock_aaj_or_kal/{bp.get('msg_id')}",
-                raw_text=raw_text
-            )
-            logger.info(f"[FAST-BRIDGE DISPATCH] Successfully posted breaking story #{bp.get('msg_id')} to @pahal_investment!")
-            return True
-        return False
+        # Self-heal filter rules by auto-learning corporate entities
+        self.self_heal_filter_rules(raw_text)
+        logger.info(f"[GAP AUDIT] Benchmark Story #{bp_id} logged. Rules self-healed. Zero reposting enforced.")
 
     def run_sentinel_cycle(self) -> dict:
         """Executes a single comprehensive audit & self-healing cycle across both channels."""
@@ -286,8 +247,7 @@ class SentinelWatchdog:
             "new_our_posts": 0,
             "missed_deltas_flagged": 0,
             "defects_flagged": 0,
-            "self_healed_actions": 0,
-            "bridged_dispatches": 0
+            "self_healed_actions": 0
         }
         
         logger.info("[WATCHDOG] Polling both Telegram channels (@pahal_investment vs @stock_aaj_or_kal)...")
@@ -362,18 +322,13 @@ class SentinelWatchdog:
                         break
                         
                 if not matched:
-                    # Flag missed news story & trigger self-healing
+                    # Flag missed news story & trigger self-healing (STRICTLY AUDIT ONLY - NEVER COPY TEXT)
                     cycle_result["missed_deltas_flagged"] += 1
                     self.state["missed_stories_flagged"] += 1
                     logger.warning(f"[MISSING STORY DETECTED] Benchmark Post #{bp_id} not found in our channel:\n{bp_text[:100]}...")
                     
-                    self.self_heal_filter_rules(bp_text)
+                    self.audit_and_log_gap(bp)
                     cycle_result["self_healed_actions"] += 1
-                    
-                    # Fast-Bridge Active Dispatch: bridge breaking news directly to our channel!
-                    dispatched = self.bridge_and_dispatch(bp)
-                    if dispatched:
-                        cycle_result["bridged_dispatches"] += 1
                     
                     # Log to continuous audit ledger
                     audit_ledger = self._load_json(self.audit_log_path, {"audit_events": []})
