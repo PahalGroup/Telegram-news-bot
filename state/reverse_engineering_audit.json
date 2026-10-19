@@ -1,0 +1,1502 @@
+{
+  "empirical_matrix": {
+    "total_reference_posts_analyzed": 60,
+    "matched_to_upstream_filings": 45,
+    "category_distribution": {
+      "GENERAL_WIRE": 29,
+      "MANAGEMENT_CHANGE": 4,
+      "FINANCIAL_RESULTS": 17,
+      "CREDIT_RATING": 3,
+      "DIVIDEND_OR_SPLIT": 1,
+      "ORDER_WIN": 2,
+      "FII_DII_FLOWS": 1,
+      "CORP_RESTRUCTURE": 3
+    },
+    "always_published_categories": [
+      "FINANCIAL_RESULTS",
+      "ORDER_WIN",
+      "MANAGEMENT_CHANGE",
+      "CREDIT_RATING",
+      "CORP_RESTRUCTURE",
+      "DIVIDEND_OR_SPLIT",
+      "FII_DII_FLOWS",
+      "IPO_GMP",
+      "GOV_AND_MACRO"
+    ],
+    "always_dropped_boilerplate_patterns": [
+      "closure of trading window",
+      "loss of share certificate",
+      "duplicate share certificate",
+      "newspaper advertisement",
+      "newspaper publication",
+      "general meeting intimation without outcome",
+      "investor presentation upload placeholder",
+      "compliance certificate under reg 74(5)",
+      "reconciliation of share capital",
+      "submission of disclosure / intimation attached"
+    ],
+    "materiality_criteria": {
+      "order_win_minimum_cr": 1.0,
+      "ratings_actions": [
+        "upgrade",
+        "downgrade",
+        "reaffirmed"
+      ],
+      "results_must_have_metrics": true,
+      "management_tiers": [
+        "MD",
+        "CEO",
+        "CFO",
+        "CHAIRMAN",
+        "DIRECTOR",
+        "AUDITOR"
+      ]
+    },
+    "timestamp": "2026-10-19T20:04:25.210124+05:30"
+  },
+  "reference_posts": [
+    {
+      "msg_id": 267015,
+      "datetime_utc": "2026-10-19T11:48:59+00:00",
+      "header": "⛏️",
+      "full_text": "⛏️\n HINDUSTAN ZINC — PRODUCTION & COST UPDATE\n🏭\n PRODUCTION GROWTH\n• Mined Metal Production: \n⬆️\n 5% YoY — Record Q2 output\n• Refined Metal Production: \n⬆️\n 7% YoY\n• Saleable Silver Production: 173 Tonnes | \n⬆️\n 20% YoY\n💵\n ZINC COST OF PRODUCTION\n• Q2 Cost: $703/Tonne\n• FY27 Cost Guidance reduced to $825–850/Tonne from $975–1,000/Tonne.\n• Management expects to broadly deliver within the revised guidance.\n🥈\n SILVER OUTLOOK\n• FY27 Production Guidance: 680 Tonnes\n• FY28: Management is hopeful of reaching 730–750 Tonnes, subject to debottlenecking progress.\n• Silver contributed approximately 45% of H1 profitability.",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/E29B8F.png')\"><b>⛏️</b></i> HINDUSTAN ZINC — PRODUCTION & COST UPDATE<br/><b",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "5%",
+        "7%",
+        "20%",
+        "$703",
+        "$825",
+        "$975",
+        "45%"
+      ],
+      "is_promo": false,
+      "line_count": 23,
+      "char_count": 619
+    },
+    {
+      "msg_id": 267016,
+      "datetime_utc": "2026-10-19T11:49:02+00:00",
+      "header": "🏗️",
+      "full_text": "🏗️\n HINDUSTAN ZINC — GROWTH & MANAGEMENT COMMENTARY\n🚀\n CAPEX & EXPANSION\n• FY27 CapEx Guidance: Around ₹5,000 Cr\n• Q2 Sustaining CapEx: ₹1,200 Cr\n• Q2 Growth CapEx: ₹700 Cr\n• 250 KTPA Integrated Zinc Expansion: Engineering and procurement almost complete; mine development underway.\n• 10 MTPA Tailings Reprocessing Plant: Progressing as planned.\n📦\n LEAD CONCENTRATE SALE\n• Quantity: 10 KT\n• Revenue: ₹300 Cr\n• Profit: ₹155 Cr\n• Contained approximately 10 tonnes of silver and 6,000 tonnes of lead.\n• Future sales will depend on concentrate availability and business requirements.\n⚡\n HEDGING POSITION\n• Q3 Zinc: 40 KT at $3,476/Tonne\n• Q4 Zinc: 36 KT at $3,698/Tonne\n• Q3 Silver: 8 Tonnes at $68/Oz",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F8F97.png')\"><b>🏗️</b></i> HINDUSTAN ZINC — GROWTH & MANAGEMENT COMMENTAR",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "₹5,000 Cr",
+        "₹1,200 Cr",
+        "₹700 Cr",
+        "₹300 Cr",
+        "₹155 Cr",
+        "$3,476",
+        "$3,698",
+        "$68"
+      ],
+      "is_promo": false,
+      "line_count": 21,
+      "char_count": 697
+    },
+    {
+      "msg_id": 267017,
+      "datetime_utc": "2026-10-19T11:49:10+00:00",
+      "header": "🌍",
+      "full_text": "🌍\n HINDUSTAN ZINC — OUTLOOK & KEY TAKEAWAYS\n📊\n COMMODITY MARKET OUTLOOK\n• Zinc: Global refined market projected to face a 180 KT deficit in 2026.\n• Silver: Expected to remain in deficit for the sixth consecutive year.\n• Management remains positive on medium- to long-term zinc and silver demand.\n🌱\n ESG & RENEWABLE ENERGY\n• Renewable Energy: 27% of total power consumption.\n• Target: Increase renewable energy share to 35%.\n• One subsidiary has shifted to 100% renewable power.\n• Net-Zero Ambition: 2050.\n🤖\n TECHNOLOGY & GROWTH STRATEGY\n• Focus on AI-driven operations and technology-led growth.\n• Priorities include cost leadership, disciplined project execution and better resource utilisation.\n🎯\n CONCALL TAKEAWAY\nRecord earnings, lower cost guidance, strong cash generation and a significant silver contribution support the company's growth outlook. Expansion projects remain on track.",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F8C8D.png')\"><b>🌍</b></i> HINDUSTAN ZINC — OUTLOOK & KEY TAKEAWAYS<br/><b",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "27%",
+        "35%",
+        "100%"
+      ],
+      "is_promo": false,
+      "line_count": 20,
+      "char_count": 889
+    },
+    {
+      "msg_id": 267018,
+      "datetime_utc": "2026-10-19T11:50:15+00:00",
+      "header": "BF Utilities Ltd-$ – CHANGE IN MANAGEMENT",
+      "full_text": "BF Utilities Ltd-$ – CHANGE IN MANAGEMENT\nAppointment of Non-Executive, Independent Director:\n- Mr. Ajay Charuchandra Kirtane appointed as Non-Executive, Independent Director\n- Appointment effective from September 07, 2026\n- Term of appointment for five consecutive years until September 06, 2031\n- Members approved the appointment via Special Resolution through postal ballot\n- Mr. Kirtane is a qualified Cost & Works Accountant with over 34 years of experience",
+      "html_snippet": "<b>BF Utilities Ltd-$ – CHANGE IN MANAGEMENT</b><br/><br/>Appointment of Non-Executive, Independent Director:<br/><br/>- Mr. Ajay Charuchandra Kirtane",
+      "category": "MANAGEMENT_CHANGE",
+      "entity": "BF UTILITIES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 462
+    },
+    {
+      "msg_id": 267019,
+      "datetime_utc": "2026-10-19T11:50:18+00:00",
+      "header": "Dhruv Consultancy Services Ltd – PROJECT AWARD",
+      "full_text": "Dhruv Consultancy Services Ltd – PROJECT AWARD\nReceipt of Letter of Acceptance for consultancy services in Gujarat:\n- Received LOA for Authority Engineer services for NH-754k upgradation project\n- Contract value is INR 14.85 Cr excluding GST\n- Project involves supervision of Dholavira-Mauvana-Vauva-Santalpur Section (Package-II)\n- Project duration is 84 months\n- Awarded by Ministry of Road Transport and Highway Regional Office Gujarat",
+      "html_snippet": "<b>Dhruv Consultancy Services Ltd – PROJECT AWARD</b><br/><br/>Receipt of Letter of Acceptance for consultancy services in Gujarat:<br/><br/>- Receive",
+      "category": "GENERAL_WIRE",
+      "entity": "DHRUV CONSULTANCY SERVICES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 438
+    },
+    {
+      "msg_id": 267020,
+      "datetime_utc": "2026-10-19T11:51:05+00:00",
+      "header": "🎯",
+      "full_text": "🎯\n HINDUSTAN ZINC — Q2 FY27 CONCALL GUIDANCE\n💵\n ZINC COST OF PRODUCTION\n• FY27 Guidance revised to $825–850/Tonne vs earlier $975–1,000/Tonne.\n• Q2 Cost of Production: $703/Tonne.\n• Management expects to broadly maintain the revised guidance.\n🥈\n SILVER PRODUCTION GUIDANCE\n• FY27 Target: 680 Tonnes.\n• H1 production and concentrate sales together amounted to approximately 340 Tonnes.\n• FY28 Outlook: Management is hopeful of achieving 730–750 Tonnes, subject to debottlenecking projects.\n🏗️\n CAPEX GUIDANCE\n• FY27 Total CapEx: Approximately ₹5,000 Cr.\n• Q2 Sustaining CapEx: ₹1,200 Cr.\n• Q2 Growth CapEx: ₹700 Cr.\n• Higher spending expected in Q3 and Q4 as expansion projects progress.",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F8EAF.png')\"><b>🎯</b></i> HINDUSTAN ZINC — Q2 FY27 CONCALL GUIDANCE<br/><",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "$825",
+        "$975",
+        "$703",
+        "₹5,000 Cr",
+        "₹1,200 Cr",
+        "₹700 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 18,
+      "char_count": 686
+    },
+    {
+      "msg_id": 267021,
+      "datetime_utc": "2026-10-19T11:51:19+00:00",
+      "header": "🎯",
+      "full_text": "🎯\n HINDUSTAN ZINC — Q2 FY27 CONCALL GUIDANCE  \n💵\n ZINC COST OF PRODUCTION  • FY27 Guidance revised to $825–850/Tonne vs earlier $975–1,000/Tonne.  • Q2 Cost of Production: $703/Tonne.  • Management expects to broadly maintain the revised guidance.  \n🥈\n SILVER PRODUCTION…",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F8EAF.png')\"><b>🎯</b></i> HINDUSTAN ZINC — Q2 FY27 CONCALL GUIDANCE  <i c",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "$825",
+        "$975",
+        "$703"
+      ],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 271
+    },
+    {
+      "msg_id": 267022,
+      "datetime_utc": "2026-10-19T11:54:26+00:00",
+      "header": "BAJAJ FINANCE Q2 FY27",
+      "full_text": "BAJAJ FINANCE Q2 FY27\nNet Profit: ₹6,367 Cr ↑29% YoY | ↑5% QoQ\nNII: ₹13,335 Cr ↑24% YoY | ↑6% QoQ\nPre-Provision Operating Profit (PPOP): ₹10,699 Cr ↑23% YoY | ↑23% QoQ\nProvisions: ₹2,166 Cr ↑4% YoY | ↑9% QoQ\nAUM: ₹5,84,624 Cr ↑26% YoY",
+      "html_snippet": "BAJAJ FINANCE Q2 FY27<br/><br/>Net Profit: ₹6,367 Cr ↑29% YoY | ↑5% QoQ<br/><br/>NII: ₹13,335 Cr ↑24% YoY | ↑6% QoQ<br/><br/>Pre-Provision Operating P",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "BAJAJ FINANCE",
+      "numbers": [
+        "₹6,367 Cr",
+        "29%",
+        "5%",
+        "₹13,335 Cr",
+        "24%",
+        "6%",
+        "₹10,699 Cr",
+        "23%",
+        "23%",
+        "₹2,166 Cr",
+        "4%",
+        "9%",
+        "₹5,84,624 Cr",
+        "26%"
+      ],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 234
+    },
+    {
+      "msg_id": 267023,
+      "datetime_utc": "2026-10-19T11:55:47+00:00",
+      "header": "Dolat Algotech Ltd – RECORD DATE FOR COMMERCIAL PAPER",
+      "full_text": "Dolat Algotech Ltd – RECORD DATE FOR COMMERCIAL PAPER\nRecord date for redemption of commercial paper:\n- Commercial Paper ISIN: INE966A14066\n- Record Date: 26 October 2026\n- Maturity Date: 27 October 2026\n- Purpose: Redemption of CP",
+      "html_snippet": "<b>Dolat Algotech Ltd – RECORD DATE FOR COMMERCIAL PAPER</b><br/><br/>Record date for redemption of commercial paper:<br/><br/>- Commercial Paper ISIN",
+      "category": "GENERAL_WIRE",
+      "entity": "DOLAT ALGOTECH",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 231
+    },
+    {
+      "msg_id": 267024,
+      "datetime_utc": "2026-10-19T11:58:17+00:00",
+      "header": "BAJAJ FINANCE Q2 FY27 : ACTUAL VS ESTIMATES",
+      "full_text": "BAJAJ FINANCE Q2 FY27 : ACTUAL VS ESTIMATES\nNet Profit: ₹6,367 Cr vs ₹6,481 Cr est. — MISS BY 1.76% \n🔴\nNII: ₹13,335 Cr vs ₹13,532 Cr est. — MISS BY 1.46% \n🔴",
+      "html_snippet": "BAJAJ FINANCE Q2 FY27 : ACTUAL VS ESTIMATES<br/><br/>Net Profit: ₹6,367 Cr vs ₹6,481 Cr est. — MISS BY 1.76% <i class=\"emoji\" style=\"background-image:",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "BAJAJ FINANCE",
+      "numbers": [
+        "₹6,367 Cr",
+        "₹6,481 Cr",
+        "1.76%",
+        "₹13,335 Cr",
+        "₹13,532 Cr",
+        "1.46%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 156
+    },
+    {
+      "msg_id": 267025,
+      "datetime_utc": "2026-10-19T11:58:19+00:00",
+      "header": "A-ONE STEELS INDIA Q1 FY27",
+      "full_text": "A-ONE STEELS INDIA Q1 FY27\nNet Profit: ₹47.90 Cr ↑50% YoY | ↓33% QoQ\nRevenue: ₹1,040.50 Cr ↑3% YoY | ↓12% QoQ\nEBITDA: ₹102 Cr ↑51% YoY | ↓16% QoQ\nEBITDA Margin: 9.8% vs 6.7% YoY | 10.2% QoQ",
+      "html_snippet": "A-ONE STEELS INDIA Q1 FY27<br/><br/>Net Profit: ₹47.90 Cr ↑50% YoY | ↓33% QoQ<br/><br/>Revenue: ₹1,040.50 Cr ↑3% YoY | ↓12% QoQ<br/><br/>EBITDA: ₹102 ",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "A",
+      "numbers": [
+        "₹47.90 Cr",
+        "50%",
+        "33%",
+        "₹1,040.50 Cr",
+        "3%",
+        "12%",
+        "₹102 Cr",
+        "51%",
+        "16%",
+        "9.8%",
+        "6.7%",
+        "10.2%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 189
+    },
+    {
+      "msg_id": 267026,
+      "datetime_utc": "2026-10-19T12:00:24+00:00",
+      "header": "Atlantaa Ltd – CREDIT RATING REAFFIRMED",
+      "full_text": "Atlantaa Ltd – CREDIT RATING REAFFIRMED\nInfomerics Valuation and Rating Limited reaffirmed credit ratings for total proposed bank loan facilities of INR 100 Cr:\n- Long Term Rating: IVR BB+/Stable (Reaffirmed)\n- Short Term Rating: IVR A4+ (Reaffirmed)\n- Unexecuted EPC order book: INR 2485 Cr (as on 30-Jun-2026)\n- Atlantaa Enclave II saleable value: INR 601 Cr\n- Atlantaa Exotica saleable value: INR 553 Cr\n- Total Operating Income (FY26): INR 27.23 Cr",
+      "html_snippet": "<b>Atlantaa Ltd – CREDIT RATING REAFFIRMED</b><br/><br/>Infomerics Valuation and Rating Limited reaffirmed credit ratings for total proposed bank loan",
+      "category": "CREDIT_RATING",
+      "entity": "ATLANTAA",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 452
+    },
+    {
+      "msg_id": 267027,
+      "datetime_utc": "2026-10-19T12:00:30+00:00",
+      "header": "Atul Ltd – GPCB DIRECTIONS REGARDING EFFLUENT DISCHARGE",
+      "full_text": "Atul Ltd – GPCB DIRECTIONS REGARDING EFFLUENT DISCHARGE\nUpdate on treated effluent discharge from Atul site following pipeline damage:\n- Gujarat Pollution Control Board (GPCB) issued directions under Section 33(A) of the Water Act, 1974\n- Accidental damage to the existing pipeline caused discharge of treated effluent water into the estuary\n- Company required to submit a time-bound repair action plan and details of incident (time, quantity, and quality)\n- Company required to submit details of existing and proposed strengthened monitoring systems for the pipeline\n- Directions include a Bank Guarantee of INR 10 Lakh and Environmental Damage Compensation to be determined by the Authority\n- Affected pipeline has been repaired and is ready to take fresh treated effluent water load",
+      "html_snippet": "<b>Atul Ltd – GPCB DIRECTIONS REGARDING EFFLUENT DISCHARGE</b><br/><br/>Update on treated effluent discharge from Atul site following pipeline damage:",
+      "category": "GENERAL_WIRE",
+      "entity": "ATUL",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 785
+    },
+    {
+      "msg_id": 267029,
+      "datetime_utc": "2026-10-19T12:01:38+00:00",
+      "header": "IRGC SPOKESMAN: EVEN LIMITED US ACTION WILL TRIGGER GLOBAL ENERGY CRISIS - SEPAH NEWS",
+      "full_text": "IRGC SPOKESMAN: EVEN LIMITED US ACTION WILL TRIGGER GLOBAL ENERGY CRISIS - SEPAH NEWS",
+      "html_snippet": "IRGC SPOKESMAN: EVEN LIMITED US ACTION WILL TRIGGER GLOBAL ENERGY CRISIS - SEPAH NEWS",
+      "category": "GENERAL_WIRE",
+      "entity": "IRGC SPOKESMAN",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 1,
+      "char_count": 85
+    },
+    {
+      "msg_id": 267030,
+      "datetime_utc": "2026-10-19T12:04:24+00:00",
+      "header": "NELCO Q2 FY27",
+      "full_text": "NELCO Q2 FY27\nNet Profit: ₹1.70 Cr ↑6% YoY | ↓26% QoQ\nRevenue: ₹78.10 Cr ↑5% YoY | ↓2% QoQ\nEBITDA: ₹18 Cr ↑31% YoY | ↑24% QoQ\nEBITDA Margin: 23.4% vs 18.8% YoY | 18.4% QoQ",
+      "html_snippet": "NELCO Q2 FY27<br/><br/>Net Profit: ₹1.70 Cr ↑6% YoY | ↓26% QoQ<br/><br/>Revenue: ₹78.10 Cr ↑5% YoY | ↓2% QoQ<br/><br/>EBITDA: ₹18 Cr ↑31% YoY | ↑24% Q",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "NELCO",
+      "numbers": [
+        "₹1.70 Cr",
+        "6%",
+        "26%",
+        "₹78.10 Cr",
+        "5%",
+        "2%",
+        "₹18 Cr",
+        "31%",
+        "24%",
+        "23.4%",
+        "18.8%",
+        "18.4%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 171
+    },
+    {
+      "msg_id": 267032,
+      "datetime_utc": "2026-10-19T12:24:28+00:00",
+      "header": "SOBHA Q2 FY27",
+      "full_text": "SOBHA Q2 FY27\nNet Profit: ₹33 Cr ↓54% YoY | ↓35% QoQ\nRevenue: ₹967.10 Cr ↓31% YoY | ↓24% QoQ\nEBITDA: ₹69 Cr ↓28% YoY | ↓12% QoQ\nEBITDA Margin: 7.1% vs 6.8% YoY | 6.1% QoQ",
+      "html_snippet": "SOBHA Q2 FY27<br/><br/>Net Profit: ₹33 Cr ↓54% YoY | ↓35% QoQ<br/><br/>Revenue: ₹967.10 Cr ↓31% YoY | ↓24% QoQ<br/><br/>EBITDA: ₹69 Cr ↓28% YoY | ↓12%",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "SOBHA",
+      "numbers": [
+        "₹33 Cr",
+        "54%",
+        "35%",
+        "₹967.10 Cr",
+        "31%",
+        "24%",
+        "₹69 Cr",
+        "28%",
+        "12%",
+        "7.1%",
+        "6.8%",
+        "6.1%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 170
+    },
+    {
+      "msg_id": 267033,
+      "datetime_utc": "2026-10-19T12:24:28+00:00",
+      "header": "AKSHARCHEM INDIA Q2 FY27",
+      "full_text": "AKSHARCHEM INDIA Q2 FY27\nNet Profit: ₹13.32 Cr vs ₹1.37 Cr loss YoY | ↓12% QoQ\nRevenue: ₹160.48 Cr ↑80% YoY | ↑14% QoQ\nEBITDA: ₹20.97 Cr ↑791% YoY | ↓7% QoQ\nEBITDA Margin: 13.1% vs 2.6% YoY | 16.1% QoQ",
+      "html_snippet": "AKSHARCHEM INDIA Q2 FY27<br/><br/>Net Profit: ₹13.32 Cr vs ₹1.37 Cr loss YoY | ↓12% QoQ<br/><br/>Revenue: ₹160.48 Cr ↑80% YoY | ↑14% QoQ<br/><br/>EBIT",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "AKSHARCHEM INDIA",
+      "numbers": [
+        "₹13.32 Cr",
+        "₹1.37 Cr",
+        "12%",
+        "₹160.48 Cr",
+        "80%",
+        "14%",
+        "₹20.97 Cr",
+        "791%",
+        "7%",
+        "13.1%",
+        "2.6%",
+        "16.1%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 201
+    },
+    {
+      "msg_id": 267034,
+      "datetime_utc": "2026-10-19T12:25:15+00:00",
+      "header": "Aartech Solonics Ltd – STRATEGIC ENERGY STORAGE MOU",
+      "full_text": "Aartech Solonics Ltd – STRATEGIC ENERGY STORAGE MOU\nWholly owned subsidiary signs MoU with Shenzhen Titan Smart Energy Technology:\n- MoU signed with Shenzhen Titan Smart Energy Technology Co. Ltd. to explore energy storage cooperation in India\n- Collaboration focuses on Lithium Iron Phosphate (LFP)-based Battery Energy Storage Systems (BESS)\n- BESS capacities to range from 100 kWh to 5 MWh\n- Focus includes Commercial and Industrial (C&I) applications and integrated hybrid solar-diesel-battery solutions\n- Upcoming manufacturing facility at Mohasa-Babai, Madhya Pradesh planned to commence operations in FY 2027–28\n- Partnership to explore manufacturing and technology licensing opportunities",
+      "html_snippet": "<b>Aartech Solonics Ltd – STRATEGIC ENERGY STORAGE MOU</b><br/><br/>Wholly owned subsidiary signs MoU with Shenzhen Titan Smart Energy Technology:<br/",
+      "category": "GENERAL_WIRE",
+      "entity": "AARTECH SOLONICS",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 696
+    },
+    {
+      "msg_id": 267035,
+      "datetime_utc": "2026-10-19T12:25:18+00:00",
+      "header": "Superior Finlease Ltd – CHANGE IN TRADING SYMBOL",
+      "full_text": "Superior Finlease Ltd – CHANGE IN TRADING SYMBOL\nSymbol change on Metropolitan Stock Exchange of India Limited (MSE) effective October 19, 2026:\n- Superior Finlease Limited symbol changing from SUPFIN to SUPERIOR\n- Change effective from October 19, 2026\n- Applies to companies commonly listed on MSE and other exchanges",
+      "html_snippet": "<b>Superior Finlease Ltd – CHANGE IN TRADING SYMBOL</b><br/><br/>Symbol change on Metropolitan Stock Exchange of India Limited (MSE) effective October",
+      "category": "GENERAL_WIRE",
+      "entity": "SUPERIOR FINLEASE",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 319
+    },
+    {
+      "msg_id": 267036,
+      "datetime_utc": "2026-10-19T12:30:22+00:00",
+      "header": "Sobha Ltd – H1 FY27 INVESTOR PRESENTATION",
+      "full_text": "Sobha Ltd – H1 FY27 INVESTOR PRESENTATION\nFinancial and operational highlights for the quarter and half year ended September 30, 2026:\n- H1 FY27 Total Revenue: INR 2347 Cr\n- H1 FY27 Profit After Tax: INR 84 Cr\n- H1 FY27 EBITDA: INR 248 Cr (10.6% margin)\n- H1 FY27 Real Estate Sales: INR 5862 Cr\n- Q2 FY27 Inventory: 14.47 Mn sft with sale value of INR 22872 Cr\n- Forthcoming launches: 20.42 Mn sft with sale potential of INR 31353 Cr",
+      "html_snippet": "<b>Sobha Ltd – H1 FY27 INVESTOR PRESENTATION</b><br/><br/>Financial and operational highlights for the quarter and half year ended September 30, 2026:",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "SOBHA",
+      "numbers": [
+        "10.6%"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 433
+    },
+    {
+      "msg_id": 267038,
+      "datetime_utc": "2026-10-19T12:30:32+00:00",
+      "header": "Sun Granite Export Ltd – CIRP EXPRESSION OF INTEREST DEADLINE EXTENDED",
+      "full_text": "Sun Granite Export Ltd – CIRP EXPRESSION OF INTEREST DEADLINE EXTENDED\nCorporate Insolvency Resolution Process update for Sun Granite Export Ltd:\n- Last date for submission of Expression of Interest (EoI) extended to 26 October 2026\n- Original deadline for EoI submission was 19 October 2026\n- Extended Form G published on 19 October 2026\n- Last date for submission of resolution plans is 25 December 2026\n- Provisional list of prospective resolution applicants to be issued on 05 November 2026",
+      "html_snippet": "<b>Sun Granite Export Ltd – CIRP EXPRESSION OF INTEREST DEADLINE EXTENDED</b><br/><br/>Corporate Insolvency Resolution Process update for Sun Granite ",
+      "category": "GENERAL_WIRE",
+      "entity": "SUN GRANITE EXPORT",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 494
+    },
+    {
+      "msg_id": 267039,
+      "datetime_utc": "2026-10-19T12:33:41+00:00",
+      "header": "MANGALAM GLOBAL Q2 FY27",
+      "full_text": "MANGALAM GLOBAL Q2 FY27\nNet Profit: ₹9.30 Cr ↓48% YoY | ↑11% QoQ\nRevenue: ₹982.60 Cr ↑39% YoY | ↑3% QoQ\nEBITDA: ₹23 Cr ↑98% YoY | ↑23% QoQ\nEBITDA Margin: 2.3% vs 1.6% YoY | 1.9% QoQ",
+      "html_snippet": "MANGALAM GLOBAL Q2 FY27<br/><br/>Net Profit: ₹9.30 Cr ↓48% YoY | ↑11% QoQ<br/><br/>Revenue: ₹982.60 Cr ↑39% YoY | ↑3% QoQ<br/><br/>EBITDA: ₹23 Cr ↑98%",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "MANGALAM GLOBAL",
+      "numbers": [
+        "₹9.30 Cr",
+        "48%",
+        "11%",
+        "₹982.60 Cr",
+        "39%",
+        "3%",
+        "₹23 Cr",
+        "98%",
+        "23%",
+        "2.3%",
+        "1.6%",
+        "1.9%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 181
+    },
+    {
+      "msg_id": 267040,
+      "datetime_utc": "2026-10-19T12:34:54+00:00",
+      "header": "WAAREE RENEWABLE Q2 FY27",
+      "full_text": "WAAREE RENEWABLE Q2 FY27\nNet Profit: ₹73.90 Cr ↓36% YoY | ↓36% QoQ\nRevenue: ₹1,058 Cr ↑37% YoY | ↑14% QoQ\nEBITDA: ₹160 Cr ↑1% YoY | ↓8% QoQ\nEBITDA Margin: 15.1% vs 20.4% YoY | 18.8% QoQ",
+      "html_snippet": "WAAREE RENEWABLE Q2 FY27<br/><br/>Net Profit: ₹73.90 Cr ↓36% YoY | ↓36% QoQ<br/><br/>Revenue: ₹1,058 Cr ↑37% YoY | ↑14% QoQ<br/><br/>EBITDA: ₹160 Cr ↑",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "WAAREE RENEWABLE",
+      "numbers": [
+        "₹73.90 Cr",
+        "36%",
+        "36%",
+        "₹1,058 Cr",
+        "37%",
+        "14%",
+        "₹160 Cr",
+        "1%",
+        "8%",
+        "15.1%",
+        "20.4%",
+        "18.8%"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 185
+    },
+    {
+      "msg_id": 267041,
+      "datetime_utc": "2026-10-19T12:35:18+00:00",
+      "header": "Genomic Valley Biotech Ltd – OPEN OFFER ANNOUNCEMENT",
+      "full_text": "Genomic Valley Biotech Ltd – OPEN OFFER ANNOUNCEMENT\nPublic announcement for acquisition of shares in Genomic Valley Biotech Limited:\n- Acquirers: Mr. Pankaj Grover and Mr. Abhisek Gupta\n- Offer for up to 7,94,170 equity shares\n- Represents 26.00% of the voting share capital\n- Target company: Genomic Valley Biotech Limited\n- Detailed Public Statement to be published on or before October 27, 2026",
+      "html_snippet": "<b>Genomic Valley Biotech Ltd – OPEN OFFER ANNOUNCEMENT</b><br/><br/>Public announcement for acquisition of shares in Genomic Valley Biotech Limited:<",
+      "category": "GENERAL_WIRE",
+      "entity": "GENOMIC VALLEY BIOTECH",
+      "numbers": [
+        "26.00%"
+      ],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 398
+    },
+    {
+      "msg_id": 267042,
+      "datetime_utc": "2026-10-19T12:35:27+00:00",
+      "header": "Dhampur Bio Organics Ltd – TECHNOLOGY LICENSING AGREEMENT",
+      "full_text": "Dhampur Bio Organics Ltd – TECHNOLOGY LICENSING AGREEMENT\nExecution of agreement with Planetary SA, Switzerland:\n- Entered into Technology Licensing Agreement with Planetary SA, Switzerland on October 19, 2026\n- Agreement is for the exclusive production of Mycoprotein in India\n- Follows a non-binding term sheet executed on January 21, 2026",
+      "html_snippet": "<b>Dhampur Bio Organics Ltd – TECHNOLOGY LICENSING AGREEMENT</b><br/><br/>Execution of agreement with Planetary SA, Switzerland:<br/><br/>- Entered in",
+      "category": "GENERAL_WIRE",
+      "entity": "DHAMPUR BIO ORGANICS",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 341
+    },
+    {
+      "msg_id": 267043,
+      "datetime_utc": "2026-10-19T12:35:34+00:00",
+      "header": "Diamond Power Infrastructure Ltd-$ – CHANGE IN KEY MANAGERIAL PERSONNEL",
+      "full_text": "Diamond Power Infrastructure Ltd-$ – CHANGE IN KEY MANAGERIAL PERSONNEL\nBoard meeting held on October 19, 2026:\n- Mr. Kundip S. Thakker appointed as Chief Financial Officer and Key Managerial Personnel effective October 20, 2026\n- Mr. Pawan Lohiya ceases to be Chief Financial Officer and Key Managerial Personnel effective close of business on October 19, 2026\n- Mr. Pawan Lohiya redesignated as Deputy Chief Financial Officer effective October 20, 2026",
+      "html_snippet": "<b>Diamond Power Infrastructure Ltd-$ – CHANGE IN KEY MANAGERIAL PERSONNEL</b><br/><br/>Board meeting held on October 19, 2026:<br/><br/>- Mr. Kundip ",
+      "category": "GENERAL_WIRE",
+      "entity": "DIAMOND POWER INFRASTRUCTURE",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 454
+    },
+    {
+      "msg_id": 267044,
+      "datetime_utc": "2026-10-19T12:40:19+00:00",
+      "header": "Adline Chem Lab Ltd – NON-APPLICABILITY OF RELATED PARTY TRANSACTIONS DISCLOSURE",
+      "full_text": "Adline Chem Lab Ltd – NON-APPLICABILITY OF RELATED PARTY TRANSACTIONS DISCLOSURE\nDisclosure of Related Party Transactions for the half-year ended September 30, 2026:\n- Regulation 23(9) of SEBI (LODR) Regulations is not applicable\n- Paid-up equity share capital as of March 31, 2026: INR 5.85 Cr\n- Net worth as of March 31, 2026: INR -1.77 Cr (Negative)\n- Company meets exemption criteria under Regulation 15(2)(a)",
+      "html_snippet": "<b>Adline Chem Lab Ltd – NON-APPLICABILITY OF RELATED PARTY TRANSACTIONS DISCLOSURE</b><br/><br/>Disclosure of Related Party Transactions for the half",
+      "category": "GENERAL_WIRE",
+      "entity": "ADLINE CHEM LAB",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 413
+    },
+    {
+      "msg_id": 267045,
+      "datetime_utc": "2026-10-19T12:40:28+00:00",
+      "header": "Sobha Ltd – HIGHEST EVER SALES VALUE RECORDED",
+      "full_text": "Sobha Ltd – HIGHEST EVER SALES VALUE RECORDED\nFinancial and operational performance for the quarter and half year ended September 30, 2026:\n- H1 FY27 sales value reached record INR 5862 Cr, up 47.2% YoY\n- Q2 FY27 sales value recorded at INR 2206 Cr, up 16% YoY\n- H1 FY27 collections reached all-time high of INR 4009 Cr\n- H1 FY27 revenue stood at INR 2347 Cr\n- Q2 FY27 PAT recorded at INR 33 Cr\n- H1 FY27 PAT recorded at INR 84 Cr",
+      "html_snippet": "<b>Sobha Ltd – HIGHEST EVER SALES VALUE RECORDED</b><br/><br/>Financial and operational performance for the quarter and half year ended September 30, ",
+      "category": "GENERAL_WIRE",
+      "entity": "SOBHA",
+      "numbers": [
+        "47.2%",
+        "16%"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 430
+    },
+    {
+      "msg_id": 267046,
+      "datetime_utc": "2026-10-19T12:40:37+00:00",
+      "header": "DAPS Advertising Ltd – CLARIFICATION ON PRICE MOVEMENT",
+      "full_text": "DAPS Advertising Ltd – CLARIFICATION ON PRICE MOVEMENT\nResponse to BSE query regarding significant price movement:\n- No undisclosed material information or events currently exist\n- Company is in compliance with SEBI (LODR) Regulations, 2015\n- All price-sensitive information has been promptly disclosed to the Exchange\n- Company unable to comment on recent price movement in securities",
+      "html_snippet": "<b>DAPS Advertising Ltd – CLARIFICATION ON PRICE MOVEMENT</b><br/><br/>Response to BSE query regarding significant price movement:<br/><br/>- No undis",
+      "category": "GENERAL_WIRE",
+      "entity": "DAPS ADVERTISING",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 385
+    },
+    {
+      "msg_id": 267047,
+      "datetime_utc": "2026-10-19T12:45:22+00:00",
+      "header": "Navneet Education Ltd – CREDIT RATING UPDATE",
+      "full_text": "Navneet Education Ltd – CREDIT RATING UPDATE\nCredit rating assigned by Crisil Ratings on 19th October, 2026:\n- Bank guarantee facilities: CRISIL AA/Stable\n- Commercial paper: CRISIL A1+/Stable",
+      "html_snippet": "<b>Navneet Education Ltd – CREDIT RATING UPDATE</b><br/><br/>Credit rating assigned by Crisil Ratings on 19th October, 2026:<br/><br/>- Bank guarantee",
+      "category": "CREDIT_RATING",
+      "entity": "NAVNEET EDUCATION",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 4,
+      "char_count": 192
+    },
+    {
+      "msg_id": 267048,
+      "datetime_utc": "2026-10-19T12:45:26+00:00",
+      "header": "Bajaj Finance Ltd – ISSUE OF EQUITY SHARES UNDER ESOP",
+      "full_text": "Bajaj Finance Ltd – ISSUE OF EQUITY SHARES UNDER ESOP\nBoard approval for issuance of shares under BFL Employee Stock Option Scheme, 2009:\n- Approved issue of 49,00,737 equity shares\n- Face value of Re. 1 per equity share\n- Shares to be issued to the Trustees of BFL Employee Welfare Trust\n- Issuance at respective grant prices",
+      "html_snippet": "<b>Bajaj Finance Ltd – ISSUE OF EQUITY SHARES UNDER ESOP</b><br/><br/>Board approval for issuance of shares under BFL Employee Stock Option Scheme, 20",
+      "category": "GENERAL_WIRE",
+      "entity": "BAJAJ FINANCE",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 326
+    },
+    {
+      "msg_id": 267049,
+      "datetime_utc": "2026-10-19T12:49:37+00:00",
+      "header": "WAAREE RENEWABLE Q2 FY27  Net Profit: ₹73.90 Cr ↓36% YoY | ↓36% QoQ  Revenue: ₹1,058 Cr ↑37% YoY | ↑14% QoQ  EBITDA: ₹160 Cr ↑1% YoY | ↓8% QoQ  EBITDA Margin: 15.1% vs 20.4% YoY | 18.8% QoQ",
+      "full_text": "WAAREE RENEWABLE Q2 FY27  Net Profit: ₹73.90 Cr ↓36% YoY | ↓36% QoQ  Revenue: ₹1,058 Cr ↑37% YoY | ↑14% QoQ  EBITDA: ₹160 Cr ↑1% YoY | ↓8% QoQ  EBITDA Margin: 15.1% vs 20.4% YoY | 18.8% QoQ",
+      "html_snippet": "WAAREE RENEWABLE Q2 FY27  Net Profit: ₹73.90 Cr ↓36% YoY | ↓36% QoQ  Revenue: ₹1,058 Cr ↑37% YoY | ↑14% QoQ  EBITDA: ₹160 Cr ↑1% YoY | ↓8% QoQ  EBITDA",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "WAAREE RENEWABLE",
+      "numbers": [
+        "₹73.90 Cr",
+        "36%",
+        "36%",
+        "₹1,058 Cr",
+        "37%",
+        "14%",
+        "₹160 Cr",
+        "1%",
+        "8%",
+        "15.1%",
+        "20.4%",
+        "18.8%"
+      ],
+      "is_promo": false,
+      "line_count": 1,
+      "char_count": 189
+    },
+    {
+      "msg_id": 267050,
+      "datetime_utc": "2026-10-19T12:50:28+00:00",
+      "header": "Tatva Chintan Pharma Chem Ltd – Q2FY27 INVESTOR PRESENTATION",
+      "full_text": "Tatva Chintan Pharma Chem Ltd – Q2FY27 INVESTOR PRESENTATION\nInvestor presentation for the quarter and half year ended 30 September 2026:\n- Achieved highest-ever quarterly turnover in Q2FY27\n- Q2FY27 Revenue from Operations: INR 217.3 Cr (up 76% YoY)\n- Q2FY27 EBITDA (Excl. Other Income): INR 40.7 Cr (up 83% YoY)\n- Q2FY27 Profit After Tax: INR 21.5 Cr (up 116% YoY)\n- H1FY27 Revenue from Operations: INR 384.4 Cr (up 60% YoY)\n- H1FY27 Profit After Tax: INR 37.4 Cr (up 126% YoY)",
+      "html_snippet": "<b>Tatva Chintan Pharma Chem Ltd – Q2FY27 INVESTOR PRESENTATION</b><br/><br/>Investor presentation for the quarter and half year ended 30 September 20",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "TATVA CHINTAN PHARMA CHEM",
+      "numbers": [
+        "76%",
+        "83%",
+        "116%",
+        "60%",
+        "126%"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 479
+    },
+    {
+      "msg_id": 267052,
+      "datetime_utc": "2026-10-19T12:51:00+00:00",
+      "header": "Sobha Ltd – RIGHTS ISSUE FUND UTILIZATION UPDATE",
+      "full_text": "Sobha Ltd – RIGHTS ISSUE FUND UTILIZATION UPDATE\nStatement of deviation or variation of funds for the quarter ended September 30, 2026:\n- Total funds raised via Rights Issue: INR 1999.03 Cr\n- Total funds utilized as of September 30, 2026: INR 1857.89 Cr\n- Total unutilized proceeds: INR 141.14 Cr\n- Repayment of borrowings: INR 905 Cr utilized\n- Funding ongoing and forthcoming projects: INR 179.74 Cr utilized\n- Acquisition of land parcels and general corporate purposes: INR 658.09 Cr utilized",
+      "html_snippet": "<b>Sobha Ltd – RIGHTS ISSUE FUND UTILIZATION UPDATE</b><br/><br/>Statement of deviation or variation of funds for the quarter ended September 30, 2026",
+      "category": "DIVIDEND_OR_SPLIT",
+      "entity": "SOBHA",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 495
+    },
+    {
+      "msg_id": 267053,
+      "datetime_utc": "2026-10-19T12:55:17+00:00",
+      "header": "Orient Technologies Ltd – CODE OF CONDUCT AMENDMENT",
+      "full_text": "Orient Technologies Ltd – CODE OF CONDUCT AMENDMENT\nBoard of Directors approved amendments to the Code of Practices and Procedures for Fair Disclosure of Unpublished Price Sensitive Information on October 19, 2026:\n- Amendments to the Code effective from October 19, 2026\n- Code formulated in terms of SEBI (Prohibition of Insider Trading) Regulations, 2015\n- Company Secretary designated as the Chief Investor Relations Officer (CIRO)\n- Framework established for fair disclosure of events impacting price discovery\n- Policy includes maintenance of a structured digital database for UPSI sharing",
+      "html_snippet": "<b>Orient Technologies Ltd – CODE OF CONDUCT AMENDMENT</b><br/><br/>Board of Directors approved amendments to the Code of Practices and Procedures for",
+      "category": "GENERAL_WIRE",
+      "entity": "ORIENT TECHNOLOGIES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 595
+    },
+    {
+      "msg_id": 267055,
+      "datetime_utc": "2026-10-19T12:56:00+00:00",
+      "header": "VANS ELECTROENGINEERINGS LTD: WINS ₹4.45 CR ORDER FROM AGRAWAL POWER",
+      "full_text": "VANS ELECTROENGINEERINGS LTD: WINS ₹4.45 CR ORDER FROM AGRAWAL POWER\n• Received an order from Agrawal Power Private Limited for testing and supply of Double Pole Vacuum Circuit Breakers and Double Pole Vacuum Interrupters.\n• Order Value: ₹4.445 Cr.\n• Execution Timeline: Within 6 months.\n• Order Type: Domestic.",
+      "html_snippet": "VANS ELECTROENGINEERINGS LTD: WINS ₹4.45 CR ORDER FROM AGRAWAL POWER<br/><br/>• Received an order from Agrawal Power Private Limited for testing and s",
+      "category": "ORDER_WIN",
+      "entity": "VANS ELECTROENGINEERINGS",
+      "numbers": [
+        "₹4.45 ",
+        "₹4.445 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 311
+    },
+    {
+      "msg_id": 267056,
+      "datetime_utc": "2026-10-19T12:56:04+00:00",
+      "header": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS LTD: WINS ₹48.10 CR RAILWAY CONTRACT",
+      "full_text": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS LTD: WINS ₹48.10 CR RAILWAY CONTRACT\n• Awarded a contract by West Central Railway for conducting Final Location Survey (FLS) and preparing Detailed Project Reports (DPR).\n• Scope includes geotechnical investigations, signalling, electrical and traffic/operating works for new railway lines, doubling, third/fourth lines, flyovers and bypass lines.\n• Contract Value: ₹48.10 Cr.\n• Execution Period: 36 months from the date of Letter of Acceptance.",
+      "html_snippet": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS LTD: WINS ₹48.10 CR RAILWAY CONTRACT<br/><br/>• Awarded a contract by West Central Railway for conducting ",
+      "category": "ORDER_WIN",
+      "entity": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS",
+      "numbers": [
+        "₹48.10 ",
+        "₹48.10 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 5,
+      "char_count": 489
+    },
+    {
+      "msg_id": 267057,
+      "datetime_utc": "2026-10-19T12:59:10+00:00",
+      "header": "UAE Deputy PM to visit India from October 19-20",
+      "full_text": "UAE Deputy PM to visit India from October 19-20",
+      "html_snippet": "UAE Deputy PM to visit India from October 19-20",
+      "category": "GENERAL_WIRE",
+      "entity": "UAE DEPUTY PM TO VISIT INDIA FROM OCTOBER 19",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 1,
+      "char_count": 47
+    },
+    {
+      "msg_id": 267058,
+      "datetime_utc": "2026-10-19T13:00:28+00:00",
+      "header": "Bajaj Finance Ltd – CHANGE IN SENIOR MANAGEMENT",
+      "full_text": "Bajaj Finance Ltd – CHANGE IN SENIOR MANAGEMENT\nRe-appointment of Chief Information Security Officer:\n- Prashant Verma re-appointed as Chief Information Security Officer (CISO)\n- Re-appointment effective from 1 February 2027\n- Term of re-appointment is for a period of three years\n- Prashant Verma has approximately 21 years of experience in the Security Domain",
+      "html_snippet": "<b>Bajaj Finance Ltd – CHANGE IN SENIOR MANAGEMENT</b><br/><br/>Re-appointment of Chief Information Security Officer:<br/><br/>- Prashant Verma re-app",
+      "category": "MANAGEMENT_CHANGE",
+      "entity": "BAJAJ FINANCE",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 361
+    },
+    {
+      "msg_id": 267059,
+      "datetime_utc": "2026-10-19T13:00:36+00:00",
+      "header": "Waaree Renewable Technologies Ltd – Q2 FY27 FINANCIAL RESULTS",
+      "full_text": "Waaree Renewable Technologies Ltd – Q2 FY27 FINANCIAL RESULTS\n \nHIGHLIGHTS\n \nConsolidated financial results for the quarter and half year ended September 30, 2026:\n- Revenue from operations for Q2 FY27: INR 1057.84 Cr (up 36.53% YoY)\n- EBITDA for Q2 FY27: INR 159.98 Cr\n- PAT for Q2 FY27: INR 81.48 Cr\n- H1 FY27 Revenue from operations: INR 1982.09 Cr (up 43.84% YoY)\n- H1 FY27 PAT: INR 200.44 Cr\n- Unexecuted order book: INR 5,500+ Cr",
+      "html_snippet": "<b>Waaree Renewable Technologies Ltd – Q2 FY27 FINANCIAL RESULTS</b> <b>HIGHLIGHTS</b> <br/><br/>Consolidated financial results for the quarter and ha",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "WAAREE RENEWABLE TECHNOLOGIES",
+      "numbers": [
+        "36.53%",
+        "43.84%"
+      ],
+      "is_promo": false,
+      "line_count": 9,
+      "char_count": 435
+    },
+    {
+      "msg_id": 267061,
+      "datetime_utc": "2026-10-19T13:04:53+00:00",
+      "header": "FIIs Net Sell ₹1,148.64 Cr While DIIs Net Buy ₹3,201.19 Cr In Equities Today (Provisional)",
+      "full_text": "FIIs Net Sell ₹1,148.64 Cr While DIIs Net Buy ₹3,201.19 Cr In Equities Today (Provisional)",
+      "html_snippet": "FIIs Net Sell ₹1,148.64 Cr While DIIs Net Buy ₹3,201.19 Cr In Equities Today (Provisional)",
+      "category": "FII_DII_FLOWS",
+      "entity": "",
+      "numbers": [
+        "₹1,148.64 Cr",
+        "₹3,201.19 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 1,
+      "char_count": 90
+    },
+    {
+      "msg_id": 267062,
+      "datetime_utc": "2026-10-19T13:05:26+00:00",
+      "header": "Waaree Renewable Technologies Ltd – Q2 & H1 FY27 EARNINGS PRESENTATION",
+      "full_text": "Waaree Renewable Technologies Ltd – Q2 & H1 FY27 EARNINGS PRESENTATION\nInvestor presentation for the quarter and half year ended September 30, 2026:\n- Consolidated Revenue for H1 FY27: INR 1982.09 Cr (up 43.84% YoY)\n- Consolidated Revenue for Q2 FY27: INR 1057.84 Cr (up 36.53% YoY)\n- Consolidated EBITDA for H1 FY27: INR 333.46 Cr (up 21.05% YoY)\n- Consolidated PAT for H1 FY27: INR 200.44 Cr (down 1.13% YoY)\n- Consolidated PAT for Q2 FY27: INR 81.48 Cr (down 29.96% YoY)\n- Unexecuted Consolidated Order Book: ~INR 5500 Cr+ (Solar EPC, BESS, and T&D)",
+      "html_snippet": "<b>Waaree Renewable Technologies Ltd – Q2 &amp; H1 FY27 EARNINGS PRESENTATION</b><br/><br/>Investor presentation for the quarter and half year ended S",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "WAAREE RENEWABLE TECHNOLOGIES",
+      "numbers": [
+        "43.84%",
+        "36.53%",
+        "21.05%",
+        "1.13%",
+        "29.96%"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 552
+    },
+    {
+      "msg_id": 267064,
+      "datetime_utc": "2026-10-19T13:07:16+00:00",
+      "header": "🚘",
+      "full_text": "🚘\n FORCE MOTORS: CREDIT RATINGS REAFFIRMED\n🔹\n Total Bank Loan Facilities: ₹765 Cr\n⭐\n Long-Term Rating: CRISIL AA+ / Stable — Reaffirmed\n⭐\n Short-Term Rating: CRISIL A1+ — Reaffirmed\n📅\n Rating Date: October 19, 2026",
+      "html_snippet": "<i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F9A98.png')\"><b>🚘</b></i> FORCE MOTORS: CREDIT RATINGS REAFFIRMED<br/><br",
+      "category": "GENERAL_WIRE",
+      "entity": "",
+      "numbers": [
+        "₹765 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 10,
+      "char_count": 214
+    },
+    {
+      "msg_id": 267066,
+      "datetime_utc": "2026-10-19T13:11:09+00:00",
+      "header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "full_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n MANAGEMENT GUIDANCE\n• FY27 revenue growth guidance raised to at least 80% YoY, against earlier guidance of 40%.\n• ₹10,000 Cr revenue target, originally planned for FY29, expected to be achieved much earlier.\n• Order book stands at approximately ₹28,900 Cr, providing multi-year revenue visibility.\n• Management expects margins to improve further, supported by higher-value connectivity products, capacity expansion and backward integration.",
+      "html_snippet": "HFCL Q2 FY27 CONCALL HIGHLIGHTS<br/><br/><i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F938C.png')\"><b>📌</b></i> MANAGE",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "HFCL",
+      "numbers": [
+        "80%",
+        "40%",
+        "₹10,000 Cr",
+        "₹28,900 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 475
+    },
+    {
+      "msg_id": 267067,
+      "datetime_utc": "2026-10-19T13:11:34+00:00",
+      "header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "full_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n OPTICAL FIBRE & DATA CENTRE BUSINESS\n• ₹1,800 Cr planned investment across optical fibre, cable and preform manufacturing.\n• Optical fibre capacity to increase from 28 million to 43 million units; cable capacity to rise from 34 million to 63 million fibre-kilometres.\n• Connectivity solutions revenue targeted at over ₹800 Cr in FY27 and ₹2,000 Cr in FY28.\n• Management sees strong demand from AI infrastructure, hyperscalers, data centres and telecom operators, with no significant slowdown currently observed.\n• Around 70% of the ₹18,500 Cr optical fibre and data centre interconnect order book was indicated to be linked to hyperscalers.",
+      "html_snippet": "HFCL Q2 FY27 CONCALL HIGHLIGHTS<br/><br/><i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F938C.png')\"><b>📌</b></i> OPTICA",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "HFCL",
+      "numbers": [
+        "₹1,800 Cr",
+        "₹800 Cr",
+        "₹2,000 Cr",
+        "70%",
+        "₹18,500 Cr"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 675
+    },
+    {
+      "msg_id": 267068,
+      "datetime_utc": "2026-10-19T13:11:53+00:00",
+      "header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "full_text": "HFCL Q2 FY27 CONCALL HIGHLIGHTS\n📌\n DEFENCE & AEROSPACE GUIDANCE\n• FY27 defence revenue target: ₹500–600 Cr.\n• FY28 defence revenue target: At least ₹2,000 Cr.\n• Three-year defence revenue aspiration: Approximately ₹5,000 Cr.\n• Aerospace acquisition expected to be completed during the current quarter, with an existing order book of approximately ₹1,600–1,800 Cr.\n• Andhra Pradesh ammunition manufacturing complex planned on 1,000 acres; revenue contribution expected in around two years.",
+      "html_snippet": "HFCL Q2 FY27 CONCALL HIGHLIGHTS<br/><br/><i class=\"emoji\" style=\"background-image:url('//telegram.org/img/emoji/40/F09F938C.png')\"><b>📌</b></i> DEFENC",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "HFCL",
+      "numbers": [
+        "₹500",
+        "₹2,000 Cr",
+        "₹5,000 Cr",
+        "₹1,600"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 488
+    },
+    {
+      "msg_id": 267069,
+      "datetime_utc": "2026-10-19T13:20:27+00:00",
+      "header": "Bansal Wire Industries Ltd – EQUITY SHARE SUB-DIVISION COMPLETED",
+      "full_text": "Bansal Wire Industries Ltd – EQUITY SHARE SUB-DIVISION COMPLETED\nCredit confirmation received from NSDL and CDSL regarding the split of equity shares:\n- One equity share of face value Rs. 5 split into five equity shares of face value Rs. 1 each\n- New ISIN for sub-divided shares: INE0B9K01033\n- Authorized Share Capital (After Split): 89,00,00,000 (89,00,00,000 equity shares of Rs. 1 each)\n- Issued, Subscribed and Paid-up Equity Share Capital (After Split): 78,27,79,760 (78,27,79,760 equity shares of Rs. 1 each)\n- Preference Share Capital remains unchanged at INR 1 Cr",
+      "html_snippet": "<b>Bansal Wire Industries Ltd – EQUITY SHARE SUB-DIVISION COMPLETED</b><br/><br/>Credit confirmation received from NSDL and CDSL regarding the split o",
+      "category": "GENERAL_WIRE",
+      "entity": "BANSAL WIRE INDUSTRIES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 572
+    },
+    {
+      "msg_id": 267071,
+      "datetime_utc": "2026-10-19T13:20:37+00:00",
+      "header": "PI Industries Ltd – INCORPORATION OF WHOLLY OWNED SUBSIDIARY",
+      "full_text": "PI Industries Ltd – INCORPORATION OF WHOLLY OWNED SUBSIDIARY\nIncorporation of PI Foundation as a Section 8 not-for-profit entity:\n- Entity Name: PI Foundation\n- Incorporation Date: October 19, 2026\n- Status: Wholly owned subsidiary of PI Industries Limited\n- Purpose: Carrying out Corporate Social Responsibility (CSR) activities\n- Initial Share Capital: INR 1 Lakh (subscribed in cash)\n- Registered Office: Udaipur, Rajasthan",
+      "html_snippet": "<b>PI Industries Ltd – INCORPORATION OF WHOLLY OWNED SUBSIDIARY</b><br/><br/>Incorporation of PI Foundation as a Section 8 not-for-profit entity:<br/>",
+      "category": "CORP_RESTRUCTURE",
+      "entity": "PI INDUSTRIES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 426
+    },
+    {
+      "msg_id": 267072,
+      "datetime_utc": "2026-10-19T13:25:29+00:00",
+      "header": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND BOARD RECONSTITUTION",
+      "full_text": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND BOARD RECONSTITUTION\nBoard meeting held on 19th October 2026:\n- Completion of Open Offer process resulting in change in management and control\n- Manoj Agrawal appointed as Managing Director for a term of 5 years\n- Amit Kumar Saraogi appointed as Additional Director and Chief Financial Officer\n- Authorized Share Capital increased from INR 29.51 Cr to INR 47.51 Cr\n- Board borrowing powers increased up to INR 200 Cr\n- Resignation of Managing Director Ashwani Kumar Gupta and CFO Prakash Chand Sharma",
+      "html_snippet": "<b>Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND BOARD RECONSTITUTION</b><br/><br/>Board meeting held on 19th October 2026:<br/><br/>- Com",
+      "category": "MANAGEMENT_CHANGE",
+      "entity": "CUBICAL FINANCIAL SERVICES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 558
+    },
+    {
+      "msg_id": 267074,
+      "datetime_utc": "2026-10-19T13:30:25+00:00",
+      "header": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND DIRECTORATE",
+      "full_text": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND DIRECTORATE\nBoard meeting held on 19th October 2026:\n- Completion of Open Offer process resulting in change in management and control\n- Manoj Agrawal appointed as Managing Director for a term of 5 years\n- Amit Kumar Saraogi appointed as Additional Director and Chief Financial Officer\n- Increase in Authorized Share Capital from INR 29.51 Cr to INR 47.51 Cr\n- Board approved increase in borrowing powers up to INR 200 Cr\n- Resignation of Managing Director Ashwani Kumar Gupta and CFO Prakash Chand Sharma",
+      "html_snippet": "<b>Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND DIRECTORATE</b><br/><br/>Board meeting held on 19th October 2026:<br/><br/>- Completion o",
+      "category": "MANAGEMENT_CHANGE",
+      "entity": "CUBICAL FINANCIAL SERVICES",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 562
+    },
+    {
+      "msg_id": 267076,
+      "datetime_utc": "2026-10-19T13:30:33+00:00",
+      "header": "HFCL Ltd – MONITORING AGENCY REPORT UPDATE",
+      "full_text": "HFCL Ltd – MONITORING AGENCY REPORT UPDATE\nMonitoring agency report for the quarter ended September 30, 2026:\n- QIP proceeds of INR 550 Cr: INR 25.73 Cr utilized for R&D against target of INR 50 Cr\n- Unutilized QIP proceeds of INR 21.22 Cr parked in FDRs and monitoring account\n- Preferential Issue of Warrants (INR 555 Cr): INR 138.75 Cr received in Q1FY27\n- Remaining INR 416.25 Cr from warrant issue is yet to be received\n- Delay in utilizing INR 90 Cr for HFCL Advance Systems Private Limited; timeline extended to December 31, 2026",
+      "html_snippet": "<b>HFCL Ltd – MONITORING AGENCY REPORT UPDATE</b><br/><br/>Monitoring agency report for the quarter ended September 30, 2026:<br/><br/>- QIP proceeds ",
+      "category": "GENERAL_WIRE",
+      "entity": "HFCL",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 536
+    },
+    {
+      "msg_id": 267077,
+      "datetime_utc": "2026-10-19T13:35:54+00:00",
+      "header": "Tata Capital Ltd – MEDIA AND EARNINGS CONFERENCE CALL",
+      "full_text": "Tata Capital Ltd – MEDIA AND EARNINGS CONFERENCE CALL\nUnaudited Standalone and Consolidated Financial Results for the quarter and half year ended September 30, 2026:\n- Media conference call scheduled for Tuesday, October 27, 2026, at 5:30 p.m. IST\n- Earnings conference call with analysts and investors scheduled for Tuesday, October 27, 2026, at 6:30 p.m. IST\n- Participants for media call include Managing Director & CEO Rajiv Sabharwal and Senior Management Team\n- Participants for analyst call include CFO Rakesh Bhatia",
+      "html_snippet": "<b>Tata Capital Ltd – MEDIA AND EARNINGS CONFERENCE CALL</b><br/><br/>Unaudited Standalone and Consolidated Financial Results for the quarter and half",
+      "category": "GENERAL_WIRE",
+      "entity": "TATA CAPITAL",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 523
+    },
+    {
+      "msg_id": 267080,
+      "datetime_utc": "2026-10-19T13:46:26+00:00",
+      "header": "GSPL Transmission Ltd – CREDIT RATING WITHDRAWAL",
+      "full_text": "GSPL Transmission Ltd – CREDIT RATING WITHDRAWAL\nWithdrawal of bank facility ratings for Gujarat State Petronet Limited:\n- CARE Ratings has withdrawn the ratings assigned to the bank facilities of Gujarat State Petronet Limited\n- Withdrawal is effective immediately\n- Rated facilities have been transferred from Gujarat State Petronet Limited to GSPL Transmission Limited\n- The withdrawal follows the cessation of existence of Gujarat State Petronet Limited",
+      "html_snippet": "GSPL Transmission Ltd – CREDIT RATING WITHDRAWAL<br/><br/>Withdrawal of bank facility ratings for Gujarat State Petronet Limited:<br/><br/>- CARE Rati",
+      "category": "CREDIT_RATING",
+      "entity": "GSPL TRANSMISSION",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 457
+    },
+    {
+      "msg_id": 267081,
+      "datetime_utc": "2026-10-19T13:46:32+00:00",
+      "header": "R&B Denims Ltd – REVISED INTIMATION OF SEARCH PROCEEDINGS",
+      "full_text": "R&B Denims Ltd – REVISED INTIMATION OF SEARCH PROCEEDINGS\nClarification regarding the conclusion date of Enforcement Directorate search proceedings:\n- Search proceedings conducted by Enforcement Directorate, Ministry of Finance\n- Correct conclusion date: Saturday, October 17, 2026\n- Conclusion time: 3:15 a.m.\n- Rectification of inadvertent error in previous corporate announcement",
+      "html_snippet": "R&B Denims Ltd – REVISED INTIMATION OF SEARCH PROCEEDINGS<br/><br/>Clarification regarding the conclusion date of Enforcement Directorate search proce",
+      "category": "GENERAL_WIRE",
+      "entity": "R&B DENIMS",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 382
+    },
+    {
+      "msg_id": 267082,
+      "datetime_utc": "2026-10-19T13:46:35+00:00",
+      "header": "Bilcare Ltd-$ – VOLUNTARY WINDING UP OF US SUBSIDIARY",
+      "full_text": "Bilcare Ltd-$ – VOLUNTARY WINDING UP OF US SUBSIDIARY\nUpdate on the dissolution of Bilcare INC US:\n- Bilcare INC US (wholly owned subsidiary) dissolved effective 09 September 2026\n- Subsidiary reported NIL turnover during the last financial year (2025-26)\n- Certificate of Dissolution dated 16 September 2026\n- The subsidiary is not a material subsidiary of the Company",
+      "html_snippet": "Bilcare Ltd-$ – VOLUNTARY WINDING UP OF US SUBSIDIARY<br/><br/>Update on the dissolution of Bilcare INC US:<br/><br/>- Bilcare INC US (wholly owned su",
+      "category": "CORP_RESTRUCTURE",
+      "entity": "BILCARE",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 6,
+      "char_count": 369
+    },
+    {
+      "msg_id": 267083,
+      "datetime_utc": "2026-10-19T13:59:22+00:00",
+      "header": "Alembic Pharmaceuticals Ltd – INCORPORATION OF STEP DOWN SUBSIDIARY",
+      "full_text": "Alembic Pharmaceuticals Ltd – INCORPORATION OF STEP DOWN SUBSIDIARY\nIncorporation of Alvesta Pharmaceuticals FZCO in the United Arab Emirates:\n- Entity Name: Alvesta Pharmaceuticals FZCO\n- Date of Incorporation: 1st September, 2026\n- Country of Incorporation: United Arab Emirates\n- Relationship: Step Down Wholly Owned Subsidiary via Alembic Global Holding SA\n- Business Purpose: To explore new business opportunities and promote, sale and distribute pharmaceutical products\n- Subscription Cost: AED 100,000 for 100 shares at AED 1,000 each",
+      "html_snippet": "Alembic Pharmaceuticals Ltd – INCORPORATION OF STEP DOWN SUBSIDIARY<br/><br/>Incorporation of Alvesta Pharmaceuticals FZCO in the United Arab Emirates",
+      "category": "CORP_RESTRUCTURE",
+      "entity": "ALEMBIC PHARMACEUTICALS",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 541
+    },
+    {
+      "msg_id": 267084,
+      "datetime_utc": "2026-10-19T13:59:28+00:00",
+      "header": "Rose Merc Ltd – BOARD MEETING OUTCOME",
+      "full_text": "Rose Merc Ltd – BOARD MEETING OUTCOME\nBoard meeting held on October 19, 2026:\n- Appointed Ms. Niti Trivedi as Additional Director and Executive Director\n- Appointed Ms. Qazi Gulshan as Strategic Advisor- Fintech and Fashion\n- Reconstituted Allotment, Stakeholder Grievance & Relationship, Compensation, Business Development & Strategic Planning, and Internal Committees\n- Appointed Ms. Eshwari Purvesh Shelatkar as Nominee Director for Virtual Gain Technologies Private Limited, Outcry Media Solutions Private Limited, and Emirates Holding FZ LLC\n- Filed application to carry on business as a Payment Aggregator",
+      "html_snippet": "Rose Merc Ltd – BOARD MEETING OUTCOME<br/><br/>Board meeting held on October 19, 2026:<br/><br/>- Appointed Ms. Niti Trivedi as Additional Director an",
+      "category": "GENERAL_WIRE",
+      "entity": "ROSE MERC",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 7,
+      "char_count": 611
+    },
+    {
+      "msg_id": 267085,
+      "datetime_utc": "2026-10-19T14:07:03+00:00",
+      "header": "IREDA Q2 FY27",
+      "full_text": "IREDA Q2 FY27\nNet Profit: ₹552 Cr ↑1% YoY | ↑63% QoQ\nNII: ₹942 Cr ↑15% YoY | ↑10% QoQ",
+      "html_snippet": "IREDA Q2 FY27<br/><br/>Net Profit: ₹552 Cr ↑1% YoY | ↑63% QoQ<br/><br/>NII: ₹942 Cr ↑15% YoY | ↑10% QoQ",
+      "category": "FINANCIAL_RESULTS",
+      "entity": "IREDA",
+      "numbers": [
+        "₹552 Cr",
+        "1%",
+        "63%",
+        "₹942 Cr",
+        "15%",
+        "10%"
+      ],
+      "is_promo": false,
+      "line_count": 3,
+      "char_count": 85
+    },
+    {
+      "msg_id": 267086,
+      "datetime_utc": "2026-10-19T14:23:32+00:00",
+      "header": "Indian Renewable Energy Development Agency Ltd – INVESTOR PRESENTATION SEPTEMBER 2026",
+      "full_text": "Indian Renewable Energy Development Agency Ltd – INVESTOR PRESENTATION SEPTEMBER 2026\nFinancial performance and business update for the quarter and half year ended 30.09.2026:\n- Gross Loan Portfolio: INR 97411 Cr\n- Total Interest Income: INR 3382 Cr\n- Net Profit: INR 1351 Cr\n- Total Assets: INR 115485 Cr\n- Net NPA: 0.38%\n- Gross NPA: 2.34%",
+      "html_snippet": "<b>Indian Renewable Energy Development Agency Ltd – INVESTOR PRESENTATION SEPTEMBER 2026</b><br/><br/>Financial performance and business update for th",
+      "category": "GENERAL_WIRE",
+      "entity": "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY",
+      "numbers": [
+        "0.38%",
+        "2.34%"
+      ],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 341
+    },
+    {
+      "msg_id": 267087,
+      "datetime_utc": "2026-10-19T14:23:38+00:00",
+      "header": "IIRM Holdings India Ltd – NSE LISTING AND TRADING APPROVAL",
+      "full_text": "IIRM Holdings India Ltd – NSE LISTING AND TRADING APPROVAL\nApproval received for listing and trading of equity shares on National Stock Exchange:\n- NSE approval received for listing and trading of equity shares\n- Trading scheduled to commence on October 22, 2026\n- Symbol: IIRM EQ\n- Total number of equity shares: 6,97,04,133\n- Face value per equity share: INR5\n- Lock-in details: 62,814 shares until 15-Apr-2027 and 14,97,069 shares until 14-Apr-2027",
+      "html_snippet": "<b>IIRM Holdings India Ltd – NSE LISTING AND TRADING APPROVAL</b><br/><br/>Approval received for listing and trading of equity shares on National Stoc",
+      "category": "GENERAL_WIRE",
+      "entity": "IIRM HOLDINGS INDIA",
+      "numbers": [],
+      "is_promo": false,
+      "line_count": 8,
+      "char_count": 451
+    }
+  ],
+  "matched_events": [
+    {
+      "ref_id": 267017,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "",
+      "ref_header": "🌍",
+      "upstream_company": "LE TRAVENUES TECHNOLOGY LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267018,
+      "ref_category": "MANAGEMENT_CHANGE",
+      "ref_entity": "BF UTILITIES",
+      "ref_header": "BF Utilities Ltd-$ – CHANGE IN MANAGEMENT",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267019,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "DHRUV CONSULTANCY SERVICES",
+      "ref_header": "Dhruv Consultancy Services Ltd – PROJECT AWARD",
+      "upstream_company": "JSW DULUX LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 3
+    },
+    {
+      "ref_id": 267020,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "",
+      "ref_header": "🎯",
+      "upstream_company": "HFCL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 3
+    },
+    {
+      "ref_id": 267023,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "DOLAT ALGOTECH",
+      "ref_header": "Dolat Algotech Ltd – RECORD DATE FOR COMMERCIAL PAPER",
+      "upstream_company": "QUALITY POWER ELECTRICAL EQUIPMENTS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 3
+    },
+    {
+      "ref_id": 267025,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "A",
+      "ref_header": "A-ONE STEELS INDIA Q1 FY27",
+      "upstream_company": "SANOFI INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 11
+    },
+    {
+      "ref_id": 267026,
+      "ref_category": "CREDIT_RATING",
+      "ref_entity": "ATLANTAA",
+      "ref_header": "Atlantaa Ltd – CREDIT RATING REAFFIRMED",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 4
+    },
+    {
+      "ref_id": 267027,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "ATUL",
+      "ref_header": "Atul Ltd – GPCB DIRECTIONS REGARDING EFFLUENT DISCHARGE",
+      "upstream_company": "RESERVE BANK OF INDIA",
+      "upstream_source": "RBI_MONETARY_CIRCULARS",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267034,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "AARTECH SOLONICS",
+      "ref_header": "Aartech Solonics Ltd – STRATEGIC ENERGY STORAGE MOU",
+      "upstream_company": "SEBI",
+      "upstream_source": "SEBI_REGULATORY_ORDERS",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267035,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "SUPERIOR FINLEASE",
+      "ref_header": "Superior Finlease Ltd – CHANGE IN TRADING SYMBOL",
+      "upstream_company": "IIRM HOLDINGS INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267036,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "SOBHA",
+      "ref_header": "Sobha Ltd – H1 FY27 INVESTOR PRESENTATION",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 12
+    },
+    {
+      "ref_id": 267038,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "SUN GRANITE EXPORT",
+      "ref_header": "Sun Granite Export Ltd – CIRP EXPRESSION OF INTEREST DEADLINE EXTENDED",
+      "upstream_company": "QUALITY POWER ELECTRICAL EQUIPMENTS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 3
+    },
+    {
+      "ref_id": 267041,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "GENOMIC VALLEY BIOTECH",
+      "ref_header": "Genomic Valley Biotech Ltd – OPEN OFFER ANNOUNCEMENT",
+      "upstream_company": "IIRM HOLDINGS INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267042,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "DHAMPUR BIO ORGANICS",
+      "ref_header": "Dhampur Bio Organics Ltd – TECHNOLOGY LICENSING AGREEMENT",
+      "upstream_company": "LE TRAVENUES TECHNOLOGY LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267043,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "DIAMOND POWER INFRASTRUCTURE",
+      "ref_header": "Diamond Power Infrastructure Ltd-$ – CHANGE IN KEY MANAGERIAL PERSONNEL",
+      "upstream_company": "SANOFI INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 6
+    },
+    {
+      "ref_id": 267044,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "ADLINE CHEM LAB",
+      "ref_header": "Adline Chem Lab Ltd – NON-APPLICABILITY OF RELATED PARTY TRANSACTIONS DISCLOSURE",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 9
+    },
+    {
+      "ref_id": 267045,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "SOBHA",
+      "ref_header": "Sobha Ltd – HIGHEST EVER SALES VALUE RECORDED",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 11
+    },
+    {
+      "ref_id": 267046,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "DAPS ADVERTISING",
+      "ref_header": "DAPS Advertising Ltd – CLARIFICATION ON PRICE MOVEMENT",
+      "upstream_company": "VARMORA GRANITO LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267047,
+      "ref_category": "CREDIT_RATING",
+      "ref_entity": "NAVNEET EDUCATION",
+      "ref_header": "Navneet Education Ltd – CREDIT RATING UPDATE",
+      "upstream_company": "QUALITY POWER ELECTRICAL EQUIPMENTS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 4
+    },
+    {
+      "ref_id": 267048,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "BAJAJ FINANCE",
+      "ref_header": "Bajaj Finance Ltd – ISSUE OF EQUITY SHARES UNDER ESOP",
+      "upstream_company": "KARNATAKA BANK LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 8
+    },
+    {
+      "ref_id": 267050,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "TATVA CHINTAN PHARMA CHEM",
+      "ref_header": "Tatva Chintan Pharma Chem Ltd – Q2FY27 INVESTOR PRESENTATION",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 11
+    },
+    {
+      "ref_id": 267052,
+      "ref_category": "DIVIDEND_OR_SPLIT",
+      "ref_entity": "SOBHA",
+      "ref_header": "Sobha Ltd – RIGHTS ISSUE FUND UTILIZATION UPDATE",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 8
+    },
+    {
+      "ref_id": 267053,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "ORIENT TECHNOLOGIES",
+      "ref_header": "Orient Technologies Ltd – CODE OF CONDUCT AMENDMENT",
+      "upstream_company": "SANOFI INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267055,
+      "ref_category": "ORDER_WIN",
+      "ref_entity": "VANS ELECTROENGINEERINGS",
+      "ref_header": "VANS ELECTROENGINEERINGS LTD: WINS ₹4.45 CR ORDER FROM AGRAWAL POWER",
+      "upstream_company": "JSW DULUX LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 4
+    },
+    {
+      "ref_id": 267056,
+      "ref_category": "ORDER_WIN",
+      "ref_entity": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS",
+      "ref_header": "MONARCH SURVEYORS & ENGINEERING CONSULTANTS LTD: WINS ₹48.10 CR RAILWAY CONTRACT",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 4
+    },
+    {
+      "ref_id": 267058,
+      "ref_category": "MANAGEMENT_CHANGE",
+      "ref_entity": "BAJAJ FINANCE",
+      "ref_header": "Bajaj Finance Ltd – CHANGE IN SENIOR MANAGEMENT",
+      "upstream_company": "MEGA FIN INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 4
+    },
+    {
+      "ref_id": 267059,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "WAAREE RENEWABLE TECHNOLOGIES",
+      "ref_header": "Waaree Renewable Technologies Ltd – Q2 FY27 FINANCIAL RESULTS",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 12
+    },
+    {
+      "ref_id": 267062,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "WAAREE RENEWABLE TECHNOLOGIES",
+      "ref_header": "Waaree Renewable Technologies Ltd – Q2 & H1 FY27 EARNINGS PRESENTATION",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 11
+    },
+    {
+      "ref_id": 267064,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "",
+      "ref_header": "🚘",
+      "upstream_company": "RESERVE BANK OF INDIA",
+      "upstream_source": "RBI_MONETARY_CIRCULARS",
+      "confidence_score": 3
+    },
+    {
+      "ref_id": 267066,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "HFCL",
+      "ref_header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "upstream_company": "HFCL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 14
+    },
+    {
+      "ref_id": 267067,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "HFCL",
+      "ref_header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "upstream_company": "HFCL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 14
+    },
+    {
+      "ref_id": 267068,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_entity": "HFCL",
+      "ref_header": "HFCL Q2 FY27 CONCALL HIGHLIGHTS",
+      "upstream_company": "HFCL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 13
+    },
+    {
+      "ref_id": 267069,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "BANSAL WIRE INDUSTRIES",
+      "ref_header": "Bansal Wire Industries Ltd – EQUITY SHARE SUB-DIVISION COMPLETED",
+      "upstream_company": "AMBASSADOR INTRA HOLDINGS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267071,
+      "ref_category": "CORP_RESTRUCTURE",
+      "ref_entity": "PI INDUSTRIES",
+      "ref_header": "PI Industries Ltd – INCORPORATION OF WHOLLY OWNED SUBSIDIARY",
+      "upstream_company": "CLIO INFOTECH LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267072,
+      "ref_category": "MANAGEMENT_CHANGE",
+      "ref_entity": "CUBICAL FINANCIAL SERVICES",
+      "ref_header": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND BOARD RECONSTITUTION",
+      "upstream_company": "CLIO INFOTECH LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267074,
+      "ref_category": "MANAGEMENT_CHANGE",
+      "ref_entity": "CUBICAL FINANCIAL SERVICES",
+      "ref_header": "Cubical Financial Services Ltd – CHANGE IN MANAGEMENT AND DIRECTORATE",
+      "upstream_company": "INDIQUBE SPACES LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 7
+    },
+    {
+      "ref_id": 267076,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "HFCL",
+      "ref_header": "HFCL Ltd – MONITORING AGENCY REPORT UPDATE",
+      "upstream_company": "HFCL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 14
+    },
+    {
+      "ref_id": 267077,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "TATA CAPITAL",
+      "ref_header": "Tata Capital Ltd – MEDIA AND EARNINGS CONFERENCE CALL",
+      "upstream_company": "ADITYA BIRLA CAPITAL LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 15
+    },
+    {
+      "ref_id": 267080,
+      "ref_category": "CREDIT_RATING",
+      "ref_entity": "GSPL TRANSMISSION",
+      "ref_header": "GSPL Transmission Ltd – CREDIT RATING WITHDRAWAL",
+      "upstream_company": "MEGA FIN INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267081,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "R&B DENIMS",
+      "ref_header": "R&B Denims Ltd – REVISED INTIMATION OF SEARCH PROCEEDINGS",
+      "upstream_company": "QUALITY POWER ELECTRICAL EQUIPMENTS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 5
+    },
+    {
+      "ref_id": 267082,
+      "ref_category": "CORP_RESTRUCTURE",
+      "ref_entity": "BILCARE",
+      "ref_header": "Bilcare Ltd-$ – VOLUNTARY WINDING UP OF US SUBSIDIARY",
+      "upstream_company": "MEGA FIN INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 6
+    },
+    {
+      "ref_id": 267083,
+      "ref_category": "CORP_RESTRUCTURE",
+      "ref_entity": "ALEMBIC PHARMACEUTICALS",
+      "ref_header": "Alembic Pharmaceuticals Ltd – INCORPORATION OF STEP DOWN SUBSIDIARY",
+      "upstream_company": "ALEMBIC PHARMACEUTICALS LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 14
+    },
+    {
+      "ref_id": 267084,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "ROSE MERC",
+      "ref_header": "Rose Merc Ltd – BOARD MEETING OUTCOME",
+      "upstream_company": "ROSE MERC LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 27
+    },
+    {
+      "ref_id": 267086,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY",
+      "ref_header": "Indian Renewable Energy Development Agency Ltd – INVESTOR PRESENTATION SEPTEMBER 2026",
+      "upstream_company": "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 21
+    },
+    {
+      "ref_id": 267087,
+      "ref_category": "GENERAL_WIRE",
+      "ref_entity": "IIRM HOLDINGS INDIA",
+      "ref_header": "IIRM Holdings India Ltd – NSE LISTING AND TRADING APPROVAL",
+      "upstream_company": "IIRM HOLDINGS INDIA LTD",
+      "upstream_source": "BSE_ANNOUNCEMENTS_JSON",
+      "confidence_score": 22
+    }
+  ],
+  "unmatched_reference": [
+    {
+      "ref_id": 267015,
+      "ref_category": "GENERAL_WIRE",
+      "ref_header": "⛏️"
+    },
+    {
+      "ref_id": 267016,
+      "ref_category": "GENERAL_WIRE",
+      "ref_header": "🏗️"
+    },
+    {
+      "ref_id": 267021,
+      "ref_category": "GENERAL_WIRE",
+      "ref_header": "🎯"
+    },
+    {
+      "ref_id": 267022,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "BAJAJ FINANCE Q2 FY27"
+    },
+    {
+      "ref_id": 267024,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "BAJAJ FINANCE Q2 FY27 : ACTUAL VS ESTIMATES"
+    },
+    {
+      "ref_id": 267029,
+      "ref_category": "GENERAL_WIRE",
+      "ref_header": "IRGC SPOKESMAN: EVEN LIMITED US ACTION WILL TRIGGER GLOBAL ENERGY CRISIS - SEPAH NEWS"
+    },
+    {
+      "ref_id": 267030,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "NELCO Q2 FY27"
+    },
+    {
+      "ref_id": 267032,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "SOBHA Q2 FY27"
+    },
+    {
+      "ref_id": 267033,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "AKSHARCHEM INDIA Q2 FY27"
+    },
+    {
+      "ref_id": 267039,
+      "ref_category": "FINANCIAL_RESULTS",
+      "ref_header": "MANGALAM GLOBAL Q2 FY27"
+    }
+  ]
+}
