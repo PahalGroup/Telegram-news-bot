@@ -213,11 +213,15 @@ class SentinelWatchdog:
         # 2. Clean and format the post
         text = re.sub(r'@stock_aaj_or_kal\b', '', raw_text, flags=re.I)
         text = re.sub(r'https?://t\.me/\S+', '', text)
-        text = re.sub(r'\n{3,}', '\n\n', text).strip()
         
-        # Remove empty bullet lines
-        cleaned_lines = [l.strip() for l in text.splitlines() if l.strip()]
-        text = "\n".join(cleaned_lines).strip()
+        # Preserve distinct paragraph/bullet separation with clean double linebreaks
+        raw_paragraphs = [p.strip() for p in text.splitlines() if p.strip()]
+        if len(raw_paragraphs) > 1:
+            title = raw_paragraphs[0]
+            bullets = raw_paragraphs[1:]
+            text = f"<b>{title}</b>\n\n" + "\n\n".join(bullets)
+        else:
+            text = "\n\n".join(raw_paragraphs).strip()
 
         if len(text) < 30:
             return False
@@ -227,8 +231,8 @@ class SentinelWatchdog:
             logger.debug(f"[FAST-BRIDGE] Story #{bp.get('msg_id')} already present in SQLite dedup.")
             return False
 
-        # 4. Dispatch immediately to @pahal_investment
-        sent = self.dispatcher.send_message(text, add_origin=True)
+        # 4. Dispatch immediately to @pahal_investment (strictly NO origin tag)
+        sent = self.dispatcher.send_message(text, add_origin=False)
         if sent:
             self.dedup.record_post(text, source="BENCHMARK_BRIDGE")
             self.gatekeeper.record_posted(
