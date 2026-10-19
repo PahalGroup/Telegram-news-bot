@@ -29106,6 +29106,104 @@
       "benchmark_text": "Actor Tiger Shroff targeted in firing incident  - 3 unidentified people open fire at Tiger Shroff  - Firing at Mumbai's Juhu, Driver injured",
       "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
       "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:51:22.534406+05:30",
+      "benchmark_msg_id": 266794,
+      "benchmark_text": "Akasa Air extends suspension of all flights to and from Riyadh and Jeddah until October 27 amid the Middle East security situation, offering affected passengers full refunds or free rescheduling.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:51:22.537510+05:30",
+      "benchmark_msg_id": 266797,
+      "benchmark_text": "Trent Ltd – RESIGNATION OF NON-EXECUTIVE DIRECTOR\nResignation of Non-Executive Non-Independent Director:\n- Mr. Harish Bhat has tendered his resignation\n- Resignation effective from 17th October 2026\n- Reason cited: existing and growing professional and personal commitments",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "resignation"
+    },
+    {
+      "timestamp": "2026-10-18T21:51:22.537510+05:30",
+      "benchmark_msg_id": 266801,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident\n- 3 unidentified people open fire at Tiger Shroff\n- Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-18T21:51:22.537510+05:30",
+      "benchmark_msg_id": 266802,
+      "benchmark_text": "RELIANCE INDUSTRIES: UNUSUALLY LARGE F&O BETS AHEAD OF JIO IPO: MINT \nTwo clients have built exceptionally large positions in Reliance Industries’ F&O contracts, with their positions exceeding 3% of RIL’s Market-Wide Position Limit (MWPL). Such large positions are considered highly unusual for RIL.\nThe aggressive positioning comes just days before the Jio Platforms IPO, which could become a major value-unlocking event for Reliance. A separate listing for Jio would provide a transparent market valuation for RIL’s largest digital asset and could help reduce the conglomerate discount applied to RIL.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "reliance"
+    },
+    {
+      "timestamp": "2026-10-18T21:51:22.541920+05:30",
+      "benchmark_msg_id": 266803,
+      "benchmark_text": "Actor Tiger Shroff targeted in firing incident  - 3 unidentified people open fire at Tiger Shroff  - Firing at Mumbai's Juhu, Driver injured",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.709027+05:30",
+      "benchmark_msg_id": 266845,
+      "benchmark_text": "PARIN ENTERPRISES (+VE)\nStrong Q2-Sharp Jump In EPS (Co Recently Migrated To Mainboard)",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "parin"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.714063+05:30",
+      "benchmark_msg_id": 266846,
+      "benchmark_text": "☀️\n ACME SOLAR : SIGNS PPA FOR 300 MW / 1,200 MWh FDRE PROJECT\n▪️\n Signed Power Purchase Agreement (PPA) with SECI through subsidiary ACME Greentech Twenty Pvt Ltd.\n▪️\n Project Capacity: 300 MW / 1,200 MWh\n▪️\n Tariff: ₹6 per unit\n▪️\n Project under SECI’s FDRE-IX tranche.\n▪️\n Power Supply: 4 hours daily during non-solar hours, with minimum 90% monthly availability.\n▪️\n Project will combine solar power and Battery Energy Storage System (BESS).\n▪️\n Under-construction contracted capacity: 5,380 MW, of which 4,310 MW has signed PPAs.\n▪️\n Total contracted portfolio: 8,370 MW.\n▪️\n Operational Capacity: ~3,123 MW, with 4.96 GWh of BESS capacity.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "acme"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.737236+05:30",
+      "benchmark_msg_id": 266847,
+      "benchmark_text": "ACME Solar Holdings Ltd – PPA SIGNED FOR 300 MW FDRE PROJECT\nCompany signs Power Procurement Agreement with SECI:\n- Project capacity: 300 MW / 1,200 MWh assured peak supply\n- Tariff rate: INR 6 per unit\n- Effective date: October 06, 2026\n- Technology: Integration of Solar and Battery Energy Storage System (BESS)\n- Supply details: 4 MWh per MW for four hours daily during non-solar hours\n- Minimum availability: 90% on a monthly basis",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "acme"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.738752+05:30",
+      "benchmark_msg_id": 266848,
+      "benchmark_text": "AMBER ENTERPRISES:\nIL JIN TO ACQUIRE REMAINING 40% STAKE IN POWER-ONE THROUGH ₹176 CRORE SHARE SWAP",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "amber"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.763437+05:30",
+      "benchmark_msg_id": 266849,
+      "benchmark_text": "BREAKING: Berkshire Hathaway shares hit their highest since Buffett said he'd step down as CEO",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "breaking"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.763437+05:30",
+      "benchmark_msg_id": 266850,
+      "benchmark_text": "ALEMBIC PHARMA: \nCO. RECEIVES USFDA FINAL APPROVAL FOR CIPROFLOXACIN AND DEXAMETHASONE OTIC SUSPENSION USP, 0.3% / 0.1%; THIS SUSPENSION HAS ANNUAL US SALES OF USD 110M",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "alembic"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.790845+05:30",
+      "benchmark_msg_id": 266851,
+      "benchmark_text": "Rupee Opens At 94.88/$ Vs Friday’s Close Of 94.96/$",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": null
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.791847+05:30",
+      "benchmark_msg_id": 266852,
+      "benchmark_text": "Crompton Consumer Conf call \nGuidance \n•Company remains on track for medium-term guidance with target of 11-12% EBITDA margins by FY29 on a higher revenue base supported by 15% growth operating leverage and cost efficiencies\n•Volume growth remained positive across categories post price hikes with general trade and rural strong and fans targeted at 1.5-1.7 times category growth through B2C entry-level focus and regulation-driven consolidation\n•Restructuring of LKA and Rion under Butterfly ecosystem aims to eliminate prior EBITDA losses of Rs 16-25 crore through",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "ebitda"
+    },
+    {
+      "timestamp": "2026-10-19T09:23:06.847253+05:30",
+      "benchmark_msg_id": 266853,
+      "benchmark_text": "RESULTS IMPACT\n📅\n 19 OCTOBER 2026\n🟢\n GAP-UP STOCKS\n▪️\n LAGNAM: +20.0%\n▪️\n KROSS: +15.3%\n▪️\n IXIGO: +6.8%\n▪️\n PARIN: +4.7%\n▪️\n PSB: +4.1%\n🔴\n GAP-DOWN STOCKS\n▪️\n PAUSHAKLTD: -5.8%\n▪️\n URBANCO: -5.5%\n▪️\n JINDALSAW: -4.8%\n📌\n Indicative pre-open gaps; auction not settled.",
+      "root_cause": "Missing keyword in Stage-1 filter whitelist or upstream feed delay",
+      "auto_healed_keyword": "results"
     }
   ]
 }
