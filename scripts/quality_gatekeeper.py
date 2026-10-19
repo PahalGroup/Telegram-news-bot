@@ -224,7 +224,7 @@ class QualityGatekeeper:
                             bullets.append(f"▪️ {bullet_txt}")
         
         if bullets:
-            return f"{header}\n\n" + "\n".join(bullets[:3])
+            return f"{header}\n" + "\n".join(bullets[:3])
         return header
 
     def generate_verified_post(self, item: dict) -> Tuple[Optional[str], float, dict]:
