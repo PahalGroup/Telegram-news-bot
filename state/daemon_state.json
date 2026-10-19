@@ -1,0 +1,374 @@
+{
+  "seen_ids": [
+    "BSE_Regency Fincorp Ltd - 540175 - 02Nd Extraordinary General Meeting Of The Company For The Financial Year 2026-27 To Be Held  Wednesday 11Th November 2026.",
+    "BSE_Ontic Finserve Ltd - 540386 - Board Meeting Outcome for OUTCOME OF BOARD MEETING, DISCLOSURE UNDER REGULATION 30 AND SUBMISSION OF UNAUDITED FINANCIAL RESULTS OF THE COMPANY FOR THE QUARTER ENDED SEPTEMBER 30, 2026.",
+    "BSE_Tata Capital Ltd - 544574 - Disclosure Under Regulation 30 Of SEBI Listing Regulations - Intimation Of Conference Call With Media",
+    "BSE_HFCL Ltd - 500183 - Announcement under Regulation 30 (LODR)-Monitoring Agency Report",
+    "BSE_Eris Lifesciences Ltd - 540596 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Oxford Industries Ltd - 514414 - COMPLETION OF OPEN OFFER",
+    "BSE_SML Mahindra Ltd - 505192 - Amendment To The Code Of Practices And Procedures For Fair Disclosure Of Unpublished Price Sensitive Information",
+    "BSE_Transrail Lighting Ltd - 544317 - Board Meeting Outcome for Outcome Of Board Meeting Held On October 19, 2026",
+    "BSE_NBCC (India) Ltd - 534309 - Announcement under Regulation 30 (LODR)-Change in Directorate",
+    "BSE_HFCL Ltd - 500183 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+    "BSE_Indiqube Spaces Ltd - 544454 - Announcement under Regulation 30 (LODR)-Acquisition",
+    "BSE_Mangalam Global Enterprise Ltd - 544273 - Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+    "BSE_Tata Consumer Products Ltd - 500800 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Kotak Mahindra Bank Ltd - 500247 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Sobha Ltd - 532784 - Updates On Rights Issue - Final Reminder Cum Forfeiture Notice Related To Outstanding Call Money.",
+    "BSE_Transrail Lighting Ltd - 544317 - Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+    "BSE_Supreme Infrastructure India Ltd - 532904 - PRE_ADVT",
+    "BSE_Oberoi Realty Ltd - 533273 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+    "BSE_Monarch Surveyors and Engineering Consultants Ltd - 544453 - Announcement under Regulation 30 (LODR) - Bagging/receiving of order(s) or contract(s)",
+    "BSE_DCM Shriram Ltd - 523367 - Corporate Action-Board to consider Dividend",
+    "BSE_PI Industries Ltd - 523642 - Announcement under Regulation 30 (LODR)-Updates on Acquisition",
+    "BSE_Accord Transformer & Switchgear Ltd - 544710 - Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+    "BSE_Landmark Cars Ltd - 543714 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Welspun Specialty Solutions Ltd - 500365 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Bansal Wire Industries Ltd - 544209 - Intimation Of Credit Confirmation Of Shares From Depositories With Regard To Sub-Division / Split Of Equity Shares Of The Company",
+    "BSE_Sri Lotus Developers and Realty Ltd - 544469 - Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+    "BSE_Indiqube Spaces Ltd - 544454 - Board Meeting Outcome for Intimation Of Outcome Of Board Meeting Held On October 19, 2026",
+    "BSE_Rose Merc Ltd - 512115 - Appointment Of Ms. Eshwari Purvesh Shelatkar As Nominee Director In Place Of Late Mr. Purvesh Krishna Shelatkar.",
+    "BSE_Thomas Cook (India) Ltd - 500413 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_IIRM Holdings India Ltd - 526530 - Intimation Regarding Listing And Trading Of Equity Shares Of The Company On National Stock Exchange Of India Limited",
+    "BSE_Sobha Ltd - 532784 - Announcement under Regulation 30 (LODR)-Monitoring Agency Report",
+    "BSE_L&T Technology Services Ltd - 540115 - Q2 FY 27 Earnings Conference Call Recording",
+    "BSE_Bilcare Ltd-$ - 526853 - Announcement Under Regulation 30(LODR) - Update On Voluntary Winding Up Of Bilcare INC US",
+    "BSE_Mega Fin India Ltd - 532105 - Reg. 34 (1) Annual Report.",
+    "BSE_Bajaj Finance Ltd - 500034 - Announcement under Regulation 30 (LODR)-Change in Management",
+    "BSE_Tata Capital Ltd - 544574 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Omkar Speciality Chemicals Ltd - 533317 - Outcome Of The Board Meeting Held On October 19, 2026 Under Regulation 30 Of The Securities And Exchange Board\r\nOf India (Listing Obligations And Disclosure Requirements) Regulations, 2015, As Amended.",
+    "BSE_R&B Denims Ltd - 538119 - Revised Intimation Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015.",
+    "BSE_Great Eastern Shipping Company Ltd - 500620 - Announcement under Regulation 30 (LODR)-Daily Buy Back of equity shares",
+    "BSE_Mangalam Global Enterprise Ltd - 544273 - Outcome Of Board Meeting Held On Monday, October 19, 2026",
+    "BSE_Force Motors Ltd-$ - 500033 - Announcement under Regulation 30 (LODR)-Credit Rating",
+    "BSE_Rose Merc Ltd - 512115 - Board Meeting Outcome for Outcome Of Board Meeting Held On Monday, October 19, 2026.",
+    "BSE_Cubical Financial Services Ltd - 511710 - Announcement under Regulation 30 (LODR)-Resignation of Director",
+    "BSE_Ontic Finserve Ltd - 540386 - Financial Results For 30.09.2026",
+    "BSE_Indian Renewable Energy Development Agency Ltd - 544026 - Standalone Financial Statements For Half Year Ended 30092026",
+    "BSE_Aeroflex Industries Ltd - 543972 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_RBL Bank Ltd - 540065 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+    "BSE_Indian Renewable Energy Development Agency Ltd - 544026 - Consolidated Financial Statements For Half Year Ended 30092026",
+    "BSE_Reganto Enterprises Ltd - 517393 - Intimation Pursuant To Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirement) Regulations, 2015",
+    "BSE_Mega Fin India Ltd - 532105 - Notice Of 44Th Annual General Meeting Of The Company.",
+    "BSE_Tiger Logistics (India) Ltd - 536264 - Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+    "BSE_Rose Merc Ltd - 512115 - Outcome Of Board Meeting Held On Monday, October 19, 2026.",
+    "BSE_Diamond Power Infrastructure Ltd-$ - 522163 - Disclosure Of Contact Details Of Key Managerial Personnel Under Regulation 30(5) Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+    "BSE_Varmora Granito Ltd - 544942 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Gabriel India Ltd-$ - 505714 - Announcement Under Regulation 30 (LODR) - Update On Joint Venture Agreement With Faurecia Automotive Seating India Private Limited",
+    "BSE_Aditya Birla Capital Ltd - 540691 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Sammaan Capital Ltd - 535789 - Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+    "BSE_Diamond Power Infrastructure Ltd-$ - 522163 - Board Meeting Outcome for Outcome Of Board Meeting Held On 19 October 2026",
+    "BSE_Clio Infotech Ltd - 530839 - Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Of The Company Held Today I.E. On 19Th October, 2026.",
+    "BSE_Cubical Financial Services Ltd - 511710 - Announcement under Regulation 30 (LODR)-Change in Directorate",
+    "BSE_Indian Renewable Energy Development Agency Ltd - 544026 - Board Meeting Outcome for Outcome Of The Board Meeting Held On 19.10.2026",
+    "BSE_DCM Shriram Ltd - 523367 - Corporate Action_Fixes Record Date For Interim Dividend For FY27, If Any",
+    "BSE_Garware Hi-Tech Films Ltd - 500655 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Rose Merc Ltd - 512115 - Announcement under Regulation 30 (LODR)-Change in Management",
+    "BSE_Shri Niwas Leasing And Finance Ltd - 538897 - Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Held On Monday, 19Th October, 2026 At Pursuant To\r\nRegulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015.",
+    "BSE_Jindal Saw Ltd - 500378 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+    "BSE_Rossari Biotech Ltd - 543213 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+    "BSE_Orient Technologies Ltd - 544235 - Announcement under Regulation 30 (LODR)-Code of Conduct under SEBI (PIT) Regulations, 2015",
+    "BSE_Ambassador Intra Holdings Ltd - 542524 - Outcome Of Board Meeting Held On Monday, 19Th October, 2026",
+    "BSE_JSW Dulux Ltd - 500710 - Receipt Of Order From Karnataka GST Dept",
+    "BSE_Firstsource Solutions Ltd - 532809 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Melstar Information Technologies Ltd - 532307 - Announcement under Regulation 30 (LODR)-Amendments to Memorandum & Articles of Association",
+    "BSE_Transport Corporation of India Ltd - 532349 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Ambassador Intra Holdings Ltd - 542524 - Board Meeting Outcome for  Outcome Of Board Meeting Held On  Monday, 19Th October, 2026",
+    "BSE_Indiqube Spaces Ltd - 544454 - Announcement under Regulation 30 (LODR)-Change in Management",
+    "BSE_Triveni Power Transmission Ltd - 544824 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_Unicommerce Esolutions Ltd - 544227 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+    "BSE_UltraTech Cement Ltd - 532538 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome"
+  ],
+  "semantic_hashes": [
+    "ADITYA BIRLA CAPITAL:FINANCIAL_RESULTS:no_num:20261019",
+    "INDIQUBE SPACES:RESEARCH_REPORT:30:20261019",
+    "FORCE MOTORS:CREDIT_RATING:30:20261019",
+    "NBCC:MANAGEMENT_CHANGE:30:20261019",
+    "MANGALAM GLOBAL ENTERPRISE:FINANCIAL_RESULTS:19-2026:20261019",
+    "ACCORD TRANSFORMER SWITCHGEAR:ORDER_WIN:30:20261019",
+    "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY:CORP_RESTRUCTURE:19.10-2026:20261019",
+    "BANSAL WIRE:DIVIDEND_OR_SPLIT:no_num:20261019",
+    "SAMMAAN CAPITAL:CORP_RESTRUCTURE:no_num:20261019",
+    "DIAMOND POWER:MANAGEMENT_CHANGE:30-5:20261019",
+    "BILCARE:CREDIT_RATING:no_num:20261019",
+    "MANGALAM GLOBAL ENTERPRISE:FINANCIAL_RESULTS:30:20261019",
+    "ROSE MERC:MANAGEMENT_CHANGE:no_num:20261019",
+    "OMKAR SPECIALITY CHEMICALS:GENERAL_WIRE:19-2026:20261019",
+    "INDIQUBE SPACES:CORP_RESTRUCTURE:19-2026:20261019",
+    "TRANSPORT OF:CORP_ANNOUNCEMENT:no_num:20261019",
+    "WELSPUN SPECIALTY SOLUTIONS:CORP_ANNOUNCEMENT:no_num:20261019",
+    "DCM SHRIRAM:DIVIDEND_OR_SPLIT:no_num:20261019",
+    "CLIO INFOTECH:CORP_RESTRUCTURE:2026:20261019",
+    "FIRSTSOURCE SOLUTIONS:FINANCIAL_RESULTS:no_num:20261019",
+    "ONTIC FINSERVE:FINANCIAL_RESULTS:30-30:20261019",
+    "ROSE MERC:MANAGEMENT_CHANGE:30:20261019",
+    "UNICOMMERCE ESOLUTIONS:GOV_AND_MACRO:no_num:20261019",
+    "ROSSARI BIOTECH:FINANCIAL_RESULTS:no_num:20261019",
+    "CUBICAL FINANCIAL:MANAGEMENT_CHANGE:30:20261019",
+    "GABRIEL:CORP_RESTRUCTURE:no_num:20261019",
+    "SOBHA:DIVIDEND_OR_SPLIT:no_num:20261019",
+    "GARWARE HI TECH FILMS:CORP_ANNOUNCEMENT:no_num:20261019",
+    "HFCL:CORP_RESTRUCTURE:no_num:20261019",
+    "ORIENT TECHNOLOGIES:CORP_ANNOUNCEMENT:30-2015:20261019",
+    "TRANSRAIL LIGHTING:CORP_RESTRUCTURE:19-2026:20261019",
+    "THOMAS COOK:FINANCIAL_RESULTS:no_num:20261019",
+    "PI:RESEARCH_REPORT:30:20261019",
+    "INDIQUBE SPACES:MANAGEMENT_CHANGE:30:20261019",
+    "AMBASSADOR INTRA:CORP_RESTRUCTURE:2026:20261019",
+    "JSW DULUX:ORDER_WIN:no_num:20261019",
+    "REGANTO:MANAGEMENT_CHANGE:30-2015:20261019",
+    "BAJAJ FINANCE:MANAGEMENT_CHANGE:30:20261019",
+    "MONARCH SURVEYORS AND ENGINEERING CONSULTANTS:ORDER_WIN:no_num:20261019",
+    "TRANSRAIL LIGHTING:GENERAL_WIRE:30:20261019",
+    "GREAT EASTERN SHIPPING:DIVIDEND_OR_SPLIT:30:20261019",
+    "TATA CAPITAL:FINANCIAL_RESULTS:no_num:20261019",
+    "DIAMOND POWER:MANAGEMENT_CHANGE:19-2026:20261019",
+    "MEGA FIN:GENERAL_WIRE:no_num:20261019",
+    "SOBHA:DIVIDEND_OR_SPLIT:30:20261019",
+    "HFCL:CORP_ANNOUNCEMENT:30:20261019",
+    "OBEROI REALTY:FINANCIAL_RESULTS:no_num:20261019",
+    "ONTIC FINSERVE:FINANCIAL_RESULTS:30.09-2026:20261019"
+  ],
+  "published_records": [
+    {
+      "item_id": "BSE_JSW Dulux Ltd - 500710 - Receipt Of Order From Karnataka GST Dept",
+      "headline": "JSW DULUX : ORDER WIN",
+      "category": "ORDER_WIN"
+    },
+    {
+      "item_id": "BSE_Rossari Biotech Ltd - 543213 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "headline": "ROSSARI BIOTECH : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_HFCL Ltd - 500183 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "headline": "HFCL : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Welspun Specialty Solutions Ltd - 500365 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "WELSPUN SPECIALTY SOLUTIONS : CORP ANNOUNCEMENT",
+      "category": "CORP_ANNOUNCEMENT"
+    },
+    {
+      "item_id": "BSE_Accord Transformer & Switchgear Ltd - 544710 - Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+      "headline": "ACCORD TRANSFORMER SWITCHGEAR : ORDER WIN",
+      "category": "ORDER_WIN"
+    },
+    {
+      "item_id": "BSE_Transport Corporation of India Ltd - 532349 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "TRANSPORT OF : CORP ANNOUNCEMENT",
+      "category": "CORP_ANNOUNCEMENT"
+    },
+    {
+      "item_id": "BSE_Transrail Lighting Ltd - 544317 - Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "headline": "TRANSRAIL LIGHTING : MARKET UPDATE",
+      "category": "MARKET_DEVELOPMENT"
+    },
+    {
+      "item_id": "BSE_Aditya Birla Capital Ltd - 540691 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "ADITYA BIRLA CAPITAL : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Indiqube Spaces Ltd - 544454 - Announcement under Regulation 30 (LODR)-Acquisition",
+      "headline": "INDIQUBE SPACES : RESEARCH REPORT",
+      "category": "RESEARCH_REPORT"
+    },
+    {
+      "item_id": "BSE_Gabriel India Ltd-$ - 505714 - Announcement Under Regulation 30 (LODR) - Update On Joint Venture Agreement With Faurecia Automotive Seating India Private Limited",
+      "headline": "GABRIEL : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Clio Infotech Ltd - 530839 - Board Meeting Outcome for Outcome Of Meeting Of Board Of Directors Of The Company Held Today I.E. On 19Th October, 2026.",
+      "headline": "CLIO INFOTECH : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Mega Fin India Ltd - 532105 - Notice Of 44Th Annual General Meeting Of The Company.",
+      "headline": "MEGA FIN : MARKET UPDATE",
+      "category": "MARKET_DEVELOPMENT"
+    },
+    {
+      "item_id": "BSE_Rose Merc Ltd - 512115 - Announcement under Regulation 30 (LODR)-Change in Management",
+      "headline": "ROSE MERC : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Indian Renewable Energy Development Agency Ltd - 544026 - Board Meeting Outcome for Outcome Of The Board Meeting Held On 19.10.2026",
+      "headline": "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Ambassador Intra Holdings Ltd - 542524 - Board Meeting Outcome for  Outcome Of Board Meeting Held On  Monday, 19Th October, 2026",
+      "headline": "AMBASSADOR INTRA : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Rose Merc Ltd - 512115 - Appointment Of Ms. Eshwari Purvesh Shelatkar As Nominee Director In Place Of Late Mr. Purvesh Krishna Shelatkar.",
+      "headline": "ROSE MERC : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Garware Hi-Tech Films Ltd - 500655 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "GARWARE HI TECH FILMS : CORP ANNOUNCEMENT",
+      "category": "CORP_ANNOUNCEMENT"
+    },
+    {
+      "item_id": "BSE_Diamond Power Infrastructure Ltd-$ - 522163 - Disclosure Of Contact Details Of Key Managerial Personnel Under Regulation 30(5) Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "headline": "DIAMOND POWER : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Transrail Lighting Ltd - 544317 - Board Meeting Outcome for Outcome Of Board Meeting Held On October 19, 2026",
+      "headline": "TRANSRAIL LIGHTING : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Firstsource Solutions Ltd - 532809 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "FIRSTSOURCE SOLUTIONS : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Bilcare Ltd-$ - 526853 - Announcement Under Regulation 30(LODR) - Update On Voluntary Winding Up Of Bilcare INC US",
+      "headline": "BILCARE : CREDIT RATING",
+      "category": "CREDIT_RATING"
+    },
+    {
+      "item_id": "BSE_Sammaan Capital Ltd - 535789 - Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "headline": "SAMMAAN CAPITAL : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Diamond Power Infrastructure Ltd-$ - 522163 - Board Meeting Outcome for Outcome Of Board Meeting Held On 19 October 2026",
+      "headline": "DIAMOND POWER : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Reganto Enterprises Ltd - 517393 - Intimation Pursuant To Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirement) Regulations, 2015",
+      "headline": "REGANTO : RESIGNATION",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Tata Capital Ltd - 544574 - Disclosure Under Regulation 30 Of SEBI Listing Regulations - Intimation Of Conference Call With Media",
+      "headline": "TATA CAPITAL : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_HFCL Ltd - 500183 - Announcement under Regulation 30 (LODR)-Monitoring Agency Report",
+      "headline": "HFCL : CORP ANNOUNCEMENT",
+      "category": "CORP_ANNOUNCEMENT"
+    },
+    {
+      "item_id": "BSE_Cubical Financial Services Ltd - 511710 - Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "headline": "CUBICAL FINANCIAL : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_DCM Shriram Ltd - 523367 - Corporate Action_Fixes Record Date For Interim Dividend For FY27, If Any",
+      "headline": "DCM SHRIRAM : DIVIDEND OR SPLIT",
+      "category": "DIVIDEND_OR_SPLIT"
+    },
+    {
+      "item_id": "BSE_PI Industries Ltd - 523642 - Announcement under Regulation 30 (LODR)-Updates on Acquisition",
+      "headline": "PI : RESEARCH REPORT",
+      "category": "RESEARCH_REPORT"
+    },
+    {
+      "item_id": "BSE_Bansal Wire Industries Ltd - 544209 - Intimation Of Credit Confirmation Of Shares From Depositories With Regard To Sub-Division / Split Of Equity Shares Of The Company",
+      "headline": "BANSAL WIRE : DIVIDEND OR SPLIT",
+      "category": "DIVIDEND_OR_SPLIT"
+    },
+    {
+      "item_id": "BSE_Sobha Ltd - 532784 - Updates On Rights Issue - Final Reminder Cum Forfeiture Notice Related To Outstanding Call Money.",
+      "headline": "SOBHA : DIVIDEND OR SPLIT",
+      "category": "DIVIDEND_OR_SPLIT"
+    },
+    {
+      "item_id": "BSE_Indiqube Spaces Ltd - 544454 - Announcement under Regulation 30 (LODR)-Change in Management",
+      "headline": "INDIQUBE SPACES : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Oberoi Realty Ltd - 533273 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+      "headline": "OBEROI REALTY : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Mangalam Global Enterprise Ltd - 544273 - Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "headline": "MANGALAM GLOBAL ENTERPRISE : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_NBCC (India) Ltd - 534309 - Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "headline": "NBCC : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Ontic Finserve Ltd - 540386 - Financial Results For 30.09.2026",
+      "headline": "ONTIC FINSERVE : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Omkar Speciality Chemicals Ltd - 533317 - Outcome Of The Board Meeting Held On October 19, 2026 Under Regulation 30 Of The Securities And Exchange Board\r\nOf India (Listing Obligations And Disclosure Requirements) Regulations, 2015, As Amended.",
+      "headline": "OMKAR SPECIALITY CHEMICALS : MARKET UPDATE",
+      "category": "MARKET_DEVELOPMENT"
+    },
+    {
+      "item_id": "BSE_Force Motors Ltd-$ - 500033 - Announcement under Regulation 30 (LODR)-Credit Rating",
+      "headline": "FORCE MOTORS : CREDIT RATING",
+      "category": "CREDIT_RATING"
+    },
+    {
+      "item_id": "BSE_Indiqube Spaces Ltd - 544454 - Board Meeting Outcome for Intimation Of Outcome Of Board Meeting Held On October 19, 2026",
+      "headline": "INDIQUBE SPACES : CORP RESTRUCTURE",
+      "category": "CORP_RESTRUCTURE"
+    },
+    {
+      "item_id": "BSE_Thomas Cook (India) Ltd - 500413 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "THOMAS COOK : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Unicommerce Esolutions Ltd - 544227 - Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "headline": "UNICOMMERCE ESOLUTIONS : GOV AND MACRO",
+      "category": "GOV_AND_MACRO"
+    },
+    {
+      "item_id": "BSE_Monarch Surveyors and Engineering Consultants Ltd - 544453 - Announcement under Regulation 30 (LODR) - Bagging/receiving of order(s) or contract(s)",
+      "headline": "MONARCH SURVEYORS AND ENGINEERING CONSULTANTS : ORDER WIN",
+      "category": "ORDER_WIN"
+    },
+    {
+      "item_id": "BSE_Bajaj Finance Ltd - 500034 - Announcement under Regulation 30 (LODR)-Change in Management",
+      "headline": "BAJAJ FINANCE : APPOINTMENT",
+      "category": "MANAGEMENT_CHANGE"
+    },
+    {
+      "item_id": "BSE_Ontic Finserve Ltd - 540386 - Board Meeting Outcome for OUTCOME OF BOARD MEETING, DISCLOSURE UNDER REGULATION 30 AND SUBMISSION OF UNAUDITED FINANCIAL RESULTS OF THE COMPANY FOR THE QUARTER ENDED SEPTEMBER 30, 2026.",
+      "headline": "ONTIC FINSERVE : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    },
+    {
+      "item_id": "BSE_Sobha Ltd - 532784 - Announcement under Regulation 30 (LODR)-Monitoring Agency Report",
+      "headline": "SOBHA : DIVIDEND OR SPLIT",
+      "category": "DIVIDEND_OR_SPLIT"
+    },
+    {
+      "item_id": "BSE_Orient Technologies Ltd - 544235 - Announcement under Regulation 30 (LODR)-Code of Conduct under SEBI (PIT) Regulations, 2015",
+      "headline": "ORIENT TECHNOLOGIES : CORP ANNOUNCEMENT",
+      "category": "CORP_ANNOUNCEMENT"
+    },
+    {
+      "item_id": "BSE_Great Eastern Shipping Company Ltd - 500620 - Announcement under Regulation 30 (LODR)-Daily Buy Back of equity shares",
+      "headline": "GREAT EASTERN SHIPPING : DIVIDEND OR SPLIT",
+      "category": "DIVIDEND_OR_SPLIT"
+    },
+    {
+      "item_id": "BSE_Mangalam Global Enterprise Ltd - 544273 - Outcome Of Board Meeting Held On Monday, October 19, 2026",
+      "headline": "MANGALAM GLOBAL ENTERPRISE : FINANCIAL RESULTS",
+      "category": "FINANCIAL_RESULTS"
+    }
+  ]
+}
