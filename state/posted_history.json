@@ -2,366 +2,6 @@
   "last_updated": "2026-10-17T11:15:00+05:30",
   "posts": [
     {
-      "timestamp": "2026-10-18T12:23:44.330312+05:30",
-      "company": "ZEN Technologies Ltd",
-      "category": "BSE",
-      "numbers": [],
-      "headline": "📢 <b>ZEN TECHNOLOGIES LTD</b> — Press Release",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b2202dbd-80fa-4ef5-8920-ce9189935df2.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T12:23:44.838415+05:30",
-      "company": "Oil India Ltd",
-      "category": "BSE",
-      "numbers": [],
-      "headline": "📢 <b>OIL INDIA LTD</b> — OIL Achieves a Landmark Milestones with Signing of Special CBM Block RSC",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/eaa1ab71-903e-47e0-9a72-6ec0d76b0f92.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T13:05:38.503008+05:30",
-      "company": "Prime Securities Ltd",
-      "category": "BSE",
-      "numbers": [
-        "74",
-        "5",
-        "2018",
-        "74",
-        "5",
-        "2018"
-      ],
-      "headline": "📢 <b>PRIME SECURITIES LTD</b> — Compliance Certificate Regulation 74(5) of SEBI (DP) Regulations, 2018",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/2728b327-ae13-46a0-9bc2-fb442fdb3f5f.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T13:19:50.888336+05:30",
-      "company": "Schneider Electric Infrastructure Ltd",
-      "category": "BSE",
-      "numbers": [
-        "20",
-        "2024",
-        "20",
-        "2024"
-      ],
-      "headline": "📢 <b>SCHNEIDER ELECTRIC INFRASTRUCTURE LTD</b> — In furtherance to the previous intimation filed on July 20, 2024, the Company has received another o",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/3cd6c906-f969-46cd-9f60-3086b044cc23.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T14:00:08.150754+05:30",
-      "company": "Sai Urja Indo Ventures Ltd",
-      "category": "BSE",
-      "numbers": [
-        "1",
-        "12.98 crore",
-        "1",
-        "12.98 crore"
-      ],
-      "headline": "📢 <b>SAI URJA INDO VENTURES LTD</b> — SUIV declared L1 (First Lowest) in Order valued at INR 12.98 Crores by the NTPC Tamilnaadu Energy Co",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/122d8b97-b17b-48df-8241-d539bf53398f.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T15:35:35.720487+05:30",
-      "company": "Schneider Electric Infrastructure Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>SCHNEIDER ELECTRIC INFRASTRUCTURE LIMITED</b> — Action(s) taken or orders passed",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=SCHNEIDER"
-    },
-    {
-      "timestamp": "2026-10-18T15:35:36.143502+05:30",
-      "company": "JSW Steel Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>JSW STEEL LIMITED</b> — Pendency of Litigation(s)/dispute(s) or the outcome impacting the Company",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=JSWSTEEL"
-    },
-    {
-      "timestamp": "2026-10-18T15:35:36.596148+05:30",
-      "company": "Vedanta Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>VEDANTA LIMITED</b> — Press Release",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=VEDL"
-    },
-    {
-      "timestamp": "2026-10-18T15:40:45.548290+05:30",
-      "company": "ICICI Prudential BSE Liquid Rate ETF",
-      "category": "BSE",
-      "numbers": [
-        "90",
-        "1",
-        "90",
-        "1"
-      ],
-      "headline": "📢 <b>ICICI PRUDENTIAL BSE LIQUID RATE ETF</b> — Growth -Compliances-Reg. 90 (1) - Portfolio of Mutual Fund Schemes",
-      "url": "https://www.bseindia.com/corporates/ann.html"
-    },
-    {
-      "timestamp": "2026-10-18T15:40:46.406611+05:30",
-      "company": "ICICI Prudential Nifty 10 yr Benchmark G-Sec ETF",
-      "category": "BSE",
-      "numbers": [
-        "10",
-        "90",
-        "1",
-        "10",
-        "90",
-        "1"
-      ],
-      "headline": "📢 <b>ICICI PRUDENTIAL NIFTY 10 YR BENCHMARK G-SEC ETF</b> — Compliances-Reg. 90 (1) - Portfolio of Mutual Fund Schemes",
-      "url": "https://www.bseindia.com/corporates/ann.html"
-    },
-    {
-      "timestamp": "2026-10-18T15:40:46.813169+05:30",
-      "company": "ICICI Prudential Nifty 5 yr Benchmark G-SEC ETF",
-      "category": "BSE",
-      "numbers": [
-        "5",
-        "90",
-        "1",
-        "5",
-        "90",
-        "1"
-      ],
-      "headline": "📢 <b>ICICI PRUDENTIAL NIFTY 5 YR BENCHMARK G-SEC ETF</b> — Compliances-Reg. 90 (1) - Portfolio of Mutual Fund Schemes",
-      "url": "https://www.bseindia.com/corporates/ann.html"
-    },
-    {
-      "timestamp": "2026-10-18T15:42:35.895904+05:30",
-      "company": "ICICI Prudential Fixed Maturity Plan",
-      "category": "BSE",
-      "numbers": [
-        "85",
-        "10",
-        "90",
-        "1",
-        "85",
-        "10",
-        "90",
-        "1"
-      ],
-      "headline": "📢 <b>ICICI PRUDENTIAL FIXED MATURITY PLAN</b> — Series 85 - 10 Years - Plan I - Direct Plan - Cumulative Opt -Compliances-Reg. 90 (1) - Portfolio of",
-      "url": "https://www.bseindia.com/corporates/ann.html"
-    },
-    {
-      "timestamp": "2026-10-18T15:42:36.337613+05:30",
-      "company": "Sai Urja Indo Ventures Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30",
-        "30"
-      ],
-      "headline": "📢 <b>SAI URJA INDO VENTURES LTD</b> — Announcement under Regulation 30 (LODR) - Bagging/receiving of order(s) or contract(s)",
-      "url": "https://www.bseindia.com/corporates/ann.html"
-    },
-    {
-      "timestamp": "2026-10-18T15:42:36.755661+05:30",
-      "company": "Dodla Dairy Limited",
-      "category": "NSE",
-      "numbers": [
-        "30",
-        "11",
-        "30",
-        "11"
-      ],
-      "headline": "📢 <b>DODLA DAIRY LIMITED</b> — Rumour Verification - Regulation 30(11)",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=DODLA"
-    },
-    {
-      "timestamp": "2026-10-18T15:51:49.403537+05:30",
-      "company": "Dodla Dairy Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30",
-        "2015",
-        "30",
-        "2015"
-      ],
-      "headline": "📢 <b>DODLA DAIRY LTD</b> — Clarification under regulation 30 of SEBI(LODR)regulations ,2015 on news items regarding an FSSAI re",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/fd45a1ad-04bb-48e8-927a-a41b7b80daa6.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T16:16:13.938562+05:30",
-      "company": "ZEN TECHNOLOGIES LTD",
-      "category": "BSE",
-      "numbers": [
-        "rs 120 cr",
-        "rs 120 crore"
-      ],
-      "headline": "📢 <b>ZEN TECHNOLOGIES LTD</b> — Secures order worth Rs 120 Cr from Ministry of Defence",
-      "norm_headline": "zen technologies ltd secures order worth rs 120 cr from ministry of defence zen technologies ltd secures order worth rs 120 cr from ministry of defence company has bagged expor",
-      "url": "https://www.bseindia.com/pdf4.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T16:18:04.462079+05:30",
-      "company": "Amber Enterprises India Ltd",
-      "category": "BSE",
-      "numbers": [
-        "30"
-      ],
-      "headline": "📢 <b>AMBER ENTERPRISES INDIA LTD</b> — Pursuant to Regulation 30 of SEBI LODR Regulations, we wish to inform the exchange that, IL JIN Elec",
-      "norm_headline": "amber enterprises india ltd pursuant to regulation 30 of sebi lodr regulations we wish to inform the exchange that il jin elec amber enterprises india ltd pursuant to regulation 30 of sebi lodr regulations we wish to inform the",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/2dd40e09-adc6-4cc9-bfbd-f35d1afdfd46.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T16:18:04.547384+05:30",
-      "company": "Camlin Fine Sciences Ltd",
-      "category": "BSE",
-      "numbers": [],
-      "headline": "📢 <b>CAMLIN FINE SCIENCES LTD</b> — Intimation of completion of tenure of Independent Director of the Company.",
-      "norm_headline": "camlin fine sciences ltd intimation of completion of tenure of independent director of the company camlin fine sciences ltd intimation of completion of tenure of independent director of the company",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d432a138-9538-4c58-ad31-187ec038da22.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T16:18:04.585178+05:30",
-      "company": "Cyient Ltd",
-      "category": "BSE",
-      "numbers": [],
-      "headline": "📢 <b>CYIENT LTD</b> — Intimation of Completion of Tenure of Independent Director",
-      "norm_headline": "cyient ltd intimation of completion of tenure of independent director cyient ltd intimation of completion of tenure of independent director",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7d883984-9238-44bd-8c32-4d10a935378e.pdf"
-    },
-    {
-      "timestamp": "2026-10-18T16:18:04.652677+05:30",
-      "company": "Juniper Green Energy Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>JUNIPER GREEN ENERGY LIMITED</b> — Acquisition",
-      "norm_headline": "juniper green energy limited acquisition juniper green energy limited jnpr acquisition",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=JNPR"
-    },
-    {
-      "timestamp": "2026-10-18T16:18:04.695844+05:30",
-      "company": "Imagicaaworld Entertainment Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>IMAGICAAWORLD ENTERTAINMENT LIMITED</b> — Change in Director(s)",
-      "norm_headline": "imagicaaworld entertainment limited change in director s imagicaaworld entertainment limited imagicaa change in director s",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=IMAGICAA"
-    },
-    {
-      "timestamp": "2026-10-18T16:20:42.740259+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — Premature redemption under Sovereign Gold Bond (SGB) Scheme - Redemption Price for premature redempt",
-      "norm_headline": "reserve bank of india premature redemption under sovereign gold bond sgb scheme redemption price for premature redempt reserve bank of india premature redemption under sovereign gold bond sgb scheme redemption price for",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63822"
-    },
-    {
-      "timestamp": "2026-10-18T16:20:43.215933+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [
-        "91",
-        "182",
-        "364"
-      ],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — Auction of 91-Day, 182-Day and 364-Day Treasury Bills",
-      "norm_headline": "reserve bank of india auction of 91 day 182 day and 364 day treasury bills reserve bank of india auction of 91 day 182 day and 364 day treasury bills reserve bank of india ann",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63821"
-    },
-    {
-      "timestamp": "2026-10-18T16:20:43.958073+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — RBI approves amalgamation of Indian branches of Emirates NBD Bank P.J.S.C. with RBL Bank Limited",
-      "norm_headline": "reserve bank of india rbi approves amalgamation of indian branches of emirates nbd bank p j s c with rbl bank limited reserve bank of india rbi approves amalgamation of indian branches of emirates nbd bank p j s c with",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63820"
-    },
-    {
-      "timestamp": "2026-10-18T16:21:33.849509+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — Reserve Bank of India – Bulletin Weekly Statistical Supplement – Extract",
-      "norm_headline": "reserve bank of india reserve bank of india bulletin weekly statistical supplement extract reserve bank of india reserve bank of india bulletin weekly statistical supplement extract 1 reserve",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63819"
-    },
-    {
-      "timestamp": "2026-10-18T16:21:34.327264+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — Government Stock - Full Auction Results",
-      "norm_headline": "reserve bank of india government stock full auction results reserve bank of india government stock full auction results amount in crore auction results 6 94 gs",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63818"
-    },
-    {
-      "timestamp": "2026-10-18T16:21:36.210941+05:30",
-      "company": "RESERVE BANK OF INDIA",
-      "category": "RBI",
-      "numbers": [
-        "15",
-        "2026"
-      ],
-      "headline": "📢 <b>RESERVE BANK OF INDIA</b> — Money Market Operations as on October 15, 2026",
-      "norm_headline": "reserve bank of india money market operations as on october 15 2026 reserve bank of india money market operations as on october 15 2026 amount in crore rate in per cent",
-      "url": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63815"
-    },
-    {
-      "timestamp": "2026-10-18T16:22:23.790018+05:30",
-      "company": "SEBI",
-      "category": "SEBI",
-      "numbers": [
-        "64",
-        "2026",
-        "2026",
-        "2026"
-      ],
-      "headline": "📢 <b>SEBI</b> — PR 64/2026: SEBI Teams win at IOSCO TechSprint 2026 on Investor Education in the Age of  Artificial",
-      "norm_headline": "sebi pr 64 2026 sebi teams win at iosco techsprint 2026 on investor education in the age of artificial sebi pr 64 2026 sebi teams win at iosco techsprint 2026 on investor education in the age of artifici",
-      "url": "https://www.sebi.gov.in/media-and-notifications/press-releases/oct-2026/sebi-teams-win-at-iosco-techsprint-2026-on-investor-education-in-the-age-of-artificial-intelligence-ai-_105266.html"
-    },
-    {
-      "timestamp": "2026-10-18T16:22:24.306403+05:30",
-      "company": "FINANCE MINISTER",
-      "category": "LIVE_WIRE",
-      "numbers": [],
-      "headline": "📢 <b>FINANCE MINISTER</b> — Finance Minister Nirmala Sitharaman inaugurates road project in Meghalaya | Akashvani News - News On",
-      "norm_headline": "finance minister finance minister nirmala sitharaman inaugurates road project in meghalaya akashvani news news on finance minister finance minister nirmala sitharaman inaugurates road project in meghalaya akashvani",
-      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxPNVQ2dEVCam5QTTN2blhXY2U1U1g1U2xWN0hEai12dkJKRVZYUlBmTVVMZ0tHWkFzNnR1cld4Y29HV0pZTThUSFJQMWxPYVBPaXBkUWxTX2MyTUk5dlRUbldZMjFVRnRCbU9Yb1lBM0dfYkRTb01oZDZMM0hCbllQa3ljWlNGWU1ZUTc1UjVVTGFlM202aHJnSXJSVmRncm91?oc=5"
-    },
-    {
-      "timestamp": "2026-10-18T16:22:24.746490+05:30",
-      "company": "RBI GOVERNOR",
-      "category": "LIVE_WIRE",
-      "numbers": [
-        "25",
-        "3"
-      ],
-      "headline": "📢 <b>RBI GOVERNOR</b> — Odisha: PM Modi to launch RBI data centre on Oct 25, President Murmu to visit 3 days later - The New",
-      "norm_headline": "rbi governor odisha pm modi to launch rbi data centre on oct 25 president murmu to visit 3 days later the new rbi governor odisha pm modi to launch rbi data centre on oct 25 president murmu to visit 3 days late",
-      "url": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxPVDBzT2RQYldNWGxweUpnaXEzMWZyelBfU2xWSkZuSmJ2N253WFB4clJGNUVuWGNXdWlDMVlsYVl3bEFuZnJxTUMtcXBpbjhXRVZuTUlOUWZORXRDZGFpS25PVWFHbGk5WXpVZ1FzSVFGbEV2cjhxVzRmY29qY1ZCV3JqRWlvY2xWMHRwSV9Na2M3Yy1MNlpPZzhEOWFfSkVsR3JoYjJaSkNkdnlmaHZCNXJyRi1zU01YdkRzckR1Zm5LcUdGZVJzSW1KRHpqY1JxYzVrZ0I3Z2xkc0V5NU9oeNIB7gFBVV95cUxOUER6SHBmMDFhS01KZFpzMG1ydFowS2ljdmlPSGdwV2M5TTQzWnFYNC14eXJxSk5zRmNTLURXcktJLUIwSXZKZ3BMdU1KU1c0Nm5nNUdPcEMtb1pPMjdVTmJ4RnlySWJwOXJzYXkxd29kUVlMZnV6aVBseDNQN0FTN3FZMU5MUDVub1I5eFVlWV9EbXZPeXBEcjVLZVNHY050RFlESWxPc0UycDFvSE9BZjlSRmtLdHJBemJrNGpqNHB0bUdRbFZGaDhwS3RnMFVhekdkb1RlM3l5M0liaDh3UEtFUlNkWFcwUlJpYjBB?oc=5"
-    },
-    {
-      "timestamp": "2026-10-18T16:23:08.789250+05:30",
-      "company": "RBI GOVERNOR",
-      "category": "LIVE_WIRE",
-      "numbers": [],
-      "headline": "📢 <b>RBI GOVERNOR</b> — FM seeks early conclusion of India-US trade deal; flags China`s trade barriers - Mid-Day",
-      "norm_headline": "rbi governor fm seeks early conclusion of india us trade deal flags china s trade barriers mid day rbi governor fm seeks early conclusion of india us trade deal flags china s trade barriers mid day",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxQdUZjck96T1d1YXFlb0M1SXlPaFhUaEFabld1WkFsSFlqV255T0U1S2w4V08zMEh4OEswN0pKOHgwR1k5TGJOQzhrNzFFYWJIRnhjdlJjclJVZzlQTjlha2ZXTGx6Z3ZGZjQ4bkdmR3BTNllObmZLMENENElSU3NheGk4ckNESl9SS1h1UTloU1E0ZmJmRGJFUm5WN3d0cjZZZzA0LW5QaGlGQ0plUGJ1VEVBRTVscF81cjBhRk9USVBIMG1KckpEYWFyVVMtSU0?oc=5"
-    },
-    {
-      "timestamp": "2026-10-18T16:32:15.008316+05:30",
-      "company": "Amber Enterprises India Limited",
-      "category": "NSE",
-      "numbers": [],
-      "headline": "📢 <b>AMBER ENTERPRISES INDIA LIMITED</b> — Acquisition",
-      "norm_headline": "amber enterprises india limited acquisition amber enterprises india limited amber acquisition",
-      "url": "https://www.nseindia.com/get-quotes/equity?symbol=AMBER"
-    },
-    {
-      "timestamp": "2026-10-18T18:45:14.348341+05:30",
-      "company": "Trent Ltd",
-      "category": "BSE",
-      "numbers": [],
-      "headline": "📢 <b>TRENT LTD</b> — Intimation of resignation of Non-Executive Non-Independent Director of the Company",
-      "norm_headline": "trent ltd intimation of resignation of non executive non independent director of the company trent ltd intimation of resignation of non executive non independent director of the company",
-      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5f2619df-b01f-4905-978f-00de8477b2f8.pdf"
-    },
-    {
       "timestamp": "2026-10-18T21:49:20.375921+05:30",
       "company": "Ritco Logistics Ltd",
       "category": "BSE",
@@ -588,6 +228,59 @@
       "headline": "<b>📈 EIKO LIFESCIENCES : PROMOTER GROUP CONVERTS WARRANTS INTO EQUITY</b>",
       "norm_headline": "eiko lifesciences promoter group converts warrants into equity eiko lifesciences promoter group converts warrants into equity lenus finvest pvt ltd converted 1 50",
       "url": "https://t.me/stock_aaj_or_kal/266889"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:34.674025+05:30",
+      "company": "Diamond Power Infrastructure Ltd-$",
+      "category": "BSE",
+      "numbers": [],
+      "headline": "<b>DIAMOND POWER INFRASTRUCTURE LTD-$ : APPOINTMENT OF CHIEF FINANCIAL OFFICER AND KEY MANAGERIAL PERSONNEL OF THE COMPANY</b>",
+      "norm_headline": "diamond power infrastructure ltd appointment of chief financial officer and key managerial personnel of the company diamond power infrastructure ltd appointment of chief financial officer and key managerial personnel",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/117e1ed5-0590-4765-80bc-1c369165e5ff.pdf"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:35.314483+05:30",
+      "company": "Regency Fincorp Ltd",
+      "category": "BSE",
+      "numbers": [
+        "02",
+        "2026",
+        "27"
+      ],
+      "headline": "<b>REGENCY FINCORP LTD : SUBMISSION OF INTIMATION OF 02ND EXTRA-ORDINARY GENERAL MEETING OF THE COMPANY FOR THE FINANCIAL YEAR 2026-27 TO BE HELD</b>",
+      "norm_headline": "regency fincorp ltd submission of intimation of 02nd extra ordinary general meeting of the company for the financial year 2026 27 to be held regency fincorp ltd submission of intimation of 02nd extra ordinary general meeting of the company f",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8a75198a-582b-4daa-98f7-78ebd52185f7.pdf"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:35.776750+05:30",
+      "company": "Reganto Enterprises Ltd",
+      "category": "BSE",
+      "numbers": [
+        "19",
+        "10",
+        "2026"
+      ],
+      "headline": "<b>REGANTO ENTERPRISES LTD : RESIGNATION OF INTERNAL AUDITOR OF COMPANY W.E.F. 19/10/2026.</b>",
+      "norm_headline": "reganto enterprises ltd resignation of internal auditor of company w e f 19 10 2026 reganto enterprises ltd resignation of internal auditor of company w e f 19 10 2026 transaction deta",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dd7879b5-9058-4300-8f80-aee0e66c47db.pdf"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:36.238286+05:30",
+      "company": "Oxford Industries Ltd",
+      "category": "BSE",
+      "numbers": [],
+      "headline": "<b>OXFORD INDUSTRIES LTD : ENCLOSED HEREWITH INTIMATION OF COMPLETION OF OPEN OFFER</b>",
+      "norm_headline": "oxford industries ltd enclosed herewith intimation of completion of open offer oxford industries ltd enclosed herewith intimation of completion of open offer transaction details s",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/ecc0477e-00ff-4d8e-9395-4a0601accc03.pdf"
+    },
+    {
+      "timestamp": "2026-10-19T19:09:36.724222+05:30",
+      "company": "Cubical Financial Services Ltd",
+      "category": "BSE",
+      "numbers": [],
+      "headline": "<b>CUBICAL FINANCIAL SERVICES LTD : CHANGE IN DIRECTORS AND KMP</b>",
+      "norm_headline": "cubical financial services ltd change in directors and kmp cubical financial services ltd change in directors and kmp transaction details the board took note o",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b4208918-8570-4c77-8f79-21242cb8409e.pdf"
     }
   ]
 }
