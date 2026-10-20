@@ -27,6 +27,7 @@ class StateStore:
         self.seen_ids: Set[str] = set()
         self.semantic_hashes: Set[str] = set()
         self.published_records: List[Dict[str, Any]] = []
+        self.event_cooldowns: Dict[str, float] = {}
         
         self._init_sqlite()
         self.load_state()
@@ -60,6 +61,13 @@ class StateStore:
                         published_at DATETIME DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS event_cooldowns (
+                        entity_key TEXT PRIMARY KEY,
+                        last_ts REAL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
                 conn.commit()
         except Exception as e:
             logger.error(f"Error initializing SQLite: {e}")
@@ -77,6 +85,11 @@ class StateStore:
                 cursor.execute("SELECT fingerprint FROM semantic_hashes")
                 for (fp,) in cursor.fetchall():
                     self.semantic_hashes.add(str(fp))
+
+                cursor.execute("SELECT entity_key, last_ts FROM event_cooldowns")
+                for (ek, lts) in cursor.fetchall():
+                    if ek and lts:
+                        self.event_cooldowns[str(ek)] = float(lts)
         except Exception as e:
             logger.warning(f"Could not read from SQLite: {e}")
 
@@ -87,8 +100,10 @@ class StateStore:
                     data = json.load(f)
                     self.seen_ids.update(data.get("seen_ids", []))
                     self.semantic_hashes.update(data.get("semantic_hashes", []))
+                    for k, v in data.get("event_cooldowns", {}).items():
+                        self.event_cooldowns[k] = float(v)
                     self.published_records = data.get("published_records", [])[-200:]
-                    logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes.")
+                    logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
             except Exception as e:
                 logger.error(f"Error reading {self.json_state_path}: {e}")
 
@@ -99,6 +114,7 @@ class StateStore:
                 json.dump({
                     "seen_ids": list(self.seen_ids)[-2000:],
                     "semantic_hashes": list(self.semantic_hashes)[-1000:],
+                    "event_cooldowns": {k: v for k, v in list(self.event_cooldowns.items())[-500:]},
                     "published_records": self.published_records[-200:]
                 }, f, indent=2)
         except Exception as e:
@@ -118,6 +134,38 @@ class StateStore:
             subprocess.run(["git", "push", "origin", "main"], check=False)
         except Exception as e:
             logger.warning(f"Git state sync non-fatal error: {e}")
+
+    def is_in_cooldown(self, entity: str, category: str, cooldown_seconds: int = 21600) -> bool:
+        """Check if this (entity, category) event has already been published in the last 6 hours."""
+        if not entity or not category:
+            return False
+        import time
+        key = f"{entity.strip().upper()}:{category.strip().upper()}"
+        now_ts = time.time()
+        if key in self.event_cooldowns:
+            last_ts = self.event_cooldowns[key]
+            if (now_ts - last_ts) < cooldown_seconds:
+                return True
+        return False
+
+    def record_cooldown(self, entity: str, category: str):
+        """Record an event to start its 6-hour cooldown window."""
+        if not entity or not category:
+            return
+        import time
+        key = f"{entity.strip().upper()}:{category.strip().upper()}"
+        now_ts = time.time()
+        self.event_cooldowns[key] = now_ts
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT OR REPLACE INTO event_cooldowns (entity_key, last_ts, updated_at)
+                    VALUES (?, ?, CURRENT_TIMESTAMP)
+                """, (key, now_ts))
+                conn.commit()
+        except Exception as e:
+            logger.debug(f"SQLite cooldown insert error: {e}")
 
     def is_seen(self, item_id: str, fingerprint: str = None) -> bool:
         """Check if an item ID or its semantic fingerprint has already been processed."""
