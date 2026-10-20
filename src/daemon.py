@@ -222,6 +222,14 @@ class RealtimeDaemon:
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
+            # Rolling 6-Hour Entity Event Cooldown Gate
+            norm_company = self.filter_engine.normalize_entity_name(candidate.get("company", ""))
+            category = candidate.get("category", "")
+            if self.state.is_in_cooldown(norm_company, category, cooldown_hours=6):
+                logger.info(f"Skipping {norm_company}:{category} due to 6h rolling cooldown.")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                continue
+
             # Stage 2: Few-Shot Calibrated AI Materiality Gate
             eval_data = self.filter_engine.evaluate_stage_2(candidate)
             if not eval_data.get("publish", False) or eval_data.get("materiality_score", 0) < 70:
@@ -230,7 +238,9 @@ class RealtimeDaemon:
 
             # Format via pixel-accurate Telegram Formatter
             formatted_post = Formatter.format_post(eval_data, it)
-            if not formatted_post or len(formatted_post.strip()) < 15:
+            if not Formatter.validate_completeness(formatted_post):
+                logger.info(f"Skipping incomplete/half post ({eval_data.get('headline')}): failed completeness validation.")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
             # Publish to Telegram
@@ -248,10 +258,11 @@ class RealtimeDaemon:
             else:
                 print(f"\n[DRY RUN DISPATCH - Score {eval_data.get('materiality_score')}]:\n{formatted_post}\n{'-'*50}")
 
-            # Persist state
+            # Persist state and cooldown
             fingerprint = candidate.get("fingerprint")
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=fingerprint)
             self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
+            self.state.record_cooldown(norm_company, category)
             dispatched_count += 1
 
         # Check FII/DII routine
