@@ -1,3 +1,4 @@
+import time
 from curl_cffi import requests
 from typing import List, Dict, Any
 from datetime import datetime
@@ -14,6 +15,8 @@ class BSEFetcher:
             "Referer": "https://www.bseindia.com/",
             "Origin": "https://www.bseindia.com",
             "Accept": "application/json, text/plain, */*",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
         }
         self.primary_api = "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w"
         self.fallback_url = "https://api.bseindia.com/BseIndiaAPI/api/CorpAnn/w"
@@ -27,7 +30,8 @@ class BSEFetcher:
         seen_ids = set()
 
         for page in (1, 2, 3):
-            url = f"{self.primary_api}?pageno={page}&strCat=-1&strPrevDate={today}&strScrip=&strSearch=P&strToDate={today}&strType=C"
+            ts = int(time.time() * 1000)
+            url = f"{self.primary_api}?pageno={page}&strCat=-1&strPrevDate={today}&strScrip=&strSearch=P&strToDate={today}&strType=C&_ts={ts}"
             try:
                 r = self.session.get(url, headers=self.headers, timeout=10)
                 if r.status_code == 200:
@@ -65,10 +69,13 @@ class BSEFetcher:
                                 subj = raw_subj
 
                             # Pre-drop check: Do not waste time downloading PDFs for blacklisted paperwork
-                            from filter_engine import FilterEngine
-                            pre_check = f"{company} {subj} {raw_subj} {headline}"
-                            if FilterEngine.should_drop(pre_check):
-                                continue
+                            try:
+                                from src.filter_engine import FilterEngine
+                                pre_check = f"{company} {subj} {raw_subj} {headline}"
+                                if FilterEngine.should_drop(pre_check):
+                                    continue
+                            except Exception:
+                                pass
 
                             # Extract structured Regulation 30 bullets directly from PDF attachment
                             att_name = item.get("ATTACHMENTNAME", "")
