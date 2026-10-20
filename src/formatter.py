@@ -131,6 +131,47 @@ class Formatter:
         return chunks
 
     @classmethod
+    def validate_completeness(cls, post: str) -> bool:
+        """
+        Strict Pre-Send Completeness Validator:
+        Rejects any draft post that is under 120 characters, ends mid-sentence,
+        has unclosed HTML tags, or lacks concrete metrics/details.
+        """
+        if not post or not isinstance(post, str):
+            return False
+
+        text = post.strip()
+        # 1. Minimum character count check
+        if len(text) < 120:
+            return False
+
+        # 2. Balanced HTML tag check (<b>...</b>, <i>...</i>, <code>...</code>)
+        tags_to_check = ["b", "i", "u", "s", "code", "pre"]
+        for tag in tags_to_check:
+            open_tags = len(re.findall(rf"<{tag}\b[^>]*>", text, re.IGNORECASE))
+            close_tags = len(re.findall(rf"</{tag}>", text, re.IGNORECASE))
+            if open_tags != close_tags:
+                return False
+
+        # 3. Check for mid-sentence endings (dangling punctuation or cutoff)
+        clean_end = re.sub(r"<[^>]+>", "", text).strip()
+        if re.search(r"[,;:\-\(\[\{/\\&]\s*$", clean_end):
+            return False
+
+        # 4. For Financial Results and Order Wins: require concrete metrics if badge specifically claims them
+        first_line = clean_end.splitlines()[0] if clean_end.splitlines() else ""
+        badge = first_line.split(":")[-1].upper() if ":" in first_line else first_line.upper()
+        if re.search(r"\b(?:FINANCIAL RESULTS|ORDER WIN)\b", badge):
+            has_concrete_numbers = bool(
+                re.search(r"(?:₹|rs\.?\s*|inr\s*|\b)\d+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh|%|bps|gw|mw|k|m|b|\b)", text, re.IGNORECASE)
+                and any(c.isdigit() for c in text)
+            )
+            if not has_concrete_numbers:
+                return False
+
+        return True
+
+    @classmethod
     def execute_with_retry(cls, func, *args, max_retries: int = 3, **kwargs):
         """Execute a network dispatch function with exponential backoff on 429 rate limit."""
         for attempt in range(max_retries):
