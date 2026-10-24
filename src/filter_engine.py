@@ -315,7 +315,8 @@ class FilterEngine:
             "category": category,
             "cooldown_key": cooldown_key,
             "fingerprint": fingerprint,
-            "pdf_url": item.get("pdf_url")
+            "pdf_url": item.get("pdf_url"),
+            "raw_subject": item.get("raw_subject", "")
         }
         return True, "", candidate
 
@@ -368,7 +369,9 @@ class FilterEngine:
             "q1fy", "q2fy", "q3fy", "q4fy", "unaudited financial results", "audited financial results",
             "standalone pat", "consolidated pat", "net profit of rs", "net loss of rs", "ebitda margin",
             "concall highlights", "earnings presentation", "investor presentation", "financialresults",
-            "results for september", "results for december", "results for march", "results for june"
+            "results for september", "results for december", "results for march", "results for june",
+            "financial performance", "investors release", "investor release", "financial highlights",
+            "net profit:", "revenue:", "ebitda:"
         ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(f in text for f in ["financial", "results", "sales", "ebitda"])):
             return "FINANCIAL_RESULTS"
 
@@ -431,7 +434,7 @@ class FilterEngine:
         broker_info = candidate.get("broker_info")
 
         norm_company = self.normalize_entity_name(company)
-        combined = f"{title} {desc}".strip()
+        combined = f"{title} {desc} {candidate.get('raw_subject', '')}".strip()
 
         # 1. Research Report / Broker Note
         if category == "RESEARCH_REPORT" and broker_info:
