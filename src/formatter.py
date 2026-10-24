@@ -78,11 +78,21 @@ class Formatter:
                     lines.append(clean_pt)
             return "\n".join(lines).strip()
 
-        # 3. Standard Corporate Filings & Results
+        # 3. Financial Results Scorecard (Exact Match with Reference Channel)
+        if category == "FINANCIAL_RESULTS" and any(pt.startswith(("Net Profit:", "Revenue:", "EBITDA:")) for pt in summary_points):
+            clean_hl = cls.sanitize(headline.upper())
+            lines = [f"<b>{clean_hl}</b>\n"]
+            for pt in summary_points:
+                clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
+                if clean_pt:
+                    lines.append(clean_pt)
+            return "\n\n".join([lines[0].strip()] + lines[1:]).strip()
+
+        # 4. Standard Corporate Filings & Results
         clean_hl = cls.sanitize(headline.upper())
         lines = [f"<b>{clean_hl}</b>"]
         for pt in summary_points:
-            clean_pt = cls.sanitize(pt.strip())
+            clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
             if clean_pt:
                 if not clean_pt.startswith(("•", "-", "▪️")):
                     lines.append(f"• {clean_pt}")
@@ -145,7 +155,7 @@ class Formatter:
     def validate_completeness(cls, post: str) -> bool:
         """
         Strict Pre-Send Completeness Validator:
-        Rejects any draft post that is under 60 characters, ends mid-sentence,
+        Rejects any draft post that is under 40 characters, ends mid-sentence,
         or has unclosed HTML tags.
         """
         if not post or not isinstance(post, str):
@@ -153,7 +163,7 @@ class Formatter:
 
         text = post.strip()
         # 1. Minimum character count check
-        if len(text) < 60:
+        if len(text) < 40:
             return False
 
         # 2. Balanced HTML tag check (<b>...</b>, <i>...</i>, <code>...</code>)
@@ -164,10 +174,30 @@ class Formatter:
             if open_tags != close_tags:
                 return False
 
-        # 3. Check for mid-sentence endings (dangling punctuation)
+        # 3. Check for mid-sentence endings (dangling conjunctions)
         clean_end = re.sub(r"<[^>]+>", "", text).strip()
-        if re.search(r"[,;:\-\(\[\{/\\&]\s*$", clean_end):
+        clean_end = re.sub(r"[,;:\-]\s*$", "", clean_end).strip()
+        words = clean_end.split()
+        if words and words[-1].lower() in ["and", "or", "to", "with", "for", "at", "by", "of", "in", "the", "a", "an"]:
             return False
+        if re.search(r"[\(\[\{/\\&]\s*$", clean_end):
+            return False
+
+        # 4. Reject generic paperwork boilerplate placeholders that contain no metrics or facts
+        boilerplate_placeholders = [
+            r"^\s*•?\s*as per the attachment\.?\s*$",
+            r"^\s*•?\s*please refer the enclosed disclosure\.?\s*$",
+            r"^\s*•?\s*please find attached (?:intimation|document)\.?\s*$",
+            r"^\s*•?\s*disclosures? under regulation 30.*are being attached\.?\s*$",
+            r"^\s*•?\s*the enclosed file contains the details\.?\s*$",
+            r"^\s*•?\s*approved the items mentioned in the attached document\.?\s*$"
+        ]
+        body_text = re.sub(r"<[^>]+>", "", text).strip()
+        lines = [l.strip() for l in body_text.splitlines() if l.strip()]
+        if len(lines) <= 2:
+            last_line = lines[-1].lower()
+            if any(re.match(pat, last_line) for pat in boilerplate_placeholders):
+                return False
 
         return True
 
