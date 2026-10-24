@@ -196,7 +196,7 @@ class SentinelManager:
             paragraphs.append("\n".join(bullets))
             
         if paragraphs:
-            return f"{header}\n\n" + "\n\n".join(paragraphs)
+            return f"{header}\n" + "\n".join(paragraphs)
         return header
 
     def edit_channel_message(self, message_id: int, new_html_text: str) -> bool:
