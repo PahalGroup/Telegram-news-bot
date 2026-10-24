@@ -107,7 +107,7 @@ class RealtimeDaemon:
 
         # 1. BSE Corporate Announcements
         try:
-            bse_items = self.bse.fetch_announcements(skip_pdf=False) or []
+            bse_items = self.bse.fetch_announcements(skip_pdf=True) or []
             for it in bse_items:
                 raw_items.append({
                     "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
@@ -135,28 +135,12 @@ class RealtimeDaemon:
                 pdf_url = it.get("attchmntFile")
                 seq_id = it.get("dt") or it.get("seq_id") or subject[:40]
 
-                description = attchmnt_text
-                if pdf_url and str(pdf_url).lower().endswith(".pdf"):
-                    pre_text = f"{company_name} {title} {subject}"
-                    if not self.filter_engine.should_drop(pre_text):
-                        try:
-                            from sources.annexure_parser import AnnexureParser
-                            lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url, self.nse.session)
-                            if pdf_bullets:
-                                formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
-                                if lead_sum:
-                                    description = f"{lead_sum}\n" + "\n".join(formatted_b)
-                                else:
-                                    description = "\n".join(formatted_b)
-                        except Exception as pe:
-                            logger.debug(f"NSE PDF parse error: {pe}")
-
                 raw_items.append({
                     "id": f"NSE_{symbol}_{seq_id}",
                     "source": "NSE",
                     "company": company_name,
                     "title": title,
-                    "description": description,
+                    "description": attchmnt_text,
                     "pdf_url": pdf_url,
                 })
             logger.info(f"[NSE] Fetched {len(nse_items)} items")
@@ -272,6 +256,28 @@ class RealtimeDaemon:
             item_id = it.get("id")
             if not item_id or self.state.is_seen(item_id):
                 continue
+
+            # Lazy PDF Extraction: Only for unseen corporate filings matching target catalysts
+            pdf_url = it.get("pdf_url")
+            if pdf_url and str(pdf_url).lower().endswith(".pdf") and it.get("source") in ("BSE", "NSE"):
+                title_context = f"{it.get('company', '')} {it.get('title', '')} {it.get('raw_subject', '')}".lower()
+                is_target_filing = any(k in title_context for k in [
+                    "order", "contract", "results", "directorate", "board meeting", "outcome",
+                    "mou", "acquisition", "expansion", "dividend", "qip", "ipo",
+                    "buyback", "financial", "tender", "rating", "press release", "investor", "clarification"
+                ])
+                if is_target_filing and not self.filter_engine.should_drop(title_context):
+                    try:
+                        from sources.annexure_parser import AnnexureParser
+                        lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url)
+                        if pdf_bullets:
+                            formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
+                            if lead_sum:
+                                it["description"] = f"{lead_sum}\n" + "\n".join(formatted_b)
+                            else:
+                                it["description"] = "\n".join(formatted_b)
+                    except Exception as pe:
+                        logger.debug(f"Lazy PDF extract error for {item_id}: {pe}")
 
             # Stage 1: Deterministic Hard Filter
             try:
