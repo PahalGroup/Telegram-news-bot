@@ -43,12 +43,13 @@ class LiveBlogFetcher:
 
         items = []
         now_ist = datetime.now(ZoneInfo('Asia/Kolkata'))
+        today_ymd = now_ist.strftime('%Y%m%d')
         try:
             r = self.session.get(url, timeout=10)
             if r.status_code != 200:
                 return []
 
-            # 1. First Priority: Structured JSON-LD (100% precision & author timestamps)
+            # 1. First Priority: Structured JSON-LD
             import json
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(r.text, 'html.parser')
@@ -75,7 +76,7 @@ class LiveBlogFetcher:
                                 except Exception:
                                     pass
 
-                            # Strip all prefix tags
+                            # Strip prefix tags
                             clean_hl = re.sub(r'^(?:Nifty50 Today|Sensex Today|Sensex, Nifty Today|Markets@\d+|Stock alert|Stock Market Live)\s*\|\s*', '', headline, flags=re.I)
                             clean_hl = re.sub(r'^Stock alert:\s*', '', clean_hl, flags=re.I)
 
@@ -91,8 +92,11 @@ class LiveBlogFetcher:
                 except Exception:
                     pass
 
-            # 2. Fallback to HTML regex parsing
-            entries = re.split(r'id="20261012(\d{6})"', r.text)
+            # 2. Fallback to HTML regex parsing with dynamic date pattern
+            entries = re.split(rf'id="{today_ymd}(\d{{6}})"', r.text)
+            if len(entries) <= 1:
+                entries = re.split(r'id="\d{8}(\d{6})"', r.text)
+
             for i in range(1, len(entries), 2):
                 raw_time = entries[i]
                 block = entries[i+1][:15000]
