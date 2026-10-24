@@ -22,16 +22,15 @@ class BSEFetcher:
         self.fallback_url = "https://api.bseindia.com/BseIndiaAPI/api/CorpAnn/w"
         self.pdf_cache = {}
 
-    def fetch_announcements(self, skip_pdf: bool = True) -> List[Dict[str, Any]]:
+    def fetch_announcements(self, skip_pdf: bool = False) -> List[Dict[str, Any]]:
         """Fetch latest corporate announcements from BSE across recent pages."""
-        today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y%m%d")
         now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
         all_parsed = []
         seen_ids = set()
 
         for page in (1, 2, 3):
             ts = int(time.time() * 1000)
-            url = f"{self.primary_api}?pageno={page}&strCat=-1&strPrevDate={today}&strScrip=&strSearch=P&strToDate={today}&strType=C&_ts={ts}"
+            url = f"{self.primary_api}?pageno={page}&strCat=-1&strPrevDate=&strScrip=&strSearch=P&strToDate=&strType=C&subcategory=&_ts={ts}"
             try:
                 r = self.session.get(url, headers=self.headers, timeout=10)
                 if r.status_code == 200:
@@ -108,8 +107,7 @@ class BSEFetcher:
                 logger.warning(f"BSE primary page {page} failed ({e})")
                 break
 
-        if all_parsed:
-            return all_parsed
+        return all_parsed
 
     def extract_pdf_highlights(self, attachment_name: str) -> List[str]:
         """Downloads exchange PDF disclosure and extracts key metrics/bullets."""
