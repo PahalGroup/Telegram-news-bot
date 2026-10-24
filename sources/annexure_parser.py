@@ -1,4 +1,7 @@
-import pdfplumber
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
 import io
 import re
 import logging
@@ -307,43 +310,44 @@ class AnnexureParser:
 
             # --- 2. SEBI REGULATION 30 ANNEXURE TABLES ---
             try:
-                with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-                    for page in pdf.pages[:4]:
-                        tables = page.extract_tables()
-                        for t in tables:
-                            for row in t:
-                                if not row or len(row) < 2:
-                                    continue
-                                cells = [AnnexureParser.clean_text(str(c)).replace('\n', ' ').strip() for c in row if c]
-                                if len(cells) < 2:
-                                    continue
-                                if re.match(r'^[a-z0-9ivx\(\).]{1,4}$', cells[0], re.I) and len(cells) >= 3:
-                                    label = cells[1].lower()
-                                    val = re.sub(r'\s+', ' ', cells[2]).strip()
-                                else:
-                                    label = cells[0].lower()
-                                    val = re.sub(r'\s+', ' ', cells[1]).strip()
+                if pdfplumber:
+                    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                        for page in pdf.pages[:4]:
+                            tables = page.extract_tables()
+                            for t in tables:
+                                for row in t:
+                                    if not row or len(row) < 2:
+                                        continue
+                                    cells = [AnnexureParser.clean_text(str(c)).replace('\n', ' ').strip() for c in row if c]
+                                    if len(cells) < 2:
+                                        continue
+                                    if re.match(r'^[a-z0-9ivx\(\).]{1,4}$', cells[0], re.I) and len(cells) >= 3:
+                                        label = cells[1].lower()
+                                        val = re.sub(r'\s+', ' ', cells[2]).strip()
+                                    else:
+                                        label = cells[0].lower()
+                                        val = re.sub(r'\s+', ' ', cells[1]).strip()
 
-                                if not val or val.lower() in ('na', 'not applicable', 'none', 'nil', '-', 'null'):
-                                    continue
+                                    if not val or val.lower() in ('na', 'not applicable', 'none', 'nil', '-', 'null'):
+                                        continue
 
-                                # Validate Order Value: Must contain currency or digits + Cr/Lakh, NOT a date
-                                if any(k in label for k in ['size of the order', 'commercial consideration', 'order value', 'amount', 'consideration']):
-                                    if any(curr in val.lower() for curr in ['rs', '₹', 'inr', 'cr', 'crore', 'lakh', 'mn', '$', 'percent', '%']):
-                                        if not any(d in val.lower() for d in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'october', 'november']):
-                                            bullets.append(f"Order Value: {val}")
-                                elif any(k in label for k in ['time period', 'execution period', 'tenure', 'duration']):
-                                    bullets.append(f"Execution Period: {val}")
-                                elif any(k in label for k in ['significant terms', 'scope of work', 'nature of order', 'brief details']):
-                                    short_val = val[:160] + '...' if len(val) > 160 else val
-                                    bullets.append(f"Project: {short_val}")
-                                elif any(k in label for k in ['awarded by', 'client', 'name of the entity', 'customer']):
-                                    bullets.append(f"Client: {val}")
-                                elif any(k in label for k in ['name of director', 'name of kmp', 'personnel', 'appointee']):
-                                    if len(val) > 3 and not re.search(r'^\d', val):
-                                        bullets.append(f"Personnel: {val}")
-                                elif any(k in label for k in ['turnover']):
-                                    bullets.append(f"Turnover: {val}")
+                                    # Validate Order Value: Must contain currency or digits + Cr/Lakh, NOT a date
+                                    if any(k in label for k in ['size of the order', 'commercial consideration', 'order value', 'amount', 'consideration']):
+                                        if any(curr in val.lower() for curr in ['rs', '₹', 'inr', 'cr', 'crore', 'lakh', 'mn', '$', 'percent', '%']):
+                                            if not any(d in val.lower() for d in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'october', 'november']):
+                                                bullets.append(f"Order Value: {val}")
+                                    elif any(k in label for k in ['time period', 'execution period', 'tenure', 'duration']):
+                                        bullets.append(f"Execution Period: {val}")
+                                    elif any(k in label for k in ['significant terms', 'scope of work', 'nature of order', 'brief details']):
+                                        short_val = val[:160] + '...' if len(val) > 160 else val
+                                        bullets.append(f"Project: {short_val}")
+                                    elif any(k in label for k in ['awarded by', 'client', 'name of the entity', 'customer']):
+                                        bullets.append(f"Client: {val}")
+                                    elif any(k in label for k in ['name of director', 'name of kmp', 'personnel', 'appointee']):
+                                        if len(val) > 3 and not re.search(r'^\d', val):
+                                            bullets.append(f"Personnel: {val}")
+                                    elif any(k in label for k in ['turnover']):
+                                        bullets.append(f"Turnover: {val}")
             except Exception as te:
                 logger.debug(f"Table parse error: {te}")
 
