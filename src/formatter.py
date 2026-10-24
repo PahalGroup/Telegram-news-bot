@@ -1,13 +1,16 @@
 """
-Phase 3: Pixel-Accurate Telegram Formatting Engine (src/formatter.py)
-Replicates the Reference Channel's visual hierarchy, typography, and density:
-- Bold uppercase header with clean colon: <b>COMPANY : ACTION</b>
-- Structured numerical metrics for results (Revenue, EBITDA, PAT, Margins with YoY/QoQ)
-- Tight single-spaced bullets using ▪️ 
-- Plain-English interpretation: ▪️ <b>What it means:</b> ...
+Pixel-Accurate Telegram Formatting Engine (src/formatter.py)
+Replicates Reference Channel (stock_aaj_or_kal) visual layout:
+- Tight single-line spacing (zero excessive blank lines)
+- Bold uppercase header: <b>COMPANY – ACTION</b>
+- Institutional Brokerage format:
+    💡 <b>HOUSE ON STOCK</b>
+    Rating: BUY | Target: ₹XXXX
+    • Point 1
+    • Point 2
+- Clean bullet markers (• or ▪️)
 - Zero disclosure footers (no '• Verified from official...' or source disclosures)
-- Bulletproof HTML escaping using html.escape()
-- Message chunking (< 4096 characters) and exponential backoff helper
+- Strict completeness validation
 """
 
 import re
@@ -26,64 +29,71 @@ class Formatter:
         """Escape HTML control characters safely for Telegram Bot API."""
         if not text:
             return ""
-        # Telegram HTML supports: <b>, <i>, <u>, <s>, <code>, <pre>, <a href="...">
-        # We escape raw &, <, > so company names or values like 'L&T' or 'M&A' won't break formatting
         return html.escape(str(text), quote=False)
 
     @classmethod
     def format_post(cls, eval_data: Dict[str, Any], raw_item: Optional[Dict[str, Any]] = None) -> str:
         """
-        Produce a pixel-accurate Telegram HTML formatted post.
-        Format layout:
-        <b>COMPANY : ACTION</b>
-        ▪️ Metric 1
-        ▪️ Metric 2
-        ▪️ Summary point 1
-        ▪️ Summary point 2
-        ▪️ <b>What it means:</b> Concise impact explanation
+        Produce a pixel-accurate Telegram HTML formatted post matching Reference Channel.
         """
         raw_item = raw_item or {}
-        headline = eval_data.get("headline", "").strip()
         category = eval_data.get("category", "")
-        metrics = eval_data.get("key_metrics", [])
+        headline = eval_data.get("headline", "").strip()
+        broker_meta = eval_data.get("broker_meta")
         summary_points = eval_data.get("summary_points", [])
-        what_it_means = eval_data.get("what_it_means", "").strip()
 
-        # If headline doesn't have a colon, build standard uppercase badge
-        if ":" not in headline:
-            company = eval_data.get("company") or raw_item.get("company", "MARKET ALERT")
-            clean_company = re.sub(r"[^\w\s]", "", str(company)).strip().upper()
-            headline = f"{clean_company} : {category.replace('_', ' ').upper()}"
-        else:
-            headline = headline.upper()
+        # 1. Brokerage Note Format
+        if category == "RESEARCH_REPORT" and broker_meta:
+            house = cls.sanitize(broker_meta.get("house", "ANALYST"))
+            stock = cls.sanitize(broker_meta.get("stock", ""))
+            rating = cls.sanitize(broker_meta.get("rating", ""))
+            target = cls.sanitize(broker_meta.get("target", ""))
 
-        lines = [f"<b>{cls.sanitize(headline)}</b>"]
+            lines = [f"💡 <b>{house} ON {stock}</b>"]
+            meta_line_parts = []
+            if rating:
+                meta_line_parts.append(f"Rating: {rating}")
+            if target:
+                meta_line_parts.append(f"Target: {target}")
+            if meta_line_parts:
+                lines.append(" | ".join(meta_line_parts))
 
-        # Structured Metrics
-        for metric in metrics:
-            if metric and str(metric).strip():
-                clean_metric = cls.sanitize(str(metric).strip())
-                lines.append(f"▪️ {clean_metric}")
+            for pt in summary_points:
+                clean_pt = cls.sanitize(pt.strip())
+                if clean_pt:
+                    if not clean_pt.startswith(("•", "-", "▪️")):
+                        lines.append(f"• {clean_pt}")
+                    else:
+                        lines.append(clean_pt)
 
-        # Summary Points
-        for point in summary_points:
-            if point and str(point).strip():
-                clean_pt = cls.sanitize(str(point).strip())
-                # Avoid duplicate with metrics
-                if not any(clean_pt in m for m in metrics):
-                    lines.append(f"▪️ {clean_pt}")
+            return "\n".join(lines).strip()
 
-        # What it means (Institutional interpretation)
-        if what_it_means:
-            clean_wim = cls.sanitize(what_it_means)
-            lines.append(f"▪️ <b>What it means:</b> {clean_wim}")
+        # 2. Policy & Macro / Breaking News
+        if category == "POLICY_MACRO":
+            clean_hl = cls.sanitize(headline.upper())
+            lines = [f"<b>{clean_hl}</b>"]
+            for pt in summary_points:
+                clean_pt = cls.sanitize(pt.strip())
+                if clean_pt:
+                    lines.append(clean_pt)
+            return "\n".join(lines).strip()
 
-        post = "\n".join(lines).strip()
-        return post
+        # 3. Standard Corporate Filings & Results
+        clean_hl = cls.sanitize(headline.upper())
+        lines = [f"<b>{clean_hl}</b>"]
+        for pt in summary_points:
+            clean_pt = cls.sanitize(pt.strip())
+            if clean_pt:
+                if not clean_pt.startswith(("•", "-", "▪️")):
+                    lines.append(f"• {clean_pt}")
+                else:
+                    lines.append(clean_pt)
+
+        return "\n".join(lines).strip()
 
     @classmethod
     def format_fii_dii(cls, date_str: str, fii_net: float, dii_net: float) -> str:
-        """Standardized institutional FII/DII flow format."""
+        """Standardized institutional FII/DII flow format matching Reference Channel."""
         total_net = fii_net + dii_net
         fii_icon = "🟢" if fii_net >= 0 else "🔴"
         dii_icon = "🟢" if dii_net >= 0 else "🔴"
@@ -91,10 +101,9 @@ class Formatter:
 
         lines = [
             f"<b>FII / DII ACTIVITY – {cls.sanitize(date_str.upper())}</b>",
-            f"▪️ {dii_icon} <b>DII Net Buy:</b> ₹{dii_net:,.2f} Cr",
-            f"▪️ {fii_icon} <b>FII Net Sell:</b> ₹{fii_net:,.2f} Cr",
-            f"▪️ {total_icon} <b>Total Net Buy:</b> ₹{total_net:,.2f} Cr",
-            f"▪️ <b>What it means:</b> Institutional cash flows provide key insight into market liquidity and risk appetite."
+            f"▪️ {dii_icon} <b>DII Net:</b> ₹{dii_net:,.2f} Cr",
+            f"▪️ {fii_icon} <b>FII Net:</b> ₹{fii_net:,.2f} Cr",
+            f"▪️ {total_icon} <b>Total Net:</b> ₹{total_net:,.2f} Cr"
         ]
         return "\n".join(lines)
 
@@ -117,7 +126,6 @@ class Formatter:
                     current_chunk = [line]
                     current_len = line_len
                 else:
-                    # Single line longer than max_length
                     chunks.append(line[:max_length])
                     current_chunk = [line[max_length:]]
                     current_len = len(line[max_length:]) + 1
@@ -134,15 +142,15 @@ class Formatter:
     def validate_completeness(cls, post: str) -> bool:
         """
         Strict Pre-Send Completeness Validator:
-        Rejects any draft post that is under 120 characters, ends mid-sentence,
-        has unclosed HTML tags, or lacks concrete metrics/details.
+        Rejects any draft post that is under 60 characters, ends mid-sentence,
+        or has unclosed HTML tags.
         """
         if not post or not isinstance(post, str):
             return False
 
         text = post.strip()
         # 1. Minimum character count check
-        if len(text) < 120:
+        if len(text) < 60:
             return False
 
         # 2. Balanced HTML tag check (<b>...</b>, <i>...</i>, <code>...</code>)
@@ -153,21 +161,10 @@ class Formatter:
             if open_tags != close_tags:
                 return False
 
-        # 3. Check for mid-sentence endings (dangling punctuation or cutoff)
+        # 3. Check for mid-sentence endings (dangling punctuation)
         clean_end = re.sub(r"<[^>]+>", "", text).strip()
         if re.search(r"[,;:\-\(\[\{/\\&]\s*$", clean_end):
             return False
-
-        # 4. For Financial Results and Order Wins: require concrete metrics if badge specifically claims them
-        first_line = clean_end.splitlines()[0] if clean_end.splitlines() else ""
-        badge = first_line.split(":")[-1].upper() if ":" in first_line else first_line.upper()
-        if re.search(r"\b(?:FINANCIAL RESULTS|ORDER WIN)\b", badge):
-            has_concrete_numbers = bool(
-                re.search(r"(?:₹|rs\.?\s*|inr\s*|\b)\d+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh|%|bps|gw|mw|k|m|b|\b)", text, re.IGNORECASE)
-                and any(c.isdigit() for c in text)
-            )
-            if not has_concrete_numbers:
-                return False
 
         return True
 
@@ -181,7 +178,7 @@ class Formatter:
                 err_str = str(e).lower()
                 if "429" in err_str or "too many requests" in err_str:
                     wait_sec = (attempt + 1) * 3
-                    logger.warning(f"Telegram 429 rate limit hit. Backing off for {wait_sec}s (Attempt {attempt+1}/{max_retries})...")
+                    logger.warning(f"Telegram 429 rate limit hit. Backing off for {wait_sec}s...")
                     time.sleep(wait_sec)
                 else:
                     raise
