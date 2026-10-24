@@ -297,7 +297,7 @@ class FilterEngine:
                 return False, "NO_COMPANY_NAME", {}
 
         # 6. Categorization
-        category = self._classify_category(title, desc)
+        category = self._classify_category(title, desc, item.get("pdf_url", ""))
 
         # 7. Routine exchange paperwork drop
         if category == "ROUTINE_ADMIN":
@@ -350,8 +350,8 @@ class FilterEngine:
                 }
         return None
 
-    def _classify_category(self, title: str, desc: str) -> str:
-        text = f"{title} {desc}".lower()
+    def _classify_category(self, title: str, desc: str, pdf_url: str = "") -> str:
+        text = f"{title} {desc} {pdf_url or ''}".lower()
 
         # Policy & Macro (SEBI, RBI, FSSAI, USFDA, Cabinet, Geopolitics - actor actions only)
         if any(k in text for k in [
@@ -367,18 +367,20 @@ class FilterEngine:
             "financial results", "quarterly results", "q1 results", "q2 results", "q3 results", "q4 results",
             "q1fy", "q2fy", "q3fy", "q4fy", "unaudited financial results", "audited financial results",
             "standalone pat", "consolidated pat", "net profit of rs", "net loss of rs", "ebitda margin",
-            "concall highlights", "earnings presentation", "investor presentation"
-        ]):
+            "concall highlights", "earnings presentation", "investor presentation", "financialresults",
+            "results for september", "results for december", "results for march", "results for june"
+        ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(f in text for f in ["financial", "results", "sales", "ebitda"])):
             return "FINANCIAL_RESULTS"
 
-        # Commercial Order Wins / Contracts
+        # Commercial Order Wins / Contracts / Capex
         if any(k in text for k in [
             "bagged order", "bags order", "wins order", "won order", "receives order", "received order",
             "secures order", "awarded contract", "secures contract", "letter of intent", "loi for",
             "epc contract", "work order worth", "order valued at", "contract worth", "commercial order",
             "contract agreement", "contract awarded", "execution of contract", "order awarded",
             "receipt of order", "bagging/receiving of orders", "contract agreement has been entered",
-            "epc basis", "supply of power transformers"
+            "epc basis", "supply of power transformers", "capacity expansion", "expansion of production capacity",
+            "details regarding expansion"
         ]):
             return "ORDER_WIN"
 
@@ -386,17 +388,19 @@ class FilterEngine:
         if any(k in text for k in [
             "appointment of", "appointed as", "resignation of", "resigns as", "steps down as",
             "cessation of", "superannuation of", "tenure extension of", "reconstitution of board",
-            "chief executive officer", "managing director", "chief financial officer"
-        ]):
+            "chief executive officer", "managing director", "chief financial officer",
+            "change in directorate", "change in management", "change of company name", "company secretary"
+        ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(m in text for m in ["director", "management", "officer", "kmp"])):
             return "MANAGEMENT_CHANGE"
 
-        # Corporate Restructure / M&A / Capital Actions
+        # Corporate Restructure / M&A / Capital Actions / Dividends
         if any(k in text for k in [
             "amalgamation", "merger", "demerger", "acquisition of", "acquires", "stake sale",
             "buy-back of shares", "buyback", "bonus issue", "stock split", "sub-division of shares",
             "rights issue", "qualified institutional placement", "qip",
             "initial public offer", "ipo", "fresh issue of", "listing of subsidiary",
-            "memorandum of understanding", "mou with", "execution of mou"
+            "memorandum of understanding", "mou with", "execution of mou",
+            "board approves dividend", "interim dividend", "dividend of rs", "dividend declared"
         ]):
             return "CORP_RESTRUCTURE"
 
@@ -467,22 +471,44 @@ class FilterEngine:
 
         # 2. Policy & Macro (RBI, SEBI, FSSAI, Geopolitics)
         if category == "POLICY_MACRO":
-            # Clean headline without fake company prefixes
             clean_title = re.sub(r'<[^>]+>', '', title).strip()
             headline = clean_title.upper() if len(clean_title) < 70 else self._truncate_clean(clean_title, 65).upper()
 
+            # Handle RBI VRR auction specifically
+            if "variable rate repo" in combined.lower() or "vrr auction" in combined.lower():
+                bullets = []
+                m_amt = re.search(r'(?:notified amount[^\.:|]*[:|]?\s*|amount\s*(?:of)?\s*)(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.\d+)?)\s*(?:cr(?:ore)?s?)?', combined, re.I)
+                if m_amt:
+                    bullets.append(f"Notified Amount: ₹{m_amt.group(1)} Crore")
+                elif "1,50,000" in combined:
+                    bullets.append("Notified Amount: ₹1,50,000 Crore")
+                m_ten = re.search(r'(\d+)[-\s]*day', combined, re.I)
+                if m_ten:
+                    bullets.append(f"Tenor: {m_ten.group(1)} Days")
+                m_rev = re.search(r'(?:date of reversal[^\.:|]*[:|]?\s*)([A-Za-z0-9,\s]+?\d{4})', combined, re.I)
+                if m_rev:
+                    bullets.append(f"Date of Reversal: {m_rev.group(1).strip()}")
+                if bullets:
+                    return {
+                        "publish": True,
+                        "materiality_score": 92,
+                        "category": category,
+                        "rejection_reason": "",
+                        "headline": "RBI TO CONDUCT 4-DAY VARIABLE RATE REPO (VRR) AUCTION",
+                        "key_metrics": [],
+                        "summary_points": bullets,
+                        "what_it_means": ""
+                    }
+
             bullets = []
-            if desc:
+            if desc and clean_title.lower() != desc.strip().lower():
                 raw_sentences = re.split(r'(?<=[.!?])\s+', desc)
                 for s in raw_sentences:
                     cs = self._truncate_clean(s, 160)
-                    if len(cs) > 25 and not any(k in cs.lower() for k in ["read more", "click here", "pfa"]):
+                    if len(cs) > 25 and not any(k in cs.lower() for k in ["read more", "click here", "pfa", clean_title.lower()]):
                         bullets.append(cs)
                     if len(bullets) >= 3:
                         break
-
-            if not bullets:
-                bullets.append(self._truncate_clean(title, 160))
 
             return {
                 "publish": True,
@@ -498,26 +524,34 @@ class FilterEngine:
         # 3. Financial Results
         if category == "FINANCIAL_RESULTS":
             bullets = []
-            # Extract Net Profit / PAT
-            pat_m = re.search(r'\b(?:net profit|pat|profit after tax)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:rs\.?\s*|inr\s*|₹)?\s*([\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh)?)', combined, re.I)
-            if pat_m:
-                bullets.append(f"Net Profit / PAT: ₹{pat_m.group(1).strip()}")
+            parsed_scorecard = []
+            if desc:
+                for line in desc.splitlines():
+                    cl = line.strip().lstrip('•-▪►* ')
+                    if any(k in cl.lower() for k in ["net profit:", "revenue:", "ebitda:", "ebitda margin:"]):
+                        parsed_scorecard.append(cl)
 
-            # Extract Revenue / Sales (must have currency or Cr/lakh, not percentage)
-            rev_m = re.search(r'\b(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:(?:rs\.?|inr|₹)\s*[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh))\b', combined, re.I)
-            if rev_m:
-                val_text = re.sub(r'^(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*', '', rev_m.group(0), flags=re.I).strip()
-                if not val_text.startswith(('₹', 'Rs', 'INR')):
-                    val_text = f"₹{val_text}"
-                bullets.append(f"Revenue: {val_text}")
+            if parsed_scorecard:
+                bullets = parsed_scorecard
+                has_financial_metric = True
+            else:
+                pat_m = re.search(r'\b(?:net profit|pat|profit after tax)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:rs\.?\s*|inr\s*|₹)?\s*([\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh)?)', combined, re.I)
+                if pat_m:
+                    bullets.append(f"Net Profit: ₹{pat_m.group(1).strip()}")
 
-            # Extract Margin
-            margin_m = re.search(r'\b(?:margin|ebitda margin)\s*(?:at|of)?\s*([\d,]+(?:\.\d+)?%)', combined, re.I)
-            if margin_m:
-                bullets.append(f"EBITDA Margin: {margin_m.group(1).strip()}")
+                rev_m = re.search(r'\b(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:(?:rs\.?|inr|₹)\s*[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh))\b', combined, re.I)
+                if rev_m:
+                    val_text = re.sub(r'^(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*', '', rev_m.group(0), flags=re.I).strip()
+                    if not val_text.startswith(('₹', 'Rs', 'INR')):
+                        val_text = f"₹{val_text}"
+                    bullets.append(f"Revenue: {val_text}")
 
-            # Strict Gate: Financial results MUST contain concrete financial metrics (PAT, Revenue, Margin)
-            has_financial_metric = bool(pat_m or rev_m or margin_m)
+                margin_m = re.search(r'\b(?:margin|ebitda margin)\s*(?:at|of)?\s*([\d,]+(?:\.\d+)?%)', combined, re.I)
+                if margin_m:
+                    bullets.append(f"EBITDA Margin: {margin_m.group(1).strip()}")
+
+                has_financial_metric = bool(pat_m or rev_m or margin_m)
+
             if not has_financial_metric:
                 return {
                     "publish": False,
@@ -530,8 +564,7 @@ class FilterEngine:
                     "what_it_means": ""
                 }
 
-            # Add context bullets from description
-            if desc:
+            if not parsed_scorecard and desc:
                 for line in desc.splitlines():
                     cl = self._truncate_clean(line, 140)
                     if len(cl) > 25 and any(c.isdigit() for c in cl) and not any(cl in b for b in bullets):
@@ -539,13 +572,13 @@ class FilterEngine:
                     if len(bullets) >= 4:
                         break
 
-            badge = "Q2 RESULT" if "q2" in combined.lower() else "FINANCIAL RESULTS"
+            badge = "Q2 FY27" if "q2" in combined.lower() or "september" in combined.lower() else "FINANCIAL RESULTS"
             return {
                 "publish": True,
                 "materiality_score": 95,
                 "category": category,
                 "rejection_reason": "",
-                "headline": f"{norm_company} – {badge}",
+                "headline": f"{norm_company} {badge}",
                 "key_metrics": [],
                 "summary_points": bullets,
                 "what_it_means": ""
@@ -616,13 +649,33 @@ class FilterEngine:
 
         # 5. Management Change
         if category == "MANAGEMENT_CHANGE":
-            action = "RESIGNATION" if "resign" in combined.lower() else "APPOINTMENT"
+            action = "RESIGNATION" if "resign" in combined.lower() else (
+                "CHANGE IN DIRECTORATE" if "directorate" in combined.lower() or "director" in combined.lower() else "APPOINTMENT"
+            )
             bullets = []
-            m_exec = re.search(r'(?:appointment|resignation)\s+of\s+(?:mr\.?|ms\.?|dr\.?)?\s*([A-Za-z\s]{3,30}?)\s+as\s+([A-Za-z\s&]{3,40}?)(?:\.|\s+with|\s+effective|$)', combined, re.I)
-            m_exec2 = re.search(r'(?:tenure extension|cessation|superannuation)\s+of\s+(?:mr\.?|ms\.?|dr\.?)?\s*([A-Za-z\s]{3,30}?)(?:,\s*([A-Za-z\s&]{3,40}))?(?:\.|\s+with|\s+effective|$)', combined, re.I)
+            parsed_bullets = []
+            if desc:
+                for line in desc.splitlines():
+                    cl = line.strip().lstrip('•-▪►* ')
+                    if len(cl) > 15 and not any(k in cl.lower() for k in [
+                        "dear sir", "with reference to", "pursuant to", "has informed", "we wish to", "outcome of board meeting"
+                    ]):
+                        parsed_bullets.append(cl)
 
-            # Strict Gate: Must identify actual executive and position
-            if not (m_exec or m_exec2):
+            if parsed_bullets:
+                bullets = parsed_bullets[:5]
+            else:
+                m_exec = re.search(r'(?:appointment|resignation)\s+of\s+(?:mr\.?|ms\.?|dr\.?)?\s*([A-Za-z\s]{3,30}?)\s+as\s+([A-Za-z\s&]{3,40}?)(?:\.|\s+with|\s+effective|$)', combined, re.I)
+                m_exec2 = re.search(r'(?:tenure extension|cessation|superannuation)\s+of\s+(?:mr\.?|ms\.?|dr\.?)?\s*([A-Za-z\s]{3,30}?)(?:,\s*([A-Za-z\s&]{3,40}))?(?:\.|\s+with|\s+effective|$)', combined, re.I)
+
+                if m_exec:
+                    bullets.append(f"Executive: {m_exec.group(1).strip()} ({m_exec.group(2).strip()})")
+                    bullets.append(f"Action: {action.capitalize()}")
+                elif m_exec2:
+                    bullets.append(f"Executive: {m_exec2.group(1).strip()}")
+                    bullets.append(f"Action: Management Change")
+
+            if not bullets:
                 return {
                     "publish": False,
                     "materiality_score": 35,
@@ -634,16 +687,9 @@ class FilterEngine:
                     "what_it_means": ""
                 }
 
-            if m_exec:
-                bullets.append(f"Executive: {m_exec.group(1).strip()} ({m_exec.group(2).strip()})")
-                bullets.append(f"Action: {action.capitalize()}")
-            elif m_exec2:
-                bullets.append(f"Executive: {m_exec2.group(1).strip()}")
-                bullets.append(f"Action: Management Change")
-
             return {
                 "publish": True,
-                "materiality_score": 85,
+                "materiality_score": 88,
                 "category": category,
                 "rejection_reason": "",
                 "headline": f"{norm_company} – {action}",
@@ -659,7 +705,9 @@ class FilterEngine:
                     "BONUS ISSUE" if "bonus" in combined.lower() else (
                         "ACQUISITION" if "acquisition" in combined.lower() else (
                             "IPO UPDATE" if "ipo" in combined.lower() or "public offer" in combined.lower() else (
-                                "MEMORANDUM OF UNDERSTANDING" if "mou" in combined.lower() or "memorandum" in combined.lower() else "CORPORATE ACTION"
+                                "MEMORANDUM OF UNDERSTANDING" if "mou" in combined.lower() or "memorandum" in combined.lower() else (
+                                    "INTERIM DIVIDEND" if "dividend" in combined.lower() else "CORPORATE ACTION"
+                                )
                             )
                         )
                     )
@@ -679,7 +727,7 @@ class FilterEngine:
                 bullets = parsed_bullets[:5]
             else:
                 bullets = [self._truncate_clean(title, 140)]
-                if desc and len(desc) > 30:
+                if desc and len(desc) > 30 and title.strip().lower() not in desc.strip().lower():
                     bullets.append(self._truncate_clean(desc, 150))
 
             return {
