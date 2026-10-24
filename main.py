@@ -1,11 +1,10 @@
-import os
+"""
+Main Production Entrypoint (main.py)
+Unifies GitHub Actions runner and local execution directly into the calibrated src.daemon engine.
+"""
+
 import sys
-import time
 import argparse
-import logging
-from datetime import datetime
-from zoneinfo import ZoneInfo
-from dotenv import load_dotenv
 
 # Ensure UTF-8 output on all platforms
 if hasattr(sys.stdout, 'reconfigure'):
@@ -13,287 +12,24 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
-# Load local .env if present
-load_dotenv()
-
-from scrapers.bse_scraper import BSEScraper
-from scrapers.nse_scraper import NSEScraper
-from scrapers.pib_scraper import PIBScraper
-from scrapers.rbi_scraper import RBIScraper
-from scrapers.sebi_scraper import SEBIScraper
-from scrapers.live_quote_wire import LiveQuoteWire
-from scripts.quality_gatekeeper import QualityGatekeeper
-from scripts.live_delta_monitor import LiveDeltaMonitor
-from scripts.sentinel_watchdog import SentinelWatchdog
-from scripts.morning_briefing import MorningBriefingEngine
-from telegram_dispatcher import TelegramDispatcher
-from dedup_engine import DedupEngine
-from filter_engine import FilterEngine
-
-IST = ZoneInfo("Asia/Kolkata")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("MarketWire")
-
-def validate_environment():
-    """Validates required environment secrets and logs status."""
-    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = os.getenv("TELEGRAM_CHANNEL_ID") or os.getenv("TELEGRAM_CHAT_ID", "").strip()
-    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    
-    missing = []
-    if not token or token == "YOUR_TELEGRAM_BOT_TOKEN":
-        missing.append("TELEGRAM_BOT_TOKEN")
-    if not chat_id or chat_id == "@your_channel_id":
-        missing.append("TELEGRAM_CHANNEL_ID / TELEGRAM_CHAT_ID")
-        
-    if missing:
-        logger.warning(f"[ENV WARNING] Missing credentials: {', '.join(missing)}. Running in console dry-run mode.")
-    else:
-        logger.info(f"[ENV OK] Telegram Bot Token configured. Target Channel: {chat_id}")
-        
-    if not gemini_key or gemini_key == "YOUR_GEMINI_API_KEY":
-        logger.info("[ENV NOTE] GEMINI_API_KEY not set. Using deterministic zero-hallucination formatter (₹0/mo tier).")
-    else:
-        logger.info("[ENV OK] GEMINI_API_KEY configured for high-speed AI formatting.")
-
-class MarketWireEngine:
-    def __init__(self, dry_run: bool = False):
-        self.dry_run = dry_run
-        self.bse = BSEScraper()
-        self.nse = NSEScraper()
-        self.pib = PIBScraper()
-        self.rbi = RBIScraper()
-        self.sebi = SEBIScraper()
-        self.wire = LiveQuoteWire()
-        self.gatekeeper = QualityGatekeeper()
-        self.dedup = DedupEngine()
-        self.delta_monitor = LiveDeltaMonitor()
-        self.sentinel = SentinelWatchdog()
-        self.morning_briefing = MorningBriefingEngine()
-        self.dispatcher = TelegramDispatcher()
-
-    def run_all_scrapers(self) -> list[dict]:
-        """Runs all 6 zero-cost public endpoints resiliently."""
-        all_items = []
-        scrapers = [
-            ("BSE Corporate Filings", self.bse.fetch_recent),
-            ("NSE Corporate Filings", self.nse.fetch_recent),
-            ("PIB Gov / FinMin Releases", self.pib.fetch_recent),
-            ("RBI Monetary / Bank Circulars", self.rbi.fetch_recent),
-            ("SEBI Regulatory Updates", self.sebi.fetch_recent),
-            ("Live Quotes Wire (FM & RBI)", self.wire.fetch_recent),
-        ]
-        
-        for name, fetch_fn in scrapers:
-            try:
-                items = fetch_fn()
-                logger.info(f"[{name}] Fetched {len(items)} items.")
-                all_items.extend(items)
-            except Exception as e:
-                logger.error(f"[{name}] Polling error (resiliently caught): {e}")
-                
-        return all_items
-
-    def process_and_dispatch(self, max_posts_per_cycle: int = 5) -> list[dict]:
-        """
-        Executes full pipeline:
-        1. Check Morning Briefing trigger (first post between 07:00 and 08:45 AM IST).
-        2. Scrape -> Agent 3 Gatekeeper Audit -> Dispatch -> State Recording.
-        3. Live Delta Monitor check.
-        """
-        # Morning Briefing Trigger (First post of the day when channel wakes up)
-        now_ist = datetime.now(IST)
-        if 7 <= now_ist.hour < 9 and self.morning_briefing.should_run_today(now_ist):
-            logger.info("[*] Morning Window: Generating and Dispatching Master Morning Briefing...")
-            self.morning_briefing.dispatch_briefing(dry_run=self.dry_run)
-
-        # Evening FII/DII Net Activity Trigger (Trading days after 17:30 IST)
-        if now_ist.weekday() < 5 and now_ist.hour >= 17:
-            try:
-                from sources.nse_fetcher import NSEFetcher
-                from formatter import Formatter
-                nse_fetcher = NSEFetcher()
-                fii_data = nse_fetcher.fetch_fii_dii()
-                if fii_data:
-                    formatted_fii = Formatter.format_fii_dii(fii_data)
-                    date_line = formatted_fii.splitlines()[0]
-                    if not self.dedup.is_duplicate(date_line, source="NSE_FII_DII"):
-                        logger.info(f"[*] Dispatching Official NSE FII/DII Flows: {date_line}")
-                        if not self.dry_run:
-                            mid = self.dispatcher.send_message(formatted_fii)
-                            if mid:
-                                self.dedup.record_post(date_line, source="NSE_FII_DII")
-            except Exception as e:
-                logger.warning(f"FII/DII processing note: {e}")
-
-        raw_items = self.run_all_scrapers()
-        approved_dispatches = []
-        
-        for item in raw_items:
-            if len(approved_dispatches) >= max_posts_per_cycle:
-                break
-                
-            pre_check_text = f"{item.get('company', '')} {item.get('headline', '')} {item.get('body', '')}"
-            source_type = item.get("source", "BSE")
-
-            # Stage-1 Pre-Filtration Check: Drop routine paperwork & validate substance
-            is_valid, category = FilterEngine.classify_and_validate(pre_check_text, source_type)
-            if not is_valid:
-                logger.debug(f"[FilterEngine Dropped] {item.get('company')}: Not matching corporate action whitelist or is routine paperwork")
-                continue
-
-            # Stage-2 SQLite DedupEngine Check (Sha256 hash, fact keys, event roots)
-            if self.dedup.is_duplicate(pre_check_text, source=source_type):
-                logger.debug(f"[DedupEngine Duplicate] {item.get('company')} already recorded in SQLite.")
-                continue
-
-            # Stage-3 Gatekeeper Deterministic Audit & 24h Semantic Gate
-            formatted_post, score, audit_meta = self.gatekeeper.generate_verified_post(item)
-            
-            if audit_meta.get("status") == "APPROVED" and formatted_post:
-                # Extra safety check against formatted text in SQLite dedup
-                if self.dedup.is_duplicate(formatted_post, source=source_type):
-                    logger.debug(f"[DedupEngine Post Duplicate] {item.get('company')} formatted post already in SQLite.")
-                    continue
-
-                logger.info(f"[Gatekeeper APPROVED] {item.get('company')} (Authenticity: {score*100:.0f}%)")
-                
-                # Dispatch to Telegram or log to console
-                if self.dry_run:
-                    print(f"\n{'='*60}\n[DRY RUN DISPATCH - AUTHENTICITY SCORE: {score*100:.0f}%]")
-                    print(f"RAW LINK: {item.get('url')}")
-                    print(f"FORMATTED TELEGRAM POST:\n{formatted_post}")
-                    print(f"{'='*60}\n")
-                    self.gatekeeper.record_posted(
-                        company=item.get("company", ""),
-                        category=item.get("source", "GENERAL"),
-                        final_post=formatted_post,
-                        url=item.get("url", ""),
-                        raw_text=item.get("raw_text", "")
-                    )
-                    self.dedup.record_post(formatted_post, source=source_type)
-                    self.dedup.record_post(pre_check_text, source=source_type)
-                else:
-                    sent = self.dispatcher.send_message(formatted_post)
-                    if sent:
-                        self.gatekeeper.record_posted(
-                            company=item.get("company", ""),
-                            category=item.get("source", "GENERAL"),
-                            final_post=formatted_post,
-                            url=item.get("url", ""),
-                            raw_text=item.get("raw_text", "")
-                        )
-                        self.dedup.record_post(formatted_post, source=source_type)
-                        self.dedup.record_post(pre_check_text, source=source_type)
-                        
-                approved_dispatches.append({
-                    "item": item,
-                    "post": formatted_post,
-                    "score": score,
-                    "audit": audit_meta
-                })
-            else:
-                logger.debug(f"[Gatekeeper Skipped] {item.get('company')}: {audit_meta.get('reason', 'Duplicate or ungrounded')}")
-                
-        # Run Live Sentinel Watchdog & Delta Monitor on every cycle for sub-30s ultra-low latency
-        now_ts = time.time()
-        if now_ts - getattr(self, '_last_watchdog_time', 0) > 25:
-            self._last_watchdog_time = now_ts
-            try:
-                self.sentinel.run_sentinel_cycle()
-            except Exception as e:
-                logger.warning(f"[SentinelWatchdog Error]: {e}")
-
-            try:
-                self.delta_monitor.run_monitor_cycle()
-            except Exception as e:
-                logger.warning(f"[DeltaMonitor Error]: {e}")
-            
-        return approved_dispatches
+from src.daemon import RealtimeDaemon
 
 def main():
-    parser = argparse.ArgumentParser(description="Autonomous Indian Market Wire Engine & Gatekeeper")
-    parser.add_argument("--test", action="store_true", help="Run single pass in dry-run mode (outputs sample posts to console)")
-    parser.add_argument("--live", action="store_true", help="Run single live pass and dispatch approved stories to Telegram")
-    parser.add_argument("--morning-briefing", action="store_true", help="Force generate and dispatch Morning Briefing")
-    parser.add_argument("--run-delta", action="store_true", help="Run Live Delta Monitor against benchmark channel")
-    parser.add_argument("--daemon", action="store_true", help="Run in continuous polling loop")
-    
-    args = parser.parse_args()
-    validate_environment()
-    
-    is_live_run = args.live or (os.getenv("GITHUB_ACTIONS") == "true")
+    parser = argparse.ArgumentParser(description="Indian Market Wire Production Engine")
+    parser.add_argument("--live", action="store_true", help="Run live daemon shift")
+    parser.add_argument("--once", action="store_true", help="Execute single polling cycle and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Evaluate and format without publishing")
+    parser.add_argument("--duration", type=int, default=3240, help="Shift duration in seconds (default: 54 min = 3240s)")
+    args, unknown = parser.parse_known_args()
 
-    if args.morning_briefing:
-        briefing = MorningBriefingEngine()
-        briefing.dispatch_briefing(force=True, dry_run=not is_live_run)
-        sys.exit(0)
-        
-    if args.run_delta:
-        monitor = LiveDeltaMonitor()
-        monitor.run_monitor_cycle()
-        sys.exit(0)
-        
-    engine = MarketWireEngine(dry_run=not is_live_run)
-    
-    is_github_actions = (os.getenv("GITHUB_ACTIONS") == "true")
-
-    if is_github_actions:
-        # 24/7 Cloud Continuous Shift: 3 Hours (10,800s) continuous live polling per runner
-        shift_duration_sec = 10800  # 3 hours continuous cloud runtime
-        logger.info(f"[*] Starting GitHub Cloud Continuous Shift ({shift_duration_sec // 3600} hours live polling)...")
-        shift_start = time.time()
-        cycle_count = 0
-        total_posted = 0
-        relayed = False
-        while time.time() - shift_start < shift_duration_sec:
-            cycle_count += 1
-            try:
-                dispatches = engine.process_and_dispatch(max_posts_per_cycle=3)
-                total_posted += len(dispatches)
-            except Exception as e:
-                logger.error(f"[Cloud Shift Cycle {cycle_count}] Error: {e}")
-
-            # Seamless Cloud Relay: Trigger next runner 2 minutes before shift ends
-            if not relayed and (time.time() - shift_start > shift_duration_sec - 120):
-                relayed = True
-                try:
-                    import subprocess
-                    gh_bin = "gh" if sys.platform != "win32" else "C:\\Program Files\\GitHub CLI\\gh.exe"
-                    subprocess.run([gh_bin, "workflow", "run", "corn.yml", "-R", "PahalGroup/Telegram-news-bot"], capture_output=True, timeout=15)
-                    logger.info("[✓] Seamlessly relayed next 3-hour shift on GitHub Cloud!")
-                except Exception as ex:
-                    logger.warning(f"Cloud relay notice: {ex}")
-
-            time.sleep(25)
-        logger.info(f"[✓] GitHub Cloud Shift Complete. Executed {cycle_count} cycles, dispatched {total_posted} stories.")
-
-    elif args.test or not args.daemon:
-        logger.info("[*] Executing Single Engine Pass across All Live Endpoints...")
-        dispatches = engine.process_and_dispatch(max_posts_per_cycle=5)
-        logger.info(f"[✓] Engine cycle complete. Approved dispatches: {len(dispatches)}")
+    # If invoked by GitHub Actions without arguments, run the continuous daemon shift
+    daemon = RealtimeDaemon(dry_run=args.dry_run, shift_seconds=args.duration)
+    if args.once:
+        count = daemon.process_cycle()
+        daemon.state.save_state(sync_git=False)
+        print(f"[✓] Single cycle complete. Dispatched {count} announcements.")
     else:
-        logger.info("[*] Starting Continuous 24/7 Market Wire Daemon (Antigravity Local)...")
-        last_cloud_kick = time.time()
-        while True:
-            try:
-                engine.process_and_dispatch(max_posts_per_cycle=3)
-            except Exception as e:
-                logger.error(f"Daemon cycle error: {e}")
-            
-            # Cloud Heartbeat: Every 15 minutes, trigger GitHub Actions to ensure cloud runner is active
-            if time.time() - last_cloud_kick > 900:
-                last_cloud_kick = time.time()
-                try:
-                    import subprocess
-                    subprocess.run(
-                        ["C:\\Program Files\\GitHub CLI\\gh.exe", "workflow", "run", "corn.yml", "-R", "PahalGroup/Telegram-news-bot"],
-                        capture_output=True, text=True, timeout=10
-                    )
-                    logger.info("[HEARTBEAT] Pushed cloud workflow trigger to GitHub Actions.")
-                except Exception:
-                    pass
-            time.sleep(25)
+        daemon.run_daemon()
 
 if __name__ == "__main__":
     main()
