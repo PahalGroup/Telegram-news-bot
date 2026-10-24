@@ -27,6 +27,17 @@ LIVE_WEB_PAGES = [
     {"source": "Moneycontrol Live", "url": "https://www.moneycontrol.com/news/business/markets/"},
 ]
 
+# Noise / Clickbait / Non-Market filter
+DISCARD_PATTERNS = [
+    r"\brecalled\b", r"\bspotted\b", r"\bfiring incident\b", r"\bactor\b",
+    r"\bwhy are stocks falling\b", r"\bwhy is market falling\b",
+    r"\btop 10 stocks\b", r"\bstocks to buy today\b",
+    r"\bcrypto\b", r"\bwallet breach\b", r"\bbitcoin\b", r"\bethereum\b",
+    r"\bhoroscope\b", r"\blifestyle\b", r"\bentertainment\b",
+    r"\bweb stories\b", r"\bphotos:\b", r"\bvideo:\b",
+    r"\bdating\b", r"\bcelebrity\b"
+]
+
 class NewsFetcher:
     def __init__(self):
         self.ctx = ssl.create_default_context()
@@ -36,6 +47,20 @@ class NewsFetcher:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
         self.session = requests.Session(impersonate="chrome120")
+
+    @staticmethod
+    def _clean_text(text: str) -> str:
+        if not text:
+            return ""
+        clean = re.sub(r'<[^>]+>', ' ', text)
+        clean = unescape(clean)
+        clean = re.sub(r'\s+', ' ', clean).strip()
+        return clean
+
+    @classmethod
+    def is_noise(cls, text: str) -> bool:
+        t_low = text.lower()
+        return any(re.search(pat, t_low) for pat in DISCARD_PATTERNS)
 
     def fetch_feed(self, feed_info: Dict[str, str]) -> List[Dict[str, Any]]:
         name = feed_info["source"]
@@ -57,35 +82,37 @@ class NewsFetcher:
                     pub = pub_el.text if pub_el is not None and pub_el.text else ""
                     link = link_el.text if link_el is not None and link_el.text else ""
                     
-                    title = unescape(title).strip()
-                    desc = unescape(desc).strip()
-                    desc = re.sub(r'<[^>]+>', ' ', desc).strip()
+                    title = self._clean_text(title)
+                    desc = self._clean_text(desc)
                     
+                    if not title or self.is_noise(f"{title} {desc}"):
+                        continue
+
                     if pub:
                         try:
                             import email.utils
                             from datetime import datetime, timezone
                             dt = email.utils.parsedate_to_datetime(pub)
                             now_utc = datetime.now(timezone.utc)
+                            # Freshness window: 45 minutes
                             if (now_utc - dt).total_seconds() > 2700:
                                 continue
                         except Exception:
                             pass
 
-                    if title:
-                        items.append({
-                            "source": name,
-                            "title": title,
-                            "description": desc,
-                            "pub_date": pub,
-                            "link": link
-                        })
+                    items.append({
+                        "source": name,
+                        "title": title,
+                        "description": desc,
+                        "pub_date": pub,
+                        "link": link
+                    })
         except Exception as e:
             logger.debug(f"Feed fetch error ({name} - {url}): {e}")
         return items
 
     def fetch_live_web_wires(self) -> List[Dict[str, Any]]:
-        """Scrapes real-time stock wires, broker notes, and flashes from live market pages."""
+        """Scrapes real-time stock wires and broker notes from live market pages."""
         items = []
         for page in LIVE_WEB_PAGES:
             name = page["source"]
@@ -95,9 +122,8 @@ class NewsFetcher:
                 if r.status_code == 200:
                     h2_list = re.findall(r'<h2[^>]*>(.*?)</h2>', r.text, re.DOTALL)
                     for raw_h in h2_list:
-                        clean_title = re.sub(r'<[^>]+>', '', raw_h).strip()
-                        clean_title = unescape(clean_title)
-                        if clean_title and len(clean_title) > 15:
+                        clean_title = self._clean_text(raw_h)
+                        if clean_title and len(clean_title) > 20 and not self.is_noise(clean_title):
                             items.append({
                                 "source": name,
                                 "title": clean_title,
@@ -115,7 +141,7 @@ class NewsFetcher:
             feed_items = self.fetch_feed(f)
             all_items.extend(feed_items)
         
-        # Also include fast live web wires
+        # Include fast live web wires
         live_items = self.fetch_live_web_wires()
         all_items.extend(live_items)
         
