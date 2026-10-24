@@ -98,12 +98,15 @@ class Formatter:
         fii_icon = "🟢" if fii_net >= 0 else "🔴"
         dii_icon = "🟢" if dii_net >= 0 else "🔴"
         total_icon = "🟢" if total_net >= 0 else "🔴"
+        fii_action = "Net Buy" if fii_net >= 0 else "Net Sell"
+        dii_action = "Net Buy" if dii_net >= 0 else "Net Sell"
+        total_action = "Net Buy" if total_net >= 0 else "Net Sell"
 
         lines = [
             f"<b>FII / DII ACTIVITY – {cls.sanitize(date_str.upper())}</b>",
-            f"▪️ {dii_icon} <b>DII Net:</b> ₹{dii_net:,.2f} Cr",
-            f"▪️ {fii_icon} <b>FII Net:</b> ₹{fii_net:,.2f} Cr",
-            f"▪️ {total_icon} <b>Total Net:</b> ₹{total_net:,.2f} Cr"
+            f"{dii_icon} <b>DII {dii_action}:</b> ₹{abs(dii_net):,.2f} Cr",
+            f"{fii_icon} <b>FII {fii_action}:</b> ₹{abs(fii_net):,.2f} Cr",
+            f"{total_icon} <b>Total {total_action}:</b> ₹{abs(total_net):,.2f} Cr"
         ]
         return "\n".join(lines)
 
