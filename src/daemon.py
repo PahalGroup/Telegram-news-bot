@@ -1,33 +1,24 @@
 """
-Phase 4: Real-Time Continuous Polling Daemon (src/daemon.py)
+Production Daemon: Real-Time Continuous Polling Engine (src/daemon.py)
+SINGLE source of truth for GitHub Actions production.
+
 Sub-15-Second Continuous Polling Loop:
-- Runs for 54 minutes per workflow run (or specified duration / --once / --dry-run)
-- Polls upstream endpoints concurrently (BSE, NSE, RBI, News, Liveblog) every 10-15 seconds
-- Stage 1: Deterministic Hard Filter
+- Runs for configurable duration per workflow run (default: 54 min)
+- Polls upstream endpoints concurrently (BSE, NSE, RBI, News RSS, Liveblog) every 12s
+- Stage 1: Deterministic Hard Filter (src/filter_engine.py)
 - Stage 2: Few-Shot Calibrated AI Materiality Gate
 - Pixel-Accurate Formatter (Telegram HTML)
 - Persistent state management via src.state_store
-- Zero-gap handoff: Triggers workflow_dispatch at minute 52-54 before exiting cleanly
+- Zero-gap handoff: Triggers workflow_dispatch before exiting cleanly
 """
 
 import os
 import sys
 import time
 import argparse
-import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
-
-from src.filter_engine import FilterEngine
-from src.formatter import Formatter
-from src.state_store import StateStore
-from telegram_dispatcher import TelegramDispatcher
-from sources.nse_fetcher import NSEFetcher
-from sources.bse_fetcher import BSEFetcher
-from sources.rbi_fetcher import RBIFetcher
-from sources.news_fetcher import NewsFetcher
-from sources.liveblog_fetcher import LiveBlogFetcher
 
 # Ensure console supports UTF-8
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
@@ -42,32 +33,49 @@ logging.basicConfig(
 )
 logger = logging.getLogger("RealtimeDaemon")
 
+# Imports with graceful fallback
+from src.filter_engine import FilterEngine
+from src.formatter import Formatter
+from src.state_store import StateStore
+from telegram_dispatcher import TelegramDispatcher
+
+# Source fetchers
+from sources.bse_fetcher import BSEFetcher
+from sources.nse_fetcher import NSEFetcher
+from sources.rbi_fetcher import RBIFetcher
+from sources.news_fetcher import NewsFetcher
+from sources.liveblog_fetcher import LiveBlogFetcher
+
+
 class RealtimeDaemon:
     def __init__(self, dry_run: bool = False, shift_seconds: int = 3240):
         self.dry_run = dry_run
         self.shift_seconds = shift_seconds
         self.start_time = time.time()
-        
+
         self.state = StateStore()
         self.filter_engine = FilterEngine()
         self.dispatcher = TelegramDispatcher()
-        
+
         # Ingest Sources
         self.bse = BSEFetcher()
         self.nse = NSEFetcher()
         self.rbi = RBIFetcher()
         self.news = NewsFetcher()
         self.liveblog = LiveBlogFetcher()
-        
-        self.poll_interval = 12 # Sub-15-second continuous polling
+
+        self.poll_interval = 12  # Sub-15-second continuous polling
         self.fii_posted_today = False
+        self.cycle_count = 0
+        self.total_dispatched = 0
+        self.total_errors = 0
 
     def trigger_github_workflow_dispatch(self):
         """Zero-gap handoff: Dispatch next runner via GitHub REST API."""
-        gh_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT")
+        gh_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT") or os.getenv("BOT_PAT")
         repo = os.getenv("GITHUB_REPOSITORY", "PahalGroup/Telegram-news-bot")
         workflow_id = "corn.yml"
-        
+
         if not gh_token:
             logger.info("No GITHUB_TOKEN present; skipping self-relay workflow dispatch.")
             return
@@ -94,81 +102,94 @@ class RealtimeDaemon:
             logger.warning(f"Self-relay trigger encountered: {e}")
 
     def poll_all_sources(self) -> List[Dict[str, Any]]:
-        """Fetch raw announcements from all upstream sources concurrently."""
+        """Fetch raw announcements from ALL upstream sources with correct method names."""
         raw_items = []
-        
-        # 1. BSE Announcements
+
+        # 1. BSE Corporate Announcements
         try:
-            bse_items = self.bse.fetch_announcements()
+            bse_items = self.bse.fetch_announcements() or []
             for it in bse_items:
                 raw_items.append({
-                    "id": f"BSE_{it.get('bse_id', it.get('raw_subject', ''))}",
+                    "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
                     "source": "BSE",
                     "company": it.get("company", ""),
                     "title": it.get("subject", "") or it.get("raw_subject", ""),
                     "description": f"{it.get('headline', '')} {it.get('more', '')}".strip(),
-                    "pdf_url": it.get("pdf_url")
+                    "pdf_url": it.get("pdf_url"),
+                    "raw_subject": it.get("raw_subject", ""),
                 })
+            logger.info(f"[BSE] Fetched {len(bse_items)} items")
         except Exception as e:
-            logger.debug(f"BSE poll error: {e}")
+            logger.warning(f"BSE poll error: {e}")
+            self.total_errors += 1
 
-        # 2. NSE Filings
+        # 2. NSE Corporate Filings
         try:
-            nse_items = self.nse.fetch_corporate_filings()
+            nse_items = self.nse.fetch_announcements() or []
             for it in nse_items:
+                symbol = it.get("symbol", "")
+                subject = it.get("desc", "") or it.get("subject", "")
                 raw_items.append({
-                    "id": f"NSE_{it.get('symbol', '')}_{it.get('subject', '')}",
+                    "id": f"NSE_{symbol}_{subject[:60]}",
                     "source": "NSE",
-                    "company": it.get("symbol", ""),
-                    "title": it.get("subject", ""),
-                    "description": it.get("details", "") or it.get("desc", ""),
-                    "pdf_url": it.get("attachment")
+                    "company": symbol,
+                    "title": subject,
+                    "description": it.get("attchmntText", "") or it.get("details", ""),
+                    "pdf_url": it.get("attchmntFile"),
                 })
+            logger.info(f"[NSE] Fetched {len(nse_items)} items")
         except Exception as e:
-            logger.debug(f"NSE poll error: {e}")
+            logger.warning(f"NSE poll error: {e}")
+            self.total_errors += 1
 
-        # 3. RBI Circulars
+        # 3. RBI Press Releases
         try:
-            rbi_items = self.rbi.fetch_circulars()
+            rbi_items = self.rbi.fetch_press_releases() or []
             for it in rbi_items:
                 raw_items.append({
-                    "id": f"RBI_{it.get('title', '')[:40]}",
+                    "id": f"RBI_{it.get('title', '')[:50]}",
                     "source": "RBI",
                     "company": "RESERVE BANK OF INDIA",
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
-                    "pdf_url": it.get("pdf_url")
+                    "pdf_url": it.get("link"),
                 })
+            logger.info(f"[RBI] Fetched {len(rbi_items)} items")
         except Exception as e:
-            logger.debug(f"RBI poll error: {e}")
+            logger.warning(f"RBI poll error: {e}")
+            self.total_errors += 1
 
-        # 4. News RSS Wires
+        # 4. News RSS Wires (Economic Times, Moneycontrol, Mint, BusinessLine)
         try:
-            news_items = self.news.fetch_breaking()
+            news_items = self.news.fetch_all_feeds() or []
             for it in news_items:
                 raw_items.append({
-                    "id": f"NEWS_{it.get('link', it.get('title', ''))}",
+                    "id": f"NEWS_{it.get('link', it.get('title', '')[:40])}",
                     "source": "NEWS",
-                    "company": it.get("company", ""),
+                    "company": "",  # Extracted by filter
                     "title": it.get("title", ""),
-                    "description": it.get("summary", "")
+                    "description": it.get("description", ""),
                 })
+            logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
-            logger.debug(f"News poll error: {e}")
+            logger.warning(f"News poll error: {e}")
+            self.total_errors += 1
 
-        # 5. LiveBlog Breaking
+        # 5. LiveBlog Breaking (Moneycontrol real-time flashes)
         try:
-            lb_items = self.liveblog.fetch_latest_posts()
+            lb_items = self.liveblog.fetch_live_flashes() or []
             for it in lb_items:
                 raw_items.append({
-                    "id": f"LIVE_{it.get('id', it.get('headline', ''))}",
+                    "id": f"LIVE_{it.get('id', it.get('title', '')[:30])}",
                     "source": "LIVEBLOG",
-                    "company": it.get("company", ""),
-                    "title": it.get("headline", ""),
-                    "description": it.get("body", "")
+                    "company": "",
+                    "title": it.get("title", ""),
+                    "description": it.get("description", ""),
                 })
+            logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
         except Exception as e:
-            logger.debug(f"LiveBlog poll error: {e}")
+            logger.warning(f"LiveBlog poll error: {e}")
+            self.total_errors += 1
 
         return raw_items
 
@@ -176,7 +197,7 @@ class RealtimeDaemon:
         """Check and dispatch daily FII/DII activity between 18:00 and 22:00 IST."""
         if self.fii_posted_today:
             return
-        
+
         # Check IST time
         now_utc = datetime.now(timezone.utc)
         ist_now = now_utc + timedelta(hours=5, minutes=30)
@@ -189,13 +210,23 @@ class RealtimeDaemon:
 
         if 18 <= ist_now.hour <= 22:
             try:
-                from morning_evening_routines import fetch_nse_fii_dii_flows
-                flows = fetch_nse_fii_dii_flows()
-                if flows and flows.get("date"):
-                    fii_val = flows.get("fii_net", 0.0)
-                    dii_val = flows.get("dii_net", 0.0)
-                    formatted_msg = Formatter.format_fii_dii(flows.get("date"), fii_val, dii_val)
-                    logger.info(f"Posting daily FII/DII flows for {flows.get('date')}...")
+                fii_data = self.nse.fetch_fii_dii() or []
+                if fii_data and isinstance(fii_data, list) and len(fii_data) >= 2:
+                    # NSE API returns list of dicts with category, buyValue, sellValue
+                    fii_net = 0.0
+                    dii_net = 0.0
+                    for entry in fii_data:
+                        cat = entry.get("category", "").upper()
+                        buy_val = float(entry.get("buyValue", 0) or 0)
+                        sell_val = float(entry.get("sellValue", 0) or 0)
+                        net = buy_val - sell_val
+                        if "FII" in cat or "FPI" in cat:
+                            fii_net = net
+                        elif "DII" in cat:
+                            dii_net = net
+
+                    formatted_msg = Formatter.format_fii_dii(today_str, fii_net, dii_net)
+                    logger.info(f"Posting daily FII/DII flows for {today_str}...")
                     if not self.dry_run:
                         self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
                     else:
@@ -208,6 +239,7 @@ class RealtimeDaemon:
 
     def process_cycle(self) -> int:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
+        self.cycle_count += 1
         items = self.poll_all_sources()
         dispatched_count = 0
 
@@ -217,7 +249,13 @@ class RealtimeDaemon:
                 continue
 
             # Stage 1: Deterministic Hard Filter
-            passed_s1, reason_s1, candidate = self.filter_engine.evaluate_stage_1(it)
+            try:
+                passed_s1, reason_s1, candidate = self.filter_engine.evaluate_stage_1(it)
+            except Exception as e:
+                logger.debug(f"Stage 1 error for {item_id}: {e}")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                continue
+
             if not passed_s1:
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -225,13 +263,19 @@ class RealtimeDaemon:
             # Rolling 6-Hour Entity Event Cooldown Gate
             norm_company = self.filter_engine.normalize_entity_name(candidate.get("company", ""))
             category = candidate.get("category", "")
-            if self.state.is_in_cooldown(norm_company, category, cooldown_hours=6):
+            if self.state.is_in_cooldown(norm_company, category, cooldown_seconds=21600):
                 logger.info(f"Skipping {norm_company}:{category} due to 6h rolling cooldown.")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
             # Stage 2: Few-Shot Calibrated AI Materiality Gate
-            eval_data = self.filter_engine.evaluate_stage_2(candidate)
+            try:
+                eval_data = self.filter_engine.evaluate_stage_2(candidate)
+            except Exception as e:
+                logger.warning(f"Stage 2 error for {item_id}: {e}")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                continue
+
             if not eval_data.get("publish", False) or eval_data.get("materiality_score", 0) < 70:
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -268,11 +312,12 @@ class RealtimeDaemon:
         # Check FII/DII routine
         self.check_fii_dii_routine()
 
+        self.total_dispatched += dispatched_count
         return dispatched_count
 
     def run_daemon(self):
         """Main continuous daemon loop."""
-        logger.info(f"Starting Realtime Daemon (Duration: {self.shift_seconds}s, Poll Interval: {self.poll_interval}s, DryRun: {self.dry_run})...")
+        logger.info(f"Starting Production Daemon (Duration: {self.shift_seconds}s, Poll: {self.poll_interval}s, DryRun: {self.dry_run})...")
         relay_triggered = False
 
         while True:
@@ -288,18 +333,27 @@ class RealtimeDaemon:
                 relay_triggered = True
 
             try:
-                self.process_cycle()
+                count = self.process_cycle()
+                if count > 0:
+                    logger.info(f"Cycle {self.cycle_count}: dispatched {count} items (total: {self.total_dispatched})")
             except Exception as e:
-                logger.error(f"Error during daemon cycle: {e}")
+                logger.error(f"Error during daemon cycle {self.cycle_count}: {e}")
+                self.total_errors += 1
 
             time.sleep(self.poll_interval)
 
+        # Trigger relay at end if not already done
+        if not relay_triggered:
+            logger.info("End-of-shift relay trigger...")
+            self.trigger_github_workflow_dispatch()
+
         # Save and persist state upon exit
         self.state.save_state(sync_git=True)
-        logger.info("Daemon finished cleanly.")
+        logger.info(f"Daemon finished. Cycles: {self.cycle_count}, Dispatched: {self.total_dispatched}, Errors: {self.total_errors}")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Pahal Market Wire Real-Time Daemon")
+    parser = argparse.ArgumentParser(description="Pahal Market Wire Production Daemon")
     parser.add_argument("--once", action="store_true", help="Run a single polling cycle and exit")
     parser.add_argument("--dry-run", action="store_true", help="Evaluate and format without publishing to Telegram")
     parser.add_argument("--duration", type=int, default=3240, help="Shift duration in seconds (default: 54 min = 3240s)")
@@ -313,6 +367,7 @@ def main():
         logger.info(f"Single pass complete. Dispatched {count} announcements.")
     else:
         daemon.run_daemon()
+
 
 if __name__ == "__main__":
     main()
