@@ -1,0 +1,125 @@
+from curl_cffi import requests
+from typing import List, Dict, Any
+from html import unescape
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+class LiveBlogFetcher:
+    """Fetches high-frequency, real-time market flashes & stock deals from Moneycontrol Liveblog."""
+    def __init__(self):
+        self.session = requests.Session(impersonate='chrome120')
+        self.cached_blog_url = None
+        self.cached_blog_date = None
+
+    def get_todays_liveblog_url(self) -> str:
+        today_str = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y')
+        if self.cached_blog_url and self.cached_blog_date == today_str:
+            return self.cached_blog_url
+
+        try:
+            r = self.session.get('https://www.moneycontrol.com/news/business/markets/', timeout=10)
+            links = re.findall(r'https://www.moneycontrol.com/news/business/markets/[^"\'\s<>]+-liveblog-[^"\'\s<>]+\.html', r.text)
+            for l in links:
+                if today_str in l or 'liveblog' in l:
+                    self.cached_blog_url = l
+                    self.cached_blog_date = today_str
+                    return l
+            if links:
+                self.cached_blog_url = links[0]
+                self.cached_blog_date = today_str
+                return links[0]
+        except Exception as e:
+            logger.debug(f"Error resolving liveblog URL: {e}")
+        return ""
+
+    def fetch_live_flashes(self) -> List[Dict[str, Any]]:
+        url = self.get_todays_liveblog_url()
+        if not url:
+            return []
+
+        items = []
+        now_ist = datetime.now(ZoneInfo('Asia/Kolkata'))
+        try:
+            r = self.session.get(url, timeout=10)
+            if r.status_code != 200:
+                return []
+
+            # 1. First Priority: Structured JSON-LD (100% precision & author timestamps)
+            import json
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(r.text, 'html.parser')
+            for script in soup.find_all('script', type='application/ld+json'):
+                try:
+                    data = json.loads(script.string or '{}')
+                    updates = data.get('liveBlogUpdate', [])
+                    if isinstance(updates, list) and updates:
+                        for u in updates:
+                            headline = unescape(u.get('headline', '')).strip()
+                            body = unescape(u.get('articleBody', '')).strip()
+                            date_pub = u.get('datePublished', '')
+
+                            if not headline:
+                                continue
+
+                            # Freshness check: Skip if published > 45 mins ago
+                            if date_pub:
+                                try:
+                                    dt_clean = date_pub.split("+")[0].split(".")[0]
+                                    p_dt = datetime.fromisoformat(dt_clean).replace(tzinfo=ZoneInfo('Asia/Kolkata'))
+                                    if (now_ist - p_dt).total_seconds() > 2700:
+                                        continue
+                                except Exception:
+                                    pass
+
+                            # Strip all prefix tags
+                            clean_hl = re.sub(r'^(?:Nifty50 Today|Sensex Today|Sensex, Nifty Today|Markets@\d+|Stock alert|Stock Market Live)\s*\|\s*', '', headline, flags=re.I)
+                            clean_hl = re.sub(r'^Stock alert:\s*', '', clean_hl, flags=re.I)
+
+                            items.append({
+                                "source": "Moneycontrol Live",
+                                "title": clean_hl.strip(),
+                                "description": body,
+                                "time": date_pub,
+                                "id": f"mc_json_{date_pub}_{clean_hl[:20]}"
+                            })
+                        if items:
+                            return items
+                except Exception:
+                    pass
+
+            # 2. Fallback to HTML regex parsing
+            entries = re.split(r'id="20261012(\d{6})"', r.text)
+            for i in range(1, len(entries), 2):
+                raw_time = entries[i]
+                block = entries[i+1][:15000]
+                time_fmt = f"{raw_time[:2]}:{raw_time[2:4]}:{raw_time[4:6]}"
+                
+                paras = re.findall(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
+                clean_paras = []
+                for p in paras:
+                    cp = re.sub(r'<[^>]+>', '', p).strip()
+                    cp = unescape(cp)
+                    if len(cp) > 15 and not cp.startswith('October') and not cp.startswith('-') and 'http' not in cp[:10]:
+                        clean_paras.append(cp)
+
+                if clean_paras:
+                    title = clean_paras[0]
+                    body = clean_paras[1] if len(clean_paras) > 1 else ""
+                    
+                    clean_title = re.sub(r'^(?:Nifty50 Today|Sensex Today|Sensex, Nifty Today|Markets@\d+|Stock alert|Stock Market Live)\s*\|\s*', '', title, flags=re.I)
+                    clean_title = re.sub(r'^Stock alert:\s*', '', clean_title, flags=re.I)
+                    
+                    items.append({
+                        "source": "Moneycontrol Live",
+                        "title": clean_title.strip(),
+                        "description": body,
+                        "time": time_fmt,
+                        "id": f"mc_live_{raw_time}"
+                    })
+        except Exception as e:
+            logger.debug(f"Liveblog fetch error: {e}")
+        return items
