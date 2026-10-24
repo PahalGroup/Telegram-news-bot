@@ -107,7 +107,7 @@ class RealtimeDaemon:
 
         # 1. BSE Corporate Announcements
         try:
-            bse_items = self.bse.fetch_announcements() or []
+            bse_items = self.bse.fetch_announcements(skip_pdf=False) or []
             for it in bse_items:
                 raw_items.append({
                     "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
@@ -129,13 +129,35 @@ class RealtimeDaemon:
             for it in nse_items:
                 symbol = it.get("symbol", "")
                 subject = it.get("desc", "") or it.get("subject", "")
+                company_name = it.get("sm_name", "") or symbol
+                attchmnt_text = it.get("attchmntText", "") or it.get("details", "")
+                title = attchmnt_text or subject
+                pdf_url = it.get("attchmntFile")
+                seq_id = it.get("dt") or it.get("seq_id") or subject[:40]
+
+                description = attchmnt_text
+                if pdf_url and str(pdf_url).lower().endswith(".pdf"):
+                    pre_text = f"{company_name} {title} {subject}"
+                    if not self.filter_engine.should_drop(pre_text):
+                        try:
+                            from sources.annexure_parser import AnnexureParser
+                            lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url, self.nse.session)
+                            if pdf_bullets:
+                                formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
+                                if lead_sum:
+                                    description = f"{lead_sum}\n" + "\n".join(formatted_b)
+                                else:
+                                    description = "\n".join(formatted_b)
+                        except Exception as pe:
+                            logger.debug(f"NSE PDF parse error: {pe}")
+
                 raw_items.append({
-                    "id": f"NSE_{symbol}_{subject[:60]}",
+                    "id": f"NSE_{symbol}_{seq_id}",
                     "source": "NSE",
-                    "company": symbol,
-                    "title": subject,
-                    "description": it.get("attchmntText", "") or it.get("details", ""),
-                    "pdf_url": it.get("attchmntFile"),
+                    "company": company_name,
+                    "title": title,
+                    "description": description,
+                    "pdf_url": pdf_url,
                 })
             logger.info(f"[NSE] Fetched {len(nse_items)} items")
         except Exception as e:
@@ -194,15 +216,18 @@ class RealtimeDaemon:
         return raw_items
 
     def check_fii_dii_routine(self):
-        """Check and dispatch daily FII/DII activity between 18:00 and 22:00 IST."""
+        """Check and dispatch daily FII/DII activity on trading weekdays between 18:00 and 22:00 IST."""
+        now_utc = datetime.now(timezone.utc)
+        ist_now = now_utc + timedelta(hours=5, minutes=30)
+
+        # Do not dispatch on weekends (Saturday / Sunday) when cash markets are closed
+        if ist_now.weekday() in (5, 6):
+            return
+
         if self.fii_posted_today:
             return
 
-        # Check IST time
-        now_utc = datetime.now(timezone.utc)
-        ist_now = now_utc + timedelta(hours=5, minutes=30)
         today_str = ist_now.strftime("%d-%b-%Y").upper()
-
         fii_key = f"FII_DII_{today_str}"
         if self.state.is_seen(fii_key):
             self.fii_posted_today = True
@@ -212,27 +237,27 @@ class RealtimeDaemon:
             try:
                 fii_data = self.nse.fetch_fii_dii() or []
                 if fii_data and isinstance(fii_data, list) and len(fii_data) >= 2:
-                    # NSE API returns list of dicts with category, buyValue, sellValue
+                    data_date = fii_data[0].get("date", "").upper()
                     fii_net = 0.0
                     dii_net = 0.0
                     for entry in fii_data:
                         cat = entry.get("category", "").upper()
-                        buy_val = float(entry.get("buyValue", 0) or 0)
-                        sell_val = float(entry.get("sellValue", 0) or 0)
-                        net = buy_val - sell_val
+                        raw_net = str(entry.get("netValue", 0)).replace(",", "")
+                        net = float(raw_net) if raw_net else 0.0
                         if "FII" in cat or "FPI" in cat:
                             fii_net = net
                         elif "DII" in cat:
                             dii_net = net
 
-                    formatted_msg = Formatter.format_fii_dii(today_str, fii_net, dii_net)
-                    logger.info(f"Posting daily FII/DII flows for {today_str}...")
+                    trade_date = data_date or today_str
+                    formatted_msg = Formatter.format_fii_dii(trade_date, fii_net, dii_net)
+                    logger.info(f"Posting daily FII/DII flows for {trade_date}...")
                     if not self.dry_run:
                         self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
                     else:
                         print(f"\n[DRY RUN FII/DII DISPATCH]:\n{formatted_msg}\n")
                     self.state.mark_seen(fii_key, "NSE_FLOWS")
-                    self.state.record_published(fii_key, f"FII/DII ACTIVITY – {today_str}", "FII_DII_FLOWS")
+                    self.state.record_published(fii_key, f"FII/DII ACTIVITY – {trade_date}", "FII_DII_FLOWS")
                     self.fii_posted_today = True
             except Exception as e:
                 logger.debug(f"FII/DII fetch routine: {e}")
