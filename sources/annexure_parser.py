@@ -2,14 +2,16 @@ try:
     import pdfplumber
 except ImportError:
     pdfplumber = None
+import os
 import io
 import re
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Any
 from curl_cffi import requests
 import pymupdf
 
 logger = logging.getLogger(__name__)
+logging.getLogger("pdfminer").setLevel(logging.ERROR)
 
 class AnnexureParser:
     @staticmethod
@@ -21,7 +23,7 @@ class AnnexureParser:
         return text
 
     @staticmethod
-    def extract_annexure_bullets(pdf_url: str, session: requests.Session) -> Tuple[str, List[str]]:
+    def extract_annexure_bullets(pdf_url: str, session: Optional[Any] = None) -> Tuple[str, List[str]]:
         """
         Downloads a SEBI Regulation 30 filing PDF or Press Release and extracts:
         (lead_summary, bullets)
@@ -34,18 +36,38 @@ class AnnexureParser:
             'Referer': 'https://www.bseindia.com/'
         }
 
+        pdf_bytes = None
+        # 1. Prioritize curl (instant < 0.5s, handles Akamai & chunked streams)
         try:
-            r = session.get(pdf_url, headers=headers, timeout=12)
-            if r.status_code != 200 or len(r.content) < 1000:
-                return "", []
+            import subprocess
+            ref = "https://www.bseindia.com/" if "bseindia" in pdf_url else "https://www.nseindia.com/"
+            curl_bin = "curl.exe" if os.name == "nt" else "curl"
+            cmd = [curl_bin, "-4", "-s", "-L", "-A", "Mozilla/5.0", "-e", ref, pdf_url]
+            res = subprocess.run(cmd, capture_output=True, timeout=8)
+            if res.returncode == 0 and len(res.stdout) > 1000:
+                pdf_bytes = res.stdout
+        except Exception:
+            pass
 
-            pdf_bytes = r.content
+        # 2. Fallback to session
+        if not pdf_bytes and session:
+            try:
+                r = session.get(pdf_url, headers=headers, timeout=5)
+                if r.status_code == 200 and len(r.content) > 1000:
+                    pdf_bytes = r.content
+            except Exception:
+                pass
+
+        if not pdf_bytes:
+            return "", []
+
+        try:
             lead_summary = ""
             bullets = []
 
             # Read text with pymupdf
             doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-            raw_pages = [AnnexureParser.clean_text(doc[i].get_text()) for i in range(min(5, len(doc)))]
+            raw_pages = [AnnexureParser.clean_text(doc[i].get_text()) for i in range(min(18, len(doc)))]
             raw_full = "\n".join(raw_pages)
             full = re.sub(r'\s+', ' ', raw_full)
 
@@ -97,6 +119,111 @@ class AnnexureParser:
                 if len(b_list) >= 2:
                     return lead, b_list
 
+            # 0.01 CAPACITY EXPANSION / CAPEX (Kajaria style)
+            if "expansion of production capacity" in full.lower() or "details regarding expansion" in full.lower():
+                b_list = []
+                lead = "Capacity expansion approval:"
+                m_plant = re.search(r'capacity of\s+([A-Za-z0-9\s\(\)]+?Plant)', full, re.I)
+                if m_plant:
+                    lead = f"Capacity expansion at {m_plant.group(1).strip()}:"
+                m_curr = re.search(r'existing capacity\s+([0-9.]+\s*[A-Za-z]+)', full, re.I)
+                if m_curr:
+                    b_list.append(f"Existing Capacity: {m_curr.group(1).strip()}")
+                m_prop = re.search(r'proposed capacity addition\s+([0-9.]+\s*[A-Za-z]+)', full, re.I)
+                if m_prop:
+                    b_list.append(f"Proposed Addition: {m_prop.group(1).strip()}")
+                m_inv = re.search(r'(?:investment required|estimated investment of)\s*(?:Rs\.?|INR|₹)?\s*([0-9,]+(?:\.\d+)?\s*(?:crores?|cr)?)', full, re.I)
+                if m_inv:
+                    b_list.append(f"Investment: INR {m_inv.group(1).strip()}")
+                m_time = re.search(r'expected to be completed by\s+([A-Za-z]+\s+\d{4})', full, re.I)
+                if m_time:
+                    b_list.append(f"Target Completion: {m_time.group(1).strip()}")
+                if len(b_list) >= 2:
+                    return lead, b_list
+
+            # 0.02 CHANGE IN DIRECTORATE / KEY MANAGEMENT (Fluidomat style)
+            if "change in directorate" in full.lower() or "change in designation" in full.lower() or "appointment of whole-time director" in full.lower() or "appointment of cheif financial officer" in full.lower():
+                b_list = []
+                for p_txt in raw_pages:
+                    lines = p_txt.splitlines()
+                    for idx, line in enumerate(lines[:10]):
+                        m = re.match(r'^[A-Z]\.\s+(?:Appointment|Change|change|Resignation|Re-appointment).*?(Mrs?\.|Ms\.|Dr\.|Shri\s+[A-Za-z\s]+|[A-Z][a-z]+\s+[A-Z][a-z]+)', line, re.I)
+                        if m:
+                            full_clause = line
+                            for next_l in lines[idx+1:idx+5]:
+                                full_clause += " " + next_l.strip()
+                                if ":" in next_l or "reason for change" in next_l.lower():
+                                    break
+                            clean_clause = re.sub(r'\s+', ' ', full_clause)
+                            clean_clause = re.sub(r'^[A-Z]\.\s+', '', clean_clause)
+                            clean_clause = re.sub(r'\(DIN:[^\)]+\)', '', clean_clause)
+                            clean_clause = re.sub(r':.*$', '', clean_clause).strip()
+                            clean_clause = re.sub(r'as an additional director and further\s+', '', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'of the Company\s+', '', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'Whole-time Director designated as\s+', '', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'till the remaining part of (?:his|her) tenure\s+', '', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'w\.e\.f\.\s*', 'from ', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'Change in Designation of\s+', '', clean_clause, flags=re.I)
+                            clean_clause = re.sub(r'change in the designation of\s+', '', clean_clause, flags=re.I)
+
+                            m_app = re.match(r'Appointment of\s+(.+?)\s+as\s+(.+)', clean_clause, re.I)
+                            if m_app:
+                                clean_clause = f"{m_app.group(1).strip()} appointed as {m_app.group(2).strip()}"
+                            m_red = re.match(r'([A-Za-z\s.]+?)\s+from\s+(.+?)\s+to\s+(.+)', clean_clause, re.I)
+                            if m_red and "redesignated" not in clean_clause.lower() and "appointed" not in clean_clause.lower():
+                                clean_clause = f"{m_red.group(1).strip()} redesignated from {m_red.group(2).strip()} to {m_red.group(3).strip()}"
+
+                            clean_clause = re.sub(r'[,;:\-\s]+$', '', clean_clause).strip()
+                            if len(clean_clause) > 20:
+                                b_list.append(clean_clause)
+                            break
+                if len(b_list) >= 1:
+                    return "Board of Directors meeting decisions:", b_list
+
+            # 0.03 FINANCIAL RESULTS / EARNINGS SCORECARD (Kajaria / Damodar style)
+            if ("total sales" in full.lower() or "revenue from operations" in full.lower() or "income from operations" in full.lower()) and ("ebitda" in full.lower() or "profit after tax" in full.lower() or "net profit" in full.lower()):
+                scorecard_bullets = []
+                if pdfplumber:
+                    try:
+                        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                            for page in pdf.pages:
+                                p_text = page.extract_text() or ""
+                                p_lower = p_text.lower()
+                                if "income statement" in p_lower or ("financial highlights" in p_lower and "total sales" in p_lower) or ("results for" in p_lower and "sales" in p_lower):
+                                    lines = p_text.splitlines()
+                                    for l in lines:
+                                        if re.search(r'^(?:profit\s+after\s+tax|net\s+profit)', l, re.I):
+                                            nums = re.findall(r'[\d,]+(?:\.\d+)?%?', l)
+                                            if len(nums) >= 4:
+                                                pat_val = nums[1]
+                                                yoy = nums[-1] if "%" in nums[-1] else (nums[-2] if "%" in nums[-2] else "")
+                                                arrow = "↑" if not yoy.startswith("-") else "↓"
+                                                scorecard_bullets.append(f"Net Profit: ₹{pat_val} Cr {arrow}{yoy} YoY")
+                                        elif re.search(r'^(?:total\s+sales|revenue\s+from\s+operations)', l, re.I):
+                                            nums = re.findall(r'[\d,]+(?:\.\d+)?%?', l)
+                                            if len(nums) >= 4:
+                                                rev_val = nums[1]
+                                                yoy = nums[-1] if "%" in nums[-1] else (nums[-2] if "%" in nums[-2] else "")
+                                                arrow = "↑" if not yoy.startswith("-") else "↓"
+                                                scorecard_bullets.append(f"Revenue: ₹{rev_val} Cr {arrow}{yoy} YoY")
+                                        elif re.search(r'^ebitda\b', l, re.I) and "margin" not in l.lower():
+                                            nums = re.findall(r'[\d,]+(?:\.\d+)?%?', l)
+                                            if len(nums) >= 4:
+                                                eb_val = nums[1]
+                                                yoy = nums[-1] if "%" in nums[-1] else (nums[-2] if "%" in nums[-2] else "")
+                                                arrow = "↑" if not yoy.startswith("-") else "↓"
+                                                scorecard_bullets.append(f"EBITDA: ₹{eb_val} Cr {arrow}{yoy} YoY")
+                                        elif re.search(r'^ebitda\s+margin', l, re.I):
+                                            nums = re.findall(r'[\d.]+(?:%)?', l)
+                                            if len(nums) >= 2:
+                                                scorecard_bullets.append(f"EBITDA Margin: {nums[1]} vs {nums[3] if len(nums)>=4 else nums[2]} YoY")
+                                    if len(scorecard_bullets) >= 3:
+                                        order_map = {"Net Profit": 0, "Revenue": 1, "EBITDA:": 2, "EBITDA Margin": 3}
+                                        scorecard_bullets.sort(key=lambda x: next((order_map[k] for k in order_map if x.startswith(k)), 9))
+                                        return "Financial Performance Highlights:", scorecard_bullets
+                    except Exception as sce:
+                        logger.debug(f"Scorecard table parse error: {sce}")
+
             # 0.1 MOU / BUSINESS COLLABORATION
             if re.search(r'memorandum of understanding|mou with|collaboration agreement', full, re.I):
                 m_party = re.search(r'(?:\(?MoU\)?\s+with|agreement with)\s+([A-Za-z0-9\s&.-]+?(?:PRIVATE LIMITED|LIMITED|LLP|INC))', norm_full, re.I)
@@ -111,6 +238,7 @@ class AnnexureParser:
                 raw_b = re.findall(r'[●•]\s*([^●•\n]+(?:\n[^\n●•]+)?)', annex_text)
                 for b in raw_b:
                     cb = re.sub(r'\s+', ' ', b).strip()
+                    cb = re.sub(r'[,;:\-\s]+$', '', cb)
                     if len(cb) > 25 and not any(k in cb.lower() for k in [
                         "registered office", "cin:", "telangana", "p.j. towers", "email", "phone",
                         "mentioned subject", "with reference to", "not applicable", "particulars"
@@ -432,6 +560,7 @@ class AnnexureParser:
                 if any(bad in b_lower for bad in bad_keywords):
                     continue
                 seen.add(b_lower)
+                b_clean = re.sub(r'[,;:\-\s]+$', '', b_clean)
                 cleaned_bullets.append(b_clean)
 
             return lead_summary, cleaned_bullets[:6]
