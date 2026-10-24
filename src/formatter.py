@@ -183,21 +183,30 @@ class Formatter:
         if re.search(r"[\(\[\{/\\&]\s*$", clean_end):
             return False
 
-        # 4. Reject generic paperwork boilerplate placeholders that contain no metrics or facts
-        boilerplate_placeholders = [
-            r"^\s*•?\s*as per the attachment\.?\s*$",
-            r"^\s*•?\s*please refer the enclosed disclosure\.?\s*$",
-            r"^\s*•?\s*please find attached (?:intimation|document)\.?\s*$",
-            r"^\s*•?\s*disclosures? under regulation 30.*are being attached\.?\s*$",
-            r"^\s*•?\s*the enclosed file contains the details\.?\s*$",
-            r"^\s*•?\s*approved the items mentioned in the attached document\.?\s*$"
-        ]
         body_text = re.sub(r"<[^>]+>", "", text).strip()
         lines = [l.strip() for l in body_text.splitlines() if l.strip()]
-        if len(lines) <= 2:
-            last_line = lines[-1].lower()
-            if any(re.match(pat, last_line) for pat in boilerplate_placeholders):
-                return False
+        
+        # 4. Must have at least a headline AND substantive body content (No single-line headline dumps)
+        if len(lines) < 2:
+            return False
+
+        # 5. Reject generic paperwork boilerplate placeholders
+        boilerplate_patterns = [
+            r"as per (?:the )?attachment",
+            r"please refer (?:to )?(?:the )?enclosed",
+            r"please find attached",
+            r"disclosures? under regulation 30.*attached",
+            r"enclosed file contains",
+            r"approved the items mentioned in the attached",
+            r"kindly take the same on (?:your )?records?",
+            r"take the above on record"
+        ]
+        substantive_lines = []
+        for l in lines[1:]: # skip headline
+            if not any(re.search(pat, l, re.IGNORECASE) for pat in boilerplate_patterns):
+                substantive_lines.append(l)
+        if not substantive_lines:
+            return False
 
         return True
 
