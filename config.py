@@ -8,7 +8,7 @@ load_dotenv()
 
 # Telegram Settings
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "").strip()
+TELEGRAM_CHANNEL_ID = (os.getenv("TELEGRAM_CHANNEL_ID", "") or os.getenv("TELEGRAM_CHAT_ID", "")).strip()
 
 # Operating Schedule (IST: Asia/Kolkata) - 24/7 Continuous Mode
 TIMEZONE = ZoneInfo("Asia/Kolkata")

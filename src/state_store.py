@@ -10,6 +10,7 @@ import os
 import json
 import sqlite3
 import subprocess
+import tempfile
 import logging
 from typing import Set, Dict, Any, List
 
@@ -109,16 +110,27 @@ class StateStore:
 
     def save_state(self, sync_git: bool = False):
         """Save state to SQLite and JSON snapshot. Optionally sync to git in cloud."""
+        # Keep the complete ledger: slicing an unordered set discards arbitrary recent IDs.
+        payload = {
+            "seen_ids": sorted(self.seen_ids),
+            "semantic_hashes": sorted(self.semantic_hashes),
+            "event_cooldowns": dict(sorted(self.event_cooldowns.items())),
+            "published_records": self.published_records[-200:],
+        }
+        temp_path = None
         try:
-            with open(self.json_state_path, "w", encoding="utf-8") as f:
-                json.dump({
-                    "seen_ids": list(self.seen_ids)[-2000:],
-                    "semantic_hashes": list(self.semantic_hashes)[-1000:],
-                    "event_cooldowns": {k: v for k, v in list(self.event_cooldowns.items())[-500:]},
-                    "published_records": self.published_records[-200:]
-                }, f, indent=2)
-        except Exception as e:
-            logger.error(f"Failed to save JSON state: {e}")
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=os.path.dirname(self.json_state_path),
+                prefix=".state-", suffix=".json", delete=False
+            ) as handle:
+                temp_path = handle.name
+                json.dump(payload, handle, indent=2)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, self.json_state_path)
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                os.unlink(temp_path)
 
         if sync_git and os.getenv("GITHUB_ACTIONS") == "true":
             self._sync_git_state()

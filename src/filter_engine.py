@@ -73,7 +73,7 @@ class FilterEngine:
                     data = json.load(f)
                     raw_patterns = data.get("drop_patterns", [])
                     if raw_patterns:
-                        self.drop_patterns = [re.compile(p, re.IGNORECASE) for p in raw_patterns]
+                        self.drop_patterns = [re.compile(p, re.IGNORECASE) for p in dict.fromkeys(DEFAULT_DROP_PATTERNS + raw_patterns)]
                         FilterEngine._compiled_drop_patterns = self.drop_patterns
             except Exception as e:
                 logger.error(f"Error loading {self.config_path}: {e}")
@@ -216,6 +216,7 @@ class FilterEngine:
                 "recalled", "spotted", "actor", "firing incident", "why is market falling",
                 "why are stocks falling", "stocks to buy today", "crypto", "wallet breach",
                 "celebrity", "dating", "horoscope",
+                "stocks among top gainers", "stocks among top losers",
                 "volume gainer", "volume shocker", "volume breakout", "high trading volume",
                 "high volume buzzing", "most active stocks", "most active shares",
                 "taking stock", "sectoral update", "hourly performance", "broad-based indices",
@@ -457,8 +458,16 @@ class FilterEngine:
                 if len(bullets) >= 4:
                     break
 
-            if not bullets:
-                bullets.append(self._truncate_clean(title, 140))
+            # A repeated headline is not analyst rationale.
+            bullets = list(dict.fromkeys(
+                b for b in bullets if b.casefold().strip(".") != title.casefold().strip(".")
+            ))
+            if not target and len(bullets) < 2:
+                return {
+                    "publish": False, "materiality_score": 0, "category": category,
+                    "rejection_reason": "BROKER_NOTE_LACKS_TARGET_OR_TWO_RATIONALES",
+                    "headline": "", "summary_points": [],
+                }
 
             return {
                 "publish": True,

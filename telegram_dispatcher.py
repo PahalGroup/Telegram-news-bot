@@ -53,7 +53,7 @@ class TelegramDispatcher:
         if not self.is_live:
             # Standalone / Dry Run mode: Print directly to console in clear wire format
             print(f"\n[WIRE DISPATCH] >>>\n{formatted_text}\n{'='*50}")
-            return True
+            return False
 
         # Send via Telegram Bot API
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"

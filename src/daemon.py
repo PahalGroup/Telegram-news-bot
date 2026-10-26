@@ -4,12 +4,12 @@ SINGLE source of truth for GitHub Actions production.
 
 Sub-15-Second Continuous Polling Loop:
 - Runs for configurable duration per workflow run (default: 54 min)
-- Polls upstream endpoints concurrently (BSE, NSE, RBI, News RSS, Liveblog) every 12s
+- Polls upstream endpoints sequentially, with a 12-second pause between cycles
 - Stage 1: Deterministic Hard Filter (src/filter_engine.py)
 - Stage 2: Few-Shot Calibrated AI Materiality Gate
 - Pixel-Accurate Formatter (Telegram HTML)
 - Persistent state management via src.state_store
-- Zero-gap handoff: Triggers workflow_dispatch before exiting cleanly
+- Workflow-owned handoff after state persistence; startup gaps remain possible
 """
 
 import os
@@ -17,6 +17,8 @@ import sys
 import time
 import argparse
 import logging
+import tempfile
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 
@@ -53,9 +55,19 @@ class RealtimeDaemon:
         self.shift_seconds = shift_seconds
         self.start_time = time.time()
 
-        self.state = StateStore()
-        self.filter_engine = FilterEngine()
         self.dispatcher = TelegramDispatcher()
+        if not dry_run and not self.dispatcher.is_live:
+            raise RuntimeError("Live mode requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID.")
+        # Dry runs must never consume the production dedup ledger.
+        self._dry_state_dir = tempfile.TemporaryDirectory(prefix="market-wire-dry-") if dry_run else None
+        if self._dry_state_dir:
+            self.state = StateStore(
+                db_path=os.path.join(self._dry_state_dir.name, "market_wire.db"),
+                json_state_path=os.path.join(self._dry_state_dir.name, "daemon_state.json"),
+            )
+        else:
+            self.state = StateStore()
+        self.filter_engine = FilterEngine()
 
         # Ingest Sources
         self.bse = BSEFetcher()
@@ -69,37 +81,6 @@ class RealtimeDaemon:
         self.cycle_count = 0
         self.total_dispatched = 0
         self.total_errors = 0
-
-    def trigger_github_workflow_dispatch(self):
-        """Zero-gap handoff: Dispatch next runner via GitHub REST API."""
-        gh_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT") or os.getenv("BOT_PAT")
-        repo = os.getenv("GITHUB_REPOSITORY", "PahalGroup/Telegram-news-bot")
-        workflow_id = "corn.yml"
-
-        if not gh_token:
-            logger.info("No GITHUB_TOKEN present; skipping self-relay workflow dispatch.")
-            return
-
-        import urllib.request
-        url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_id}/dispatches"
-        req = urllib.request.Request(
-            url,
-            data=b'{"ref":"main"}',
-            headers={
-                "Authorization": f"Bearer {gh_token}",
-                "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "PahalMarketWireDaemon"
-            },
-            method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                if resp.status in [200, 204]:
-                    logger.info("Successfully triggered next GitHub workflow dispatch for zero-gap handoff!")
-                else:
-                    logger.warning(f"Workflow dispatch status: {resp.status}")
-        except Exception as e:
-            logger.warning(f"Self-relay trigger encountered: {e}")
 
     def poll_all_sources(self) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
@@ -208,9 +189,6 @@ class RealtimeDaemon:
         if ist_now.weekday() in (5, 6):
             return
 
-        if self.fii_posted_today:
-            return
-
         today_str = ist_now.strftime("%d-%b-%Y").upper()
         fii_key = f"FII_DII_{today_str}"
         if self.state.is_seen(fii_key):
@@ -221,23 +199,33 @@ class RealtimeDaemon:
             try:
                 fii_data = self.nse.fetch_fii_dii() or []
                 if fii_data and isinstance(fii_data, list) and len(fii_data) >= 2:
-                    data_date = fii_data[0].get("date", "").upper()
-                    fii_net = 0.0
-                    dii_net = 0.0
+                    flows = {}
                     for entry in fii_data:
-                        cat = entry.get("category", "").upper()
-                        raw_net = str(entry.get("netValue", 0)).replace(",", "")
-                        net = float(raw_net) if raw_net else 0.0
-                        if "FII" in cat or "FPI" in cat:
-                            fii_net = net
-                        elif "DII" in cat:
-                            dii_net = net
-
-                    trade_date = data_date or today_str
+                        if str(entry.get("date", "")).upper() != today_str:
+                            continue
+                        cat = str(entry.get("category", "")).upper()
+                        raw_net = str(entry.get("netValue", "")).replace(",", "").strip()
+                        try:
+                            net = Decimal(raw_net)
+                        except InvalidOperation:
+                            continue
+                        if not net.is_finite():
+                            continue
+                        key = "FII" if ("FII" in cat or "FPI" in cat) else ("DII" if "DII" in cat else None)
+                        if key:
+                            flows[key] = net
+                    if set(flows) != {"FII", "DII"}:
+                        logger.warning("FII/DII data missing, invalid, or stale; waiting for today's figures.")
+                        return
+                    fii_net, dii_net = flows["FII"], flows["DII"]
+                    trade_date = today_str
                     formatted_msg = Formatter.format_fii_dii(trade_date, fii_net, dii_net)
                     logger.info(f"Posting daily FII/DII flows for {trade_date}...")
                     if not self.dry_run:
-                        self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
+                        if not self.dispatcher.send_message(formatted_msg, parse_mode="HTML"):
+                            self.total_errors += 1
+                            logger.error("FII/DII delivery failed; leaving it eligible for retry.")
+                            return
                     else:
                         print(f"\n[DRY RUN FII/DII DISPATCH]:\n{formatted_msg}\n")
                     self.state.mark_seen(fii_key, "NSE_FLOWS")
@@ -321,13 +309,18 @@ class RealtimeDaemon:
             # Publish to Telegram
             if not self.dry_run:
                 try:
-                    Formatter.execute_with_retry(
+                    delivery = Formatter.execute_with_retry(
                         self.dispatcher.send_message,
                         formatted_post,
                         parse_mode="HTML"
                     )
+                    if not delivery:
+                        self.total_errors += 1
+                        logger.error("Telegram delivery failed for %s; leaving it eligible for retry.", item_id)
+                        continue
                     logger.info(f"Published: {eval_data.get('headline')}")
                 except Exception as e:
+                    self.total_errors += 1
                     logger.error(f"Failed to dispatch to Telegram: {e}")
                     continue
             else:
@@ -336,8 +329,8 @@ class RealtimeDaemon:
             # Persist state and cooldown
             fingerprint = candidate.get("fingerprint")
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=fingerprint)
-            self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
             self.state.record_cooldown(norm_company, category)
+            self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
             dispatched_count += 1
 
         # Check FII/DII routine
@@ -347,40 +340,27 @@ class RealtimeDaemon:
         return dispatched_count
 
     def run_daemon(self):
-        """Main continuous daemon loop."""
-        logger.info(f"Starting Production Daemon (Duration: {self.shift_seconds}s, Poll: {self.poll_interval}s, DryRun: {self.dry_run})...")
-        relay_triggered = False
-
-        while True:
-            elapsed = time.time() - self.start_time
-            if elapsed >= self.shift_seconds:
-                logger.info(f"Shift duration of {self.shift_seconds}s reached. Clean shutdown.")
-                break
-
-            # Zero-gap handoff: Trigger next workflow run 2 minutes before shift ends
-            if elapsed >= (self.shift_seconds - 120) and not relay_triggered:
-                logger.info("Zero-Gap Handoff Window: Triggering next GitHub workflow runner...")
-                self.trigger_github_workflow_dispatch()
-                relay_triggered = True
-
-            try:
-                count = self.process_cycle()
-                if count > 0:
-                    logger.info(f"Cycle {self.cycle_count}: dispatched {count} items (total: {self.total_dispatched})")
-            except Exception as e:
-                logger.error(f"Error during daemon cycle {self.cycle_count}: {e}")
-                self.total_errors += 1
-
-            time.sleep(self.poll_interval)
-
-        # Trigger relay at end if not already done
-        if not relay_triggered:
-            logger.info("End-of-shift relay trigger...")
-            self.trigger_github_workflow_dispatch()
-
-        # Save and persist state upon exit
-        self.state.save_state(sync_git=True)
-        logger.info(f"Daemon finished. Cycles: {self.cycle_count}, Dispatched: {self.total_dispatched}, Errors: {self.total_errors}")
+        """Run one shift. The workflow persists state before dispatching its successor."""
+        logger.info("Starting daemon: duration=%ss dry_run=%s", self.shift_seconds, self.dry_run)
+        try:
+            while time.time() - self.start_time < self.shift_seconds:
+                try:
+                    count = self.process_cycle()
+                    if count:
+                        logger.info("Cycle %s: dispatched %s items", self.cycle_count, count)
+                except Exception:
+                    logger.exception("Error during daemon cycle %s", self.cycle_count)
+                    self.total_errors += 1
+                self.state.save_state(sync_git=False)
+                remaining = self.shift_seconds - (time.time() - self.start_time)
+                if remaining > 0:
+                    time.sleep(min(self.poll_interval, remaining))
+        finally:
+            self.state.save_state(sync_git=False)
+        logger.info("Daemon finished. Cycles: %s, Dispatched: %s, Errors: %s",
+                    self.cycle_count, self.total_dispatched, self.total_errors)
+        if self.total_errors:
+            raise RuntimeError("Daemon encountered errors; inspect the run log.")
 
 
 def main():
