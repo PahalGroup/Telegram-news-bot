@@ -14,6 +14,20 @@ class AuditTests(unittest.TestCase):
     def setUp(self):
         self.engine = FilterEngine(config_path="/nonexistent/rules.json")
 
+    def test_rbi_routine_auction_results_are_not_macro_news(self):
+        from sources.rbi_fetcher import RBIFetcher
+        xml = b"""<rss><channel>
+        <item><title>Treasury Bills: Full Auction Result</title></item>
+        <item><title>Result of Yield/Price Based Auction of State Government Securities</title></item>
+        <item><title>Monetary Policy Statement: repo rate revised</title></item>
+        </channel></rss>"""
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = xml
+        with patch("sources.rbi_fetcher.urllib.request.urlopen", return_value=response):
+            items = RBIFetcher().fetch_press_releases()
+        self.assertEqual(len(items), 1)
+        self.assertIn("Monetary Policy", items[0]["title"])
+
     def test_pdf_form_labels_and_contact_details_are_not_news(self):
         for value in [
             "Name of the entity awarding the order(s)/contract(s)",
@@ -131,6 +145,24 @@ class AuditTests(unittest.TestCase):
 class PipelineAuditTests(unittest.TestCase):
     setUp = fixtures.ReliabilityTests.setUp
     daemon = fixtures.ReliabilityTests.daemon
+    def test_pending_source_does_not_block_completed_source(self):
+        from concurrent.futures import Future
+        from src.daemon import RealtimeDaemon
+        daemon = self.daemon()
+        for name in ("bse", "nse", "rbi", "news", "liveblog"):
+            setattr(daemon, name, MagicMock())
+        pending = Future()
+        done = Future()
+        done.set_result([{"symbol": "ABC", "seq_id": "123", "desc": "Contract awarded"}])
+        daemon._source_pool = MagicMock()
+        daemon._source_pending = {name: pending for name in ("bse", "rbi", "news", "liveblog")}
+        daemon._source_pending["nse"] = done
+        items = RealtimeDaemon.poll_all_sources(daemon)
+        self.assertEqual([item["id"] for item in items], ["NSE_ABC_123"])
+        self.assertNotIn("nse", daemon._source_pending)
+        self.assertIs(daemon._source_pending["news"], pending)
+        daemon._source_pool.submit.assert_not_called()
+
     def test_duplicate_content_new_source_id_is_blocked(self):
         daemon = self.daemon()
         self.assertEqual(daemon.process_cycle(), 1)

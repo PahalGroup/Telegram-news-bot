@@ -2,9 +2,9 @@
 Production Daemon: Real-Time Continuous Polling Engine (src/daemon.py)
 SINGLE source of truth for GitHub Actions production.
 
-Sub-15-Second Continuous Polling Loop:
+Concurrent polling loop (not a latency guarantee):
 - Runs for configurable duration per workflow run (default: 54 min)
-- Polls upstream endpoints sequentially, with a 12-second pause between cycles
+- Polls upstream endpoints concurrently, with a 12-second pause between cycles
 - Stage 1: Deterministic Hard Filter (src/filter_engine.py)
 - Stage 2: Few-Shot Calibrated AI Materiality Gate
 - Pixel-Accurate Formatter (Telegram HTML)
@@ -84,22 +84,35 @@ class RealtimeDaemon:
         self.total_dispatched = 0
         self.total_errors = 0
 
-    def poll_all_sources(self) -> List[Dict[str, Any]]:
+    def poll_all_sources(self, wait_sources=False) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
         raw_items = []
-        # Independent source requests overlap; sessions remain separate.
-        with ThreadPoolExecutor(max_workers=5) as pool:
-            futures = {
-                "bse": pool.submit(self.bse.fetch_announcements, skip_pdf=True),
-                "nse": pool.submit(self.nse.fetch_announcements),
-                "rbi": pool.submit(self.rbi.fetch_press_releases),
-                "news": pool.submit(self.news.fetch_all_feeds),
-                "liveblog": pool.submit(self.liveblog.fetch_live_flashes),
-            }
+        # Keep one request per adapter in flight. Drain only completed requests;
+        # a slow feed must not hold up already available exchange announcements.
+        if not hasattr(self, "_source_pool"):
+            self._source_pool = ThreadPoolExecutor(max_workers=5)
+            self._source_pending = {}
+        calls = {
+            "bse": lambda: self.bse.fetch_announcements(skip_pdf=True),
+            "nse": self.nse.fetch_announcements,
+            "rbi": self.rbi.fetch_press_releases,
+            "news": self.news.fetch_all_feeds,
+            "liveblog": self.liveblog.fetch_live_flashes,
+        }
+        for name, call in calls.items():
+            if name not in self._source_pending:
+                self._source_pending[name] = self._source_pool.submit(call)
+        futures = self._source_pending.copy()
+        if wait_sources:
+            from concurrent.futures import wait
+            wait(futures.values())
+        completed = {name for name, future in futures.items() if future.done()}
+        for name in completed:
+            del self._source_pending[name]
 
         # 1. BSE Corporate Announcements
         try:
-            bse_items = futures["bse"].result() or []
+            bse_items = (futures["bse"].result() or []) if "bse" in completed else []
             for it in bse_items:
                 raw_items.append({
                     "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
@@ -112,14 +125,15 @@ class RealtimeDaemon:
                     "source_url": it.get("pdf_url"),
                     "published_at": it.get("news_dt"),
                 })
-            logger.info(f"[BSE] Fetched {len(bse_items)} items")
+            if "bse" in completed:
+                logger.info(f"[BSE] Fetched {len(bse_items)} items")
         except Exception as e:
             logger.warning(f"BSE poll error: {e}")
             self.total_errors += 1
 
         # 2. NSE Corporate Filings
         try:
-            nse_items = futures["nse"].result() or []
+            nse_items = (futures["nse"].result() or []) if "nse" in completed else []
             for it in nse_items:
                 symbol = it.get("symbol", "")
                 subject = it.get("desc", "") or it.get("subject", "")
@@ -137,14 +151,15 @@ class RealtimeDaemon:
                     "description": attchmnt_text,
                     "pdf_url": pdf_url,
                 })
-            logger.info(f"[NSE] Fetched {len(nse_items)} items")
+            if "nse" in completed:
+                logger.info(f"[NSE] Fetched {len(nse_items)} items")
         except Exception as e:
             logger.warning(f"NSE poll error: {e}")
             self.total_errors += 1
 
         # 3. RBI Press Releases
         try:
-            rbi_items = futures["rbi"].result() or []
+            rbi_items = (futures["rbi"].result() or []) if "rbi" in completed else []
             for it in rbi_items:
                 raw_items.append({
                     "id": "RBI_" + fingerprint("", it.get("link") or it.get("title", "")),
@@ -152,16 +167,18 @@ class RealtimeDaemon:
                     "company": "RESERVE BANK OF INDIA",
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
-                    "pdf_url": it.get("link"),
+                    "source_url": it.get("link"),
+                    "published_at": it.get("pub_date"),
                 })
-            logger.info(f"[RBI] Fetched {len(rbi_items)} items")
+            if "rbi" in completed:
+                logger.info(f"[RBI] Fetched {len(rbi_items)} items")
         except Exception as e:
             logger.warning(f"RBI poll error: {e}")
             self.total_errors += 1
 
         # 4. News RSS Wires (Economic Times, Moneycontrol, Mint, BusinessLine)
         try:
-            news_items = futures["news"].result() or []
+            news_items = (futures["news"].result() or []) if "news" in completed else []
             for it in news_items:
                 raw_items.append({
                     "id": f"NEWS_{it.get('link', it.get('title', '')[:40])}",
@@ -171,14 +188,15 @@ class RealtimeDaemon:
                     "description": it.get("description", ""),
                     "source_url": it.get("link", ""),
                 })
-            logger.info(f"[NEWS] Fetched {len(news_items)} items")
+            if "news" in completed:
+                logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
             logger.warning(f"News poll error: {e}")
             self.total_errors += 1
 
         # 5. LiveBlog Breaking (Moneycontrol real-time flashes)
         try:
-            lb_items = futures["liveblog"].result() or []
+            lb_items = (futures["liveblog"].result() or []) if "liveblog" in completed else []
             for it in lb_items:
                 raw_items.append({
                     "id": f"LIVE_{it.get('id', it.get('title', '')[:30])}",
@@ -188,7 +206,8 @@ class RealtimeDaemon:
                     "description": it.get("description", ""),
                     "source_url": it.get("link", ""),
                 })
-            logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
+            if "liveblog" in completed:
+                logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
         except Exception as e:
             logger.warning(f"LiveBlog poll error: {e}")
             self.total_errors += 1
@@ -299,10 +318,10 @@ class RealtimeDaemon:
                 ready.append(item)
         return ready
 
-    def process_cycle(self) -> int:
+    def process_cycle(self, wait_sources=False) -> int:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
         self.cycle_count += 1
-        items = self.prepare_items(self.poll_all_sources())
+        items = self.prepare_items(self.poll_all_sources(wait_sources=True) if wait_sources else self.poll_all_sources())
         dispatched_count = 0
 
         for it in items:
@@ -404,6 +423,8 @@ class RealtimeDaemon:
                 if remaining > 0:
                     time.sleep(min(self.poll_interval, remaining))
         finally:
+            if getattr(self, "_source_pool", None):
+                self._source_pool.shutdown(wait=True, cancel_futures=True)
             if getattr(self, "_pdf_pool", None):
                 self._pdf_pool.shutdown(wait=True, cancel_futures=True)
             self.state.save_state(sync_git=False)
@@ -423,7 +444,7 @@ def main():
     daemon = RealtimeDaemon(dry_run=args.dry_run, shift_seconds=args.duration)
     if args.once:
         logger.info("Executing single pass (--once)...")
-        count = daemon.process_cycle()
+        count = daemon.process_cycle(wait_sources=True)
         daemon.state.save_state(sync_git=False)
         logger.info(f"Single pass complete. Dispatched {count} announcements.")
     else:
@@ -432,3 +453,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

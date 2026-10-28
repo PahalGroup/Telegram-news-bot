@@ -25,7 +25,7 @@ def main():
     # If invoked by GitHub Actions without arguments, run the continuous daemon shift
     daemon = RealtimeDaemon(dry_run=args.dry_run, shift_seconds=args.duration)
     if args.once:
-        count = daemon.process_cycle()
+        count = daemon.process_cycle(wait_sources=True)
         daemon.state.save_state(sync_git=False)
         print(f"[✓] Single cycle complete. Dispatched {count} announcements.")
     else:
@@ -33,3 +33,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

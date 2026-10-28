@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import urllib.request
 import xml.etree.ElementTree as ET
 import ssl
@@ -136,13 +137,8 @@ class NewsFetcher:
         return items
 
     def fetch_all_feeds(self) -> List[Dict[str, Any]]:
-        all_items = []
-        for f in NEWS_FEEDS:
-            feed_items = self.fetch_feed(f)
-            all_items.extend(feed_items)
-        
-        # Include fast live web wires
-        live_items = self.fetch_live_web_wires()
-        all_items.extend(live_items)
-        
-        return all_items
+        # RSS requests use independent urllib connections. Untimestamped category
+        # page headings are not live flashes and cannot establish freshness.
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            batches = pool.map(self.fetch_feed, NEWS_FEEDS)
+            return [item for batch in batches for item in batch]

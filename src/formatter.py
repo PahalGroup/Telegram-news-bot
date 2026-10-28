@@ -38,7 +38,7 @@ class Formatter:
         data = dict(eval_data)
         points, seen = [], {clean(data.get("headline", "")).casefold().rstrip(".")}
         for point in data.get("summary_points", []):
-            value = clean(point).lstrip("•-▪►* ")
+            value = clean(point).lstrip("•-▪►* \ufe0f")
             key = value.casefold().rstrip(".")
             if not value or key in seen or PLACEHOLDER.search(value):
                 continue
@@ -258,3 +258,4 @@ class Formatter:
                 else:
                     raise
         raise RuntimeError(f"Exceeded max retries ({max_retries}) for Telegram dispatch.")
+

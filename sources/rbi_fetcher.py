@@ -63,7 +63,9 @@ class RBIFetcher:
                         r"overnight variable rate repo",
                         r"overnight variable rate reverse repo",
                         r"auction of government of india dated securities",
-                        r"underwriting auction"
+                        r"underwriting auction",
+                        r"auction result",
+                        r"result of .*auction of state government"
                     ]
                     combined_check = f"{title} {desc}".lower()
                     if any(re.search(pat, combined_check) for pat in routine_patterns):
@@ -82,3 +84,4 @@ class RBIFetcher:
         except Exception as e:
             logger.error(f"Error fetching RBI press releases: {e}")
             return []
+

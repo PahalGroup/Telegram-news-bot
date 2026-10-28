@@ -494,7 +494,7 @@ class FilterEngine:
 
             bullets = []
             if desc and clean_title.lower() != desc.strip().lower():
-                raw_sentences = re.split(r'(?<=[.!?])\s+', desc)
+                raw_sentences = sentences(desc)
                 for s in raw_sentences:
                     cs = self._truncate_clean(s, 160)
                     if len(cs) > 25 and not any(k in cs.lower() for k in ["read more", "click here", "pfa", clean_title.lower()]):
@@ -741,3 +741,4 @@ class FilterEngine:
             "summary_points": [],
             "what_it_means": ""
         }
+
