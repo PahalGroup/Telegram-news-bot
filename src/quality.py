@@ -9,13 +9,15 @@ PLACEHOLDER = re.compile(
     r"kindly take|enclosed (?:herewith|file)|dear sir|"
     r"has informed (?:bse|the exchange)|pursuant to regulation|"
     r"reason for change.*appointment|removal.*death|"
-    r"monitoring agency report|dispatched via github", re.I
+    r"monitoring agency report|dispatched via github|investorrelations@|"
+    r"^CIN:|^name of the entity awarding|^significant terms and conditions|"
+    r"^whether |^time period by which|^broad consideration or size", re.I
 )
 ACTION = re.compile(
     r"\b(?:approved|approves|awarded|award|received|receives|secured|secures|"
     r"acquir\w*|acquis\w*|resign\w*|appoint\w*|commission\w*|invest\w*|"
     r"revenue|net profit|net loss|profit after tax|ebitda|dividend|"
-    r"loan|financ\w*|capacity|contract|agreement|order|rating|"
+    r"assumed charge|loan|financ\w*|capacity|contract|agreement|order|rating|"
     r"repo|auction|policy|tariff|tax|duty|stake|merger|buyback)\b", re.I
 )
 
@@ -28,7 +30,7 @@ def fingerprint(company, text):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 def substantive(text):
-    value = clean(text).lstrip("•-▪►* ")
+    value = clean(text).lstrip("•-▪►* \ufe0f")
     if not 25 <= len(value) <= 700 or PLACEHOLDER.search(value):
         return False
     if re.search(r"^(?:that |of |from |and |or |/|t &|re-)", value, re.I):
@@ -40,7 +42,7 @@ def substantive(text):
 def clean_points(points, headline=""):
     result, seen = [], {clean(headline).casefold()}
     for point in points:
-        value = clean(point).lstrip("•-▪►* ")
+        value = clean(point).lstrip("•-▪►* \ufe0f")
         key = value.casefold().rstrip(".")
         if substantive(value) and key not in seen:
             result.append(value)
@@ -50,6 +52,7 @@ def clean_points(points, headline=""):
 def sentences(text):
     # Protect common abbreviations and decimals before identifying sentence boundaries.
     text = clean(text)
-    protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Rs|Ltd)\.", r"\1<dot>", text)
+    protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Rs|Ltd|Ref|No)\.", r"\1<dot>", text)
     return [part.replace("<dot>", ".").strip() for part in
             re.split(r"(?<=[.!?])\s+(?=[A-Z])", protected) if part.strip()]
+

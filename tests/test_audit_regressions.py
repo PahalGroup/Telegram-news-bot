@@ -14,6 +14,25 @@ class AuditTests(unittest.TestCase):
     def setUp(self):
         self.engine = FilterEngine(config_path="/nonexistent/rules.json")
 
+    def test_pdf_form_labels_and_contact_details_are_not_news(self):
+        for value in [
+            "Name of the entity awarding the order(s)/contract(s)",
+            "Whether the order would fall within related party transactions?",
+            "CIN: ABC | Email: investorrelations@example.com | Web: example.com",
+        ]:
+            self.assertFalse(substantive(value))
+
+    def test_reference_abbreviation_does_not_split_claim(self):
+        from src.quality import sentences
+        value = "Letter of Intent received vide Ref. No. ABC/123 for 50 MW capacity."
+        self.assertEqual(sentences(value), [value])
+
+    def test_management_assumed_charge_is_substantive(self):
+        self.assertTrue(substantive("Ms Example assumed charge as Executive Director of the company."))
+
+    def test_variation_selector_does_not_bypass_fragment_filter(self):
+        self.assertFalse(substantive("▪️ that the company received an order for new equipment"))
+
     def test_full_claim_fingerprints_preserve_distinct_numbers_and_signs(self):
         self.assertNotEqual(fingerprint("ABC", "Profit -1.23 crore"), fingerprint("ABC", "Profit 1.23 crore"))
         self.assertNotEqual(fingerprint("ABC", "Order 1.23 crore"), fingerprint("ABC", "Order 12.3 crore"))
@@ -148,3 +167,4 @@ class PipelineAuditTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
