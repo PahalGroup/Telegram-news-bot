@@ -8,7 +8,7 @@ from src.quality import fingerprint, substantive
 from src.formatter import Formatter
 from src.filter_engine import FilterEngine
 from sources.annexure_parser import AnnexureParser
-from tests.test_reliability import ReliabilityTests
+from tests import test_reliability as fixtures
 
 class AuditTests(unittest.TestCase):
     def setUp(self):
@@ -109,7 +109,9 @@ class AuditTests(unittest.TestCase):
             evidence = AnnexureParser.extract_evidence(doc.tobytes())
         self.assertEqual(evidence, [])
 
-class PipelineAuditTests(ReliabilityTests):
+class PipelineAuditTests(unittest.TestCase):
+    setUp = fixtures.ReliabilityTests.setUp
+    daemon = fixtures.ReliabilityTests.daemon
     def test_duplicate_content_new_source_id_is_blocked(self):
         daemon = self.daemon()
         self.assertEqual(daemon.process_cycle(), 1)

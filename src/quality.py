@@ -13,7 +13,7 @@ PLACEHOLDER = re.compile(
 )
 ACTION = re.compile(
     r"\b(?:approved|approves|awarded|award|received|receives|secured|secures|"
-    r"acquir\w*|resign\w*|appoint\w*|commission\w*|invest\w*|"
+    r"acquir\w*|acquis\w*|resign\w*|appoint\w*|commission\w*|invest\w*|"
     r"revenue|net profit|net loss|profit after tax|ebitda|dividend|"
     r"loan|financ\w*|capacity|contract|agreement|order|rating|"
     r"repo|auction|policy|tariff|tax|duty|stake|merger|buyback)\b", re.I
