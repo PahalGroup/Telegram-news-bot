@@ -24,14 +24,10 @@ class LiveBlogFetcher:
             r = self.session.get('https://www.moneycontrol.com/news/business/markets/', timeout=10)
             links = re.findall(r'https://www.moneycontrol.com/news/business/markets/[^"\'\s<>]+-liveblog-[^"\'\s<>]+\.html', r.text)
             for l in links:
-                if today_str in l or 'liveblog' in l:
+                if today_str in l:
                     self.cached_blog_url = l
                     self.cached_blog_date = today_str
                     return l
-            if links:
-                self.cached_blog_url = links[0]
-                self.cached_blog_date = today_str
-                return links[0]
         except Exception as e:
             logger.debug(f"Error resolving liveblog URL: {e}")
         return ""
@@ -85,7 +81,8 @@ class LiveBlogFetcher:
                                 "title": clean_hl.strip(),
                                 "description": body,
                                 "time": date_pub,
-                                "id": f"mc_json_{date_pub}_{clean_hl[:20]}"
+                                "id": f"mc_json_{date_pub}_{clean_hl}",
+                                "link": url
                             })
                         if items:
                             return items
@@ -94,8 +91,6 @@ class LiveBlogFetcher:
 
             # 2. Fallback to HTML regex parsing with dynamic date pattern
             entries = re.split(rf'id="{today_ymd}(\d{{6}})"', r.text)
-            if len(entries) <= 1:
-                entries = re.split(r'id="\d{8}(\d{6})"', r.text)
 
             for i in range(1, len(entries), 2):
                 raw_time = entries[i]
@@ -122,7 +117,8 @@ class LiveBlogFetcher:
                         "title": clean_title.strip(),
                         "description": body,
                         "time": time_fmt,
-                        "id": f"mc_live_{raw_time}"
+                        "id": f"mc_live_{today_ymd}_{raw_time}",
+                        "link": url
                     })
         except Exception as e:
             logger.debug(f"Liveblog fetch error: {e}")

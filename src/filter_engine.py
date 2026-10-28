@@ -19,6 +19,7 @@ import os
 import re
 import json
 import logging
+from src.quality import fingerprint, clean_points, substantive, sentences, clean
 from datetime import datetime
 from typing import Dict, Any, Tuple, List, Optional
 
@@ -131,36 +132,14 @@ class FilterEngine:
         return clean_name
 
     def generate_fingerprint(self, entity: str, category: str, headline: str) -> str:
-        """Rolling semantic fingerprint: entity + category + key numbers + date."""
-        today = datetime.now().strftime("%Y%m%d")
-        norm_entity = self.normalize_entity_name(entity)
-        nums = re.findall(r"\b\d+(?:\.\d+)?\b", headline)
-        num_str = "-".join(nums[:2]) if nums else "no_num"
-        return f"{norm_entity}:{category}:{num_str}:{today}"
+        """Fingerprint the full event rather than a company/category/time bucket."""
+        return fingerprint(self.normalize_entity_name(entity), headline)
 
     @staticmethod
     def _truncate_clean(text: str, max_len: int = 160) -> str:
-        """Safely truncate text at sentence/word boundary."""
-        if not text:
-            return ""
-        s = re.sub(r'<[^>]+>', ' ', text)
-        s = re.sub(r'\s+', ' ', s).strip()
-        if len(s) <= max_len:
-            s = re.sub(r"[,;:\-\(\[\{/\\&]\s*$", "", s).strip()
-            return s
-        truncated = s[:max_len]
-        dot_idx = truncated.rfind(". ")
-        if dot_idx > 40:
-            return truncated[:dot_idx+1].strip()
-        space_idx = truncated.rfind(" ")
-        if space_idx > 40:
-            cleaned = truncated[:space_idx].strip()
-            cleaned = re.sub(r"[,;:\-\(\[\{/\\&]\s*$", "", cleaned).strip()
-            words = cleaned.split()
-            if words and words[-1].lower() in ["and", "or", "to", "with", "for", "at", "by", "of", "in", "the", "a", "an", "is", "are"]:
-                cleaned = " ".join(words[:-1])
-            return cleaned.strip() + "."
-        return truncated.strip()
+        """Keep complete source text; a cut sentence is not a verified summary."""
+        value = clean(text)
+        return value if len(value) <= 700 else ""
 
     # -------------------------------------------------------------
     # STAGE 1: Deterministic Hard Filter
@@ -306,7 +285,7 @@ class FilterEngine:
 
         norm_company = self.normalize_entity_name(company)
         cooldown_key = f"{norm_company}:{category}"
-        fingerprint = self.generate_fingerprint(company, category, title)
+        fingerprint = self.generate_fingerprint(company, category, full_text)
 
         candidate = {
             "title": title,
@@ -388,13 +367,16 @@ class FilterEngine:
         ]):
             return "ORDER_WIN"
 
+        # Financing must not become management merely because a board approved it.
+        if re.search(r"\b(?:term loan|loan facility|working capital|lease facility|financing agreement)\b", text):
+            return "FINANCING"
+
         # Leadership / Management Changes
         if any(k in text for k in [
             "appointment of", "appointed as", "resignation of", "resigns as", "steps down as",
             "cessation of", "superannuation of", "tenure extension of", "reconstitution of board",
-            "chief executive officer", "managing director", "chief financial officer",
             "change in directorate", "change in management", "change of company name", "company secretary"
-        ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(m in text for m in ["director", "management", "officer", "kmp"])):
+        ]):
             return "MANAGEMENT_CHANGE"
 
         # Corporate Restructure / M&A / Capital Actions / Dividends
@@ -492,8 +474,6 @@ class FilterEngine:
                 m_amt = re.search(r'(?:notified amount[^\.:|]*[:|]?\s*|amount\s*(?:of)?\s*)(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.\d+)?)\s*(?:cr(?:ore)?s?)?', combined, re.I)
                 if m_amt:
                     bullets.append(f"Notified Amount: ₹{m_amt.group(1)} Crore")
-                elif "1,50,000" in combined:
-                    bullets.append("Notified Amount: ₹1,50,000 Crore")
                 m_ten = re.search(r'(\d+)[-\s]*day', combined, re.I)
                 if m_ten:
                     bullets.append(f"Tenor: {m_ten.group(1)} Days")
@@ -506,7 +486,7 @@ class FilterEngine:
                         "materiality_score": 92,
                         "category": category,
                         "rejection_reason": "",
-                        "headline": "RBI TO CONDUCT 4-DAY VARIABLE RATE REPO (VRR) AUCTION",
+                        "headline": clean_title.upper(),
                         "key_metrics": [],
                         "summary_points": bullets,
                         "what_it_means": ""
@@ -533,67 +513,25 @@ class FilterEngine:
                 "what_it_means": ""
             }
 
-        # 3. Financial Results
+        # Preserve source prose, including signs, periods and units; never infer table columns.
         if category == "FINANCIAL_RESULTS":
-            bullets = []
-            parsed_scorecard = []
-            if desc:
-                for line in desc.splitlines():
-                    cl = line.strip().lstrip('•-▪►* ')
-                    if any(k in cl.lower() for k in ["net profit:", "revenue:", "ebitda:", "ebitda margin:"]):
-                        parsed_scorecard.append(cl)
-
-            if parsed_scorecard:
-                bullets = parsed_scorecard
-                has_financial_metric = True
-            else:
-                pat_m = re.search(r'\b(?:net profit|pat|profit after tax)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:rs\.?\s*|inr\s*|₹)?\s*([\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh)?)', combined, re.I)
-                if pat_m:
-                    bullets.append(f"Net Profit: ₹{pat_m.group(1).strip()}")
-
-                rev_m = re.search(r'\b(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*(?:(?:rs\.?|inr|₹)\s*[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh))\b', combined, re.I)
-                if rev_m:
-                    val_text = re.sub(r'^(?:revenue|sales|total income)\s*(?:of|at|up|down|rises|falls|surges|drops)?\s*', '', rev_m.group(0), flags=re.I).strip()
-                    if not val_text.startswith(('₹', 'Rs', 'INR')):
-                        val_text = f"₹{val_text}"
-                    bullets.append(f"Revenue: {val_text}")
-
-                margin_m = re.search(r'\b(?:margin|ebitda margin)\s*(?:at|of)?\s*([\d,]+(?:\.\d+)?%)', combined, re.I)
-                if margin_m:
-                    bullets.append(f"EBITDA Margin: {margin_m.group(1).strip()}")
-
-                has_financial_metric = bool(pat_m or rev_m or margin_m)
-
-            if not has_financial_metric:
-                return {
-                    "publish": False,
-                    "materiality_score": 30,
-                    "category": category,
-                    "rejection_reason": "FINANCIAL_RESULTS_LACK_CONCRETE_NUMBERS",
-                    "headline": "",
-                    "key_metrics": [],
-                    "summary_points": [],
-                    "what_it_means": ""
-                }
-
-            if not parsed_scorecard and desc:
-                for line in desc.splitlines():
-                    cl = self._truncate_clean(line, 140)
-                    if len(cl) > 25 and any(c.isdigit() for c in cl) and not any(cl in b for b in bullets):
-                        bullets.append(cl)
-                    if len(bullets) >= 4:
-                        break
-
-            badge = "Q2 FY27" if "q2" in combined.lower() or "september" in combined.lower() else "FINANCIAL RESULTS"
+            points = clean_points(desc.splitlines() + sentences(title))
+            points = [p for p in points if re.search(
+                r"(?:net profit|net loss|profit after tax|revenue|sales|ebitda).*?(?:₹|rs\.?|inr|crore|lakh|million|billion|%)",
+                p, re.I)]
             return {
-                "publish": True,
-                "materiality_score": 95,
-                "category": category,
-                "rejection_reason": "",
-                "headline": f"{norm_company} {badge}",
-                "key_metrics": [],
-                "summary_points": bullets,
-                "what_it_means": ""
+                "publish": bool(points), "materiality_score": 90 if points else 0,
+                "category": category, "headline": f"{norm_company} – FINANCIAL RESULTS",
+                "summary_points": points, "key_metrics": [], "what_it_means": "",
+                "rejection_reason": "" if points else "RESULTS_REQUIRE_EXPLICIT_METRICS_AND_UNITS",
+            }
+
+        if category == "FINANCING":
+            points = clean_points(desc.splitlines() + sentences(title))
+            return {
+                "publish": bool(points), "materiality_score": 85 if points else 0,
+                "category": category, "headline": f"{norm_company} – FINANCING",
+                "summary_points": points, "rejection_reason": "" if points else "NO_FINANCING_EVIDENCE",
             }
 
         # 4. Order Win

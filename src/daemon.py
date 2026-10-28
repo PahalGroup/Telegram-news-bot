@@ -18,6 +18,8 @@ import time
 import argparse
 import logging
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from src.quality import fingerprint
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
@@ -85,10 +87,19 @@ class RealtimeDaemon:
     def poll_all_sources(self) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
         raw_items = []
+        # Independent source requests overlap; sessions remain separate.
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = {
+                "bse": pool.submit(self.bse.fetch_announcements, skip_pdf=True),
+                "nse": pool.submit(self.nse.fetch_announcements),
+                "rbi": pool.submit(self.rbi.fetch_press_releases),
+                "news": pool.submit(self.news.fetch_all_feeds),
+                "liveblog": pool.submit(self.liveblog.fetch_live_flashes),
+            }
 
         # 1. BSE Corporate Announcements
         try:
-            bse_items = self.bse.fetch_announcements(skip_pdf=True) or []
+            bse_items = futures["bse"].result() or []
             for it in bse_items:
                 raw_items.append({
                     "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
@@ -98,6 +109,8 @@ class RealtimeDaemon:
                     "description": f"{it.get('headline', '')} {it.get('more', '')}".strip(),
                     "pdf_url": it.get("pdf_url"),
                     "raw_subject": it.get("raw_subject", ""),
+                    "source_url": it.get("pdf_url"),
+                    "published_at": it.get("news_dt"),
                 })
             logger.info(f"[BSE] Fetched {len(bse_items)} items")
         except Exception as e:
@@ -106,7 +119,7 @@ class RealtimeDaemon:
 
         # 2. NSE Corporate Filings
         try:
-            nse_items = self.nse.fetch_announcements() or []
+            nse_items = futures["nse"].result() or []
             for it in nse_items:
                 symbol = it.get("symbol", "")
                 subject = it.get("desc", "") or it.get("subject", "")
@@ -114,7 +127,7 @@ class RealtimeDaemon:
                 attchmnt_text = it.get("attchmntText", "") or it.get("details", "")
                 title = attchmnt_text or subject
                 pdf_url = it.get("attchmntFile")
-                seq_id = it.get("dt") or it.get("seq_id") or subject[:40]
+                seq_id = it.get("seq_id") or fingerprint(symbol, str(pdf_url or "") + str(it.get("dt", "")) + title)
 
                 raw_items.append({
                     "id": f"NSE_{symbol}_{seq_id}",
@@ -131,10 +144,10 @@ class RealtimeDaemon:
 
         # 3. RBI Press Releases
         try:
-            rbi_items = self.rbi.fetch_press_releases() or []
+            rbi_items = futures["rbi"].result() or []
             for it in rbi_items:
                 raw_items.append({
-                    "id": f"RBI_{it.get('title', '')[:50]}",
+                    "id": "RBI_" + fingerprint("", it.get("link") or it.get("title", "")),
                     "source": "RBI",
                     "company": "RESERVE BANK OF INDIA",
                     "title": it.get("title", ""),
@@ -148,7 +161,7 @@ class RealtimeDaemon:
 
         # 4. News RSS Wires (Economic Times, Moneycontrol, Mint, BusinessLine)
         try:
-            news_items = self.news.fetch_all_feeds() or []
+            news_items = futures["news"].result() or []
             for it in news_items:
                 raw_items.append({
                     "id": f"NEWS_{it.get('link', it.get('title', '')[:40])}",
@@ -156,6 +169,7 @@ class RealtimeDaemon:
                     "company": "",  # Extracted by filter
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
+                    "source_url": it.get("link", ""),
                 })
             logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
@@ -164,7 +178,7 @@ class RealtimeDaemon:
 
         # 5. LiveBlog Breaking (Moneycontrol real-time flashes)
         try:
-            lb_items = self.liveblog.fetch_live_flashes() or []
+            lb_items = futures["liveblog"].result() or []
             for it in lb_items:
                 raw_items.append({
                     "id": f"LIVE_{it.get('id', it.get('title', '')[:30])}",
@@ -172,6 +186,7 @@ class RealtimeDaemon:
                     "company": "",
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
+                    "source_url": it.get("link", ""),
                 })
             logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
         except Exception as e:
@@ -234,10 +249,60 @@ class RealtimeDaemon:
             except Exception as e:
                 logger.debug(f"FII/DII fetch routine: {e}")
 
+    def prepare_items(self, items):
+        """Bounded PDF queue: slow filings never block text-only flashes.
+        Failed/unsupported PDFs remain unconsumed and retry after a backoff.
+        """
+        if not hasattr(self, "_pdf_pending"):
+            self._pdf_pending = {}
+            self._pdf_retry = {}
+            self._pdf_pool = None
+        ready = []
+        for key, (item, future) in list(self._pdf_pending.items()):
+            if not future.done():
+                continue
+            del self._pdf_pending[key]
+            try:
+                lead, bullets = future.result()
+            except Exception:
+                logger.exception("PDF worker failed: %s", key)
+                bullets = []
+            if bullets:
+                item["description"] = "\n".join(bullets)
+                ready.append(item)
+            else:
+                self._pdf_retry[key] = time.time() + 300
+                logger.warning("Withheld %s: no reliable PDF evidence", key)
+        for item in items:
+            key = item.get("id")
+            if not key or self.state.is_seen(key):
+                continue
+            url = str(item.get("pdf_url") or "")
+            is_pdf = url.lower().split("?")[0].endswith(".pdf")
+            if is_pdf and item.get("source") in ("BSE", "NSE"):
+                context = f"{item.get('title', '')} {item.get('raw_subject', '')}"
+                if self.filter_engine.should_drop(context):
+                    self.state.mark_seen(key, item.get("source", "UNKNOWN"))
+                    continue
+                if any(r.get("id") == key for r in ready):
+                    continue
+                if key in self._pdf_pending or self._pdf_retry.get(key, 0) > time.time():
+                    continue
+                if len(self._pdf_pending) >= 32:
+                    continue
+                if self._pdf_pool is None:
+                    self._pdf_pool = ThreadPoolExecutor(max_workers=3)
+                from sources.annexure_parser import AnnexureParser
+                self._pdf_pending[key] = (item, self._pdf_pool.submit(
+                    AnnexureParser.extract_annexure_bullets, url))
+            else:
+                ready.append(item)
+        return ready
+
     def process_cycle(self) -> int:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
         self.cycle_count += 1
-        items = self.poll_all_sources()
+        items = self.prepare_items(self.poll_all_sources())
         dispatched_count = 0
 
         for it in items:
@@ -245,45 +310,23 @@ class RealtimeDaemon:
             if not item_id or self.state.is_seen(item_id):
                 continue
 
-            # Lazy PDF Extraction: Only for unseen corporate filings matching target catalysts
-            pdf_url = it.get("pdf_url")
-            if pdf_url and str(pdf_url).lower().endswith(".pdf") and it.get("source") in ("BSE", "NSE"):
-                title_context = f"{it.get('company', '')} {it.get('title', '')} {it.get('raw_subject', '')}".lower()
-                is_target_filing = any(k in title_context for k in [
-                    "order", "contract", "results", "directorate", "board meeting", "outcome",
-                    "mou", "acquisition", "expansion", "dividend", "qip", "ipo",
-                    "buyback", "financial", "tender", "rating", "press release", "investor", "clarification"
-                ])
-                if is_target_filing and not self.filter_engine.should_drop(title_context):
-                    try:
-                        from sources.annexure_parser import AnnexureParser
-                        lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url)
-                        if pdf_bullets:
-                            formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
-                            if lead_sum:
-                                it["description"] = f"{lead_sum}\n" + "\n".join(formatted_b)
-                            else:
-                                it["description"] = "\n".join(formatted_b)
-                    except Exception as pe:
-                        logger.debug(f"Lazy PDF extract error for {item_id}: {pe}")
-
             # Stage 1: Deterministic Hard Filter
             try:
                 passed_s1, reason_s1, candidate = self.filter_engine.evaluate_stage_1(it)
             except Exception as e:
                 logger.debug(f"Stage 1 error for {item_id}: {e}")
-                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                self.total_errors += 1
                 continue
 
             if not passed_s1:
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
-            # Rolling 6-Hour Entity Event Cooldown Gate
+            # Compare complete claims; distinct events for the same company remain eligible.
             norm_company = self.filter_engine.normalize_entity_name(candidate.get("company", ""))
             category = candidate.get("category", "")
-            if self.state.is_in_cooldown(norm_company, category, cooldown_seconds=21600):
-                logger.info(f"Skipping {norm_company}:{category} due to 6h rolling cooldown.")
+            event_fp = fingerprint(norm_company, it.get("title", "") + "\n" + it.get("description", ""))
+            if self.state.is_seen(item_id, fingerprint=event_fp):
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
@@ -292,7 +335,7 @@ class RealtimeDaemon:
                 eval_data = self.filter_engine.evaluate_stage_2(candidate)
             except Exception as e:
                 logger.warning(f"Stage 2 error for {item_id}: {e}")
-                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                self.total_errors += 1
                 continue
 
             if not eval_data.get("publish", False) or eval_data.get("materiality_score", 0) < 70:
@@ -303,6 +346,11 @@ class RealtimeDaemon:
             formatted_post = Formatter.format_post(eval_data, it)
             if not Formatter.validate_completeness(formatted_post):
                 logger.info(f"Skipping incomplete/half post ({eval_data.get('headline')}): failed completeness validation.")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                continue
+
+            post_fp = fingerprint("", formatted_post)
+            if self.state.is_seen(item_id, fingerprint=post_fp):
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
@@ -327,8 +375,8 @@ class RealtimeDaemon:
                 print(f"\n[DRY RUN DISPATCH - Score {eval_data.get('materiality_score')}]:\n{formatted_post}\n{'-'*50}")
 
             # Persist state and cooldown
-            fingerprint = candidate.get("fingerprint")
-            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=fingerprint)
+            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=event_fp)
+            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=post_fp)
             self.state.record_cooldown(norm_company, category)
             self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
             dispatched_count += 1
@@ -356,6 +404,8 @@ class RealtimeDaemon:
                 if remaining > 0:
                     time.sleep(min(self.poll_interval, remaining))
         finally:
+            if getattr(self, "_pdf_pool", None):
+                self._pdf_pool.shutdown(wait=True, cancel_futures=True)
             self.state.save_state(sync_git=False)
         logger.info("Daemon finished. Cycles: %s, Dispatched: %s, Errors: %s",
                     self.cycle_count, self.total_dispatched, self.total_errors)
