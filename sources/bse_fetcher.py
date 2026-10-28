@@ -42,9 +42,13 @@ class BSEFetcher:
             }
             try:
                 r = requests.get(self.primary_api, headers=self.headers, params=payload, impersonate="chrome", timeout=12)
+                if r.status_code != 200:
+                    raise RuntimeError(f"BSE HTTP {r.status_code} on page {page}")
                 if r.status_code == 200:
                     data = r.json()
-                    items = data.get("Table", [])
+                    if not isinstance(data, dict) or not isinstance(data.get("Table"), list):
+                        raise ValueError("BSE response missing announcement Table")
+                    items = data["Table"]
                     if items:
                         for item in items:
                             company = item.get("SLONGNAME", "").strip()
@@ -124,6 +128,7 @@ class BSEFetcher:
                             })
             except Exception as e:
                 logger.warning(f"BSE primary page {page} failed ({e})")
-                break
+                raise RuntimeError(f"BSE poll failed on page {page}") from e
 
         return all_parsed
+

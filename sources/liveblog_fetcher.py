@@ -15,6 +15,16 @@ class LiveBlogFetcher:
         self.cached_blog_url = None
         self.cached_blog_date = None
 
+    @staticmethod
+    def is_fresh(value, now):
+        try:
+            stamp = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+            return -120 <= (now - stamp).total_seconds() <= 2700
+        except (ValueError, TypeError):
+            return False
+
     def get_todays_liveblog_url(self) -> str:
         today_str = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y')
         if self.cached_blog_url and self.cached_blog_date == today_str:
@@ -22,14 +32,18 @@ class LiveBlogFetcher:
 
         try:
             r = self.session.get('https://www.moneycontrol.com/news/business/markets/', timeout=10)
+            if r.status_code != 200:
+                raise RuntimeError(f"Liveblog discovery HTTP {r.status_code}")
             links = re.findall(r'https://www.moneycontrol.com/news/business/markets/[^"\'\s<>]+-liveblog-[^"\'\s<>]+\.html', r.text)
+            today = datetime.now(ZoneInfo("Asia/Kolkata"))
+            date_tokens = [today_str, today.strftime("%B-%d-%Y").lower(), today.strftime("%Y-%m-%d")]
             for l in links:
-                if today_str in l:
+                if any(token in l.lower() for token in date_tokens):
                     self.cached_blog_url = l
                     self.cached_blog_date = today_str
                     return l
         except Exception as e:
-            logger.debug(f"Error resolving liveblog URL: {e}")
+            raise RuntimeError("Liveblog discovery failed") from e
         return ""
 
     def fetch_live_flashes(self) -> List[Dict[str, Any]]:
@@ -43,7 +57,7 @@ class LiveBlogFetcher:
         try:
             r = self.session.get(url, timeout=10)
             if r.status_code != 200:
-                return []
+                raise RuntimeError(f"Liveblog HTTP {r.status_code}")
 
             # 1. First Priority: Structured JSON-LD
             import json
@@ -62,15 +76,8 @@ class LiveBlogFetcher:
                             if not headline:
                                 continue
 
-                            # Freshness check: Skip if published > 45 mins ago
-                            if date_pub:
-                                try:
-                                    dt_clean = date_pub.split("+")[0].split(".")[0]
-                                    p_dt = datetime.fromisoformat(dt_clean).replace(tzinfo=ZoneInfo('Asia/Kolkata'))
-                                    if (now_ist - p_dt).total_seconds() > 2700:
-                                        continue
-                                except Exception:
-                                    pass
+                            if not self.is_fresh(date_pub, now_ist):
+                                continue
 
                             # Strip prefix tags
                             clean_hl = re.sub(r'^(?:Nifty50 Today|Sensex Today|Sensex, Nifty Today|Markets@\d+|Stock alert|Stock Market Live)\s*\|\s*', '', headline, flags=re.I)
@@ -96,6 +103,8 @@ class LiveBlogFetcher:
                 raw_time = entries[i]
                 block = entries[i+1][:15000]
                 time_fmt = f"{raw_time[:2]}:{raw_time[2:4]}:{raw_time[4:6]}"
+                if not self.is_fresh(now_ist.date().isoformat() + "T" + time_fmt, now_ist):
+                    continue
                 
                 paras = re.findall(r'<p[^>]*>(.*?)</p>', block, re.DOTALL)
                 clean_paras = []
@@ -121,5 +130,6 @@ class LiveBlogFetcher:
                         "link": url
                     })
         except Exception as e:
-            logger.debug(f"Liveblog fetch error: {e}")
+            raise RuntimeError("Liveblog fetch failed") from e
         return items
+

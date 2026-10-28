@@ -14,6 +14,17 @@ class AuditTests(unittest.TestCase):
     def setUp(self):
         self.engine = FilterEngine(config_path="/nonexistent/rules.json")
 
+    def test_redemption_notice_keeps_price_after_background(self):
+        data = {"category": "POLICY_MACRO", "title": "SGB redemption price announcement",
+                "description": "Background rules apply to this bond. The maturity date is stated separately. "
+                "The averaging method uses three business days. "
+                "The redemption price shall be INR 12345 per unit of SGB."}
+        result = self.engine.evaluate_stage_2(data)
+        self.assertTrue(result["publish"])
+        self.assertIn("INR 12345 per unit", str(result["summary_points"]))
+        data["description"] = "Redemption price uses a three day average of gold prices."
+        self.assertFalse(self.engine.evaluate_stage_2(data)["publish"])
+
     def test_rbi_routine_auction_results_are_not_macro_news(self):
         from sources.rbi_fetcher import RBIFetcher
         xml = b"""<rss><channel>

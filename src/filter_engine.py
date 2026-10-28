@@ -468,6 +468,20 @@ class FilterEngine:
             clean_title = re.sub(r'<[^>]+>', '', title).strip()
             headline = clean_title.upper() if len(clean_title) < 70 else self._truncate_clean(clean_title, 65).upper()
 
+            # A redemption-price notice is incomplete without the actual price and unit.
+            # Keep the source sentence intact rather than publishing only legal background.
+            if "redemption price" in clean_title.lower():
+                points = [text for text in sentences(desc)
+                          if "redemption" in text.lower()
+                          and re.search(r"(?:₹|Rs\.?|INR)\s*[\d,]+", text, re.I)
+                          and re.search(r"per\s+(?:unit|gram)", text, re.I)]
+                return {
+                    "publish": bool(points), "materiality_score": 92 if points else 0,
+                    "category": category, "headline": headline,
+                    "summary_points": points[:2], "key_metrics": [], "what_it_means": "",
+                    "rejection_reason": "" if points else "MISSING_REDEMPTION_PRICE_AND_UNIT",
+                }
+
             # Handle RBI VRR auction specifically
             if "variable rate repo" in combined.lower() or "vrr auction" in combined.lower():
                 bullets = []
