@@ -41,3 +41,5 @@ Track exact HTTP status and parser outcome before adding alternative endpoints. 
 - Added bounded financial-table support: one explicit scope and unit, independently labelled period columns, recognized metric rows and unchanged numeric signs/parentheses. Merged headers, mixed scopes, scans and unlabelled tables remain unsupported. No financial arithmetic is inferred.
 - Kept prose in disclosure-table cells separate from numeric tables. Replayed and visually reviewed the original Powerica disclosure to ensure its useful prose survives table detection.
 - 52 offline tests pass, including table-to-PDF integration tests. This is limited table support, not completion of financial extraction or OCR. No production deployment and no Telegram messages.
+
+- GitHub installed PyMuPDF 2.0 under the open version range; both table integration tests failed there. Pinned PyMuPDF 1.26.6, the local tested extractor, for reproducible behavior.
