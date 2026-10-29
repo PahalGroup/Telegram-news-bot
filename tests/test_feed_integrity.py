@@ -46,3 +46,10 @@ class FeedIntegrityTests(unittest.TestCase):
             self.assertEqual(len(fetcher.fetch_all_feeds()), 1)
         self.assertEqual(fetcher.last_health[feeds[1]["url"]]["status"], "error")
         self.assertEqual(fetcher.last_health[feeds[0]["url"]]["status"], "items")
+
+    def test_rbi_naive_dates_use_explicit_indian_timezone_policy(self):
+        from zoneinfo import ZoneInfo
+        now = datetime(2026, 10, 29, 12, 30, tzinfo=timezone.utc)
+        value = "Thu, 29 Oct 2026 17:45:00"
+        self.assertFalse(fresh_rss_date(value, 2700, now))
+        self.assertTrue(fresh_rss_date(value, 2700, now, naive_timezone=ZoneInfo("Asia/Kolkata")))

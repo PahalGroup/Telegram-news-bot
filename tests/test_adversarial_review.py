@@ -126,3 +126,31 @@ class SinglePassTests(unittest.TestCase):
         self.assertEqual(len(items), 1)
         self.assertIn("INR 250 crore", items[0]["description"])
         self.assertEqual(daemon._pdf_pending, {})
+
+class ManagementAndUnitsTests(unittest.TestCase):
+    def test_company_secretary_signature_does_not_define_category(self):
+        self.assertNotEqual(FilterEngine()._classify_category(
+            "Corporate update", "Signed by Company Secretary"), "MANAGEMENT_CHANGE")
+
+    def test_takeover_charge_is_retained_as_stated(self):
+        from src.quality import sentences
+        text = ("In continuation to our letter dated 26.09.2026, it is informed that "
+                "Shri Example Person has taken over the charge as Executive Director "
+                "with effect from 12.10.2026.")
+        points = sentences(text)
+        result = evaluate_event("MANAGEMENT_CHANGE", "EXAMPLE", "", "\n".join(points))
+        self.assertTrue(result["publish"])
+        self.assertIn("12.10.2026", str(result["summary_points"]))
+        self.assertNotIn("APPOINTMENT", result["headline"])
+
+    def test_smt_name_not_split_at_abbreviation(self):
+        from src.quality import sentences
+        text = "Smt. Example Person was appointed as Independent Director with effect from 14.08.2026."
+        self.assertEqual(sentences(text), [text])
+        self.assertTrue(evaluate_event("MANAGEMENT_CHANGE", "EXAMPLE", "", text)["publish"])
+
+    def test_broker_target_does_not_invent_currency(self):
+        engine = FilterEngine()
+        for target in ["500", "USD 500", "INR 500"]:
+            result = engine._parse_broker_note("Citi on Example: BUY, target " + target, "")
+            self.assertEqual(result["target"], target)

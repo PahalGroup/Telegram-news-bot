@@ -7,7 +7,7 @@ CAPACITY = re.compile(r'\b[\d,.]+\s*(?:MW|MWh|GW|tonnes?|units|km)\b', re.I)
 ORDER_ACTION = re.compile(r'\b(?:awarded|secured|received|receives|wins?|won)\b', re.I)
 ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director)\b', re.I)
 PERSON = re.compile(r'\b(?:Mr|Ms|Mrs|Dr|Shri|Smt)\.?\s+[A-Z][\w-]+(?:\s+[A-Z][\w-]+)+\b')
-MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|ceased|cessation|retir\w*|superannu\w*|tenure extension)\b', re.I)
+MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|(?:took|taken) over (?:the )?charge|ceased|cessation|retir\w*|superannu\w*|tenure extension)\b', re.I)
 def uncertain(text, action_pattern):
     # Reference numbers are not negation. Otherwise unresolved negative claims
     # remain withheld; modality must qualify the event, not a later delivery term.

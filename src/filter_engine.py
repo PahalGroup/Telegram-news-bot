@@ -318,9 +318,9 @@ class FilterEngine:
 
             # Extract Target Price
             target = ""
-            m_tp = re.search(r'\b(?:target\s*price|target|tp)\s*[:\s|]*(?:of\s*)?(?:₹|rs\.?|inr\s*)?([\d,]+(?:\.\d+)?)', combined, re.IGNORECASE)
+            m_tp = re.search(r'\b(?:target\s*price|target|tp)\s*[:\s|]*(?:of\s*)?((?:(?:₹|rs\.?|inr|usd|us\$|eur|gbp|\$|€|£)\s*)?[\d,]+(?:\.\d+)?)', combined, re.IGNORECASE)
             if m_tp:
-                target = f"₹{m_tp.group(1).strip()}"
+                target = m_tp.group(1).strip()
 
             if house and stock and (rating or target):
                 return {
@@ -379,7 +379,8 @@ class FilterEngine:
         if any(k in text for k in [
             "appointment of", "appointed as", "resignation of", "resigns as", "steps down as",
             "cessation of", "superannuation of", "tenure extension of", "reconstitution of board",
-            "change in directorate", "change in management", "change of company name", "company secretary"
+            "change in directorate", "change in management", "change in senior management",
+            "assumed charge", "taken over the charge", "took over the charge"
         ]):
             return "MANAGEMENT_CHANGE"
 

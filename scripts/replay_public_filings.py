@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 import pymupdf
 from curl_cffi import requests
+import requests as verified_requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sources.annexure_parser import AnnexureParser
 from src.filter_engine import FilterEngine
@@ -20,7 +21,8 @@ def main():
     for case in cases:
         result = {"id": case["id"], "url": case["url"]}
         try:
-            response = requests.get(case["url"], timeout=20)
+            client = verified_requests if case.get("source") == "COMPANY" else requests
+            response = client.get(case["url"], timeout=20)
             for fallback in case.get("fallback_urls", []):
                 if response.status_code != 404:
                     break

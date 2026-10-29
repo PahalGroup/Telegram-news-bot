@@ -6,6 +6,7 @@ from html import unescape
 import re
 import logging
 from sources.feed_utils import fresh_rss_date
+from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class RBIFetcher:
                 items = []
                 raw_items = root.findall(".//item")
                 self.last_health = {"raw_items": len(raw_items), "rejected_dates": 0,
+                                    "naive_date_policy": "RBI dates interpreted in Asia/Kolkata",
                                     "sample_dates": [it.findtext("pubDate", "") for it in raw_items[:3]]}
                 for it in root.findall(".//item"):
                     title_el = it.find("title")
@@ -58,7 +60,7 @@ class RBIFetcher:
                     
                     if not title:
                         continue
-                    if not fresh_rss_date(pub, 86400):
+                    if not fresh_rss_date(pub, 86400, naive_timezone=ZoneInfo("Asia/Kolkata")):
                         self.last_health["rejected_dates"] += 1
                         continue
 
