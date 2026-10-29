@@ -47,8 +47,16 @@ class AnnexureParser:
                                 seen.add(fact["text"].casefold())
                 except Exception:
                     logger.warning("Table extraction unavailable on page %s", index + 1)
-                # Block boundaries keep columns from being merged into invented rows.
-                for block in doc[index].get_text("blocks", sort=True):
+                # Join full-width wrapped lines using geometry; retain column/table boundaries.
+                from sources.pdf_layout import join_wrapped_blocks
+                raw_blocks = doc[index].get_text("blocks", sort=True)
+                prose_blocks = []
+                for block in raw_blocks:
+                    if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):
+                        prose_blocks.append([0, 0, 0, 0, ""])  # explicit boundary
+                    else:
+                        prose_blocks.append(block)
+                for block in join_wrapped_blocks(prose_blocks, page.rect.width):
                     if len(block) < 5:
                         continue
                     if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):
