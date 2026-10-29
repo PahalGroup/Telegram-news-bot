@@ -5,7 +5,7 @@ import logging
 from urllib.parse import urlparse
 import pymupdf
 from curl_cffi import requests
-from src.quality import clean, substantive, sentences
+from src.quality import clean, substantive, sentences, paragraph_sentences
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class AnnexureParser:
                     numeric_lines = sum(bool(__import__("re").fullmatch(r"[\d,.()%+\-– ]+", line)) for line in lines)
                     if numeric_lines >= 2:
                         continue
-                    for sentence in sentences(raw):
+                    for sentence in paragraph_sentences(raw):
                         value = clean(sentence).lstrip("•▪►* ")
                         if substantive(value) and value.casefold() not in seen:
                             evidence.append({"text": value, "page": index + 1})

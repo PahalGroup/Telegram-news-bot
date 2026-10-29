@@ -53,8 +53,14 @@ def sentences(text):
     # Protect common abbreviations and decimals before identifying sentence boundaries.
     text = clean(text)
     # Strip only a recognized introductory clause; retain the factual body verbatim.
-    text = re.sub(r"^(?:Pursuant to|In continuation of|With reference to).*?this is to inform you that\\s+", "", text, flags=re.I)
+    text = re.sub(r"^(?:Pursuant to|In continuation of|With reference to).*?this is to inform you that\s+", "", text, flags=re.I)
     protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Rs|Ltd|Ref|No)\.", r"\1<dot>", text)
     return [part.replace("<dot>", ".").strip() for part in
             re.split(r"(?<=[.!?])\s+(?=[A-Z])", protected) if part.strip()]
 
+
+def paragraph_sentences(text):
+    # PDF blocks can contain an entire letter. Blank lines separate legal headings
+    # and greetings from the factual paragraph; do not flatten them together.
+    return [sentence for paragraph in re.split(r"\n\s*\n", str(text or ""))
+            for sentence in sentences(paragraph)]

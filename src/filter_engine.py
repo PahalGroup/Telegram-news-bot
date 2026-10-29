@@ -368,7 +368,7 @@ class FilterEngine:
             return "ORDER_WIN"
 
         # Completed operational capacity is distinct from winning a contract.
-        if re.search(r"\\b(?:fully commissioned|commissioning of (?:additional|final)|commenced commercial)\\b", text):
+        if re.search(r"\b(?:fully commissioned|commissioning of (?:additional|final)|commenced commercial)\b", text):
             return "CAPACITY_UPDATE"
 
         # Financing must not become management merely because a board approved it.
