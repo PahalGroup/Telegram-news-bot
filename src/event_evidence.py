@@ -10,6 +10,13 @@ PERSON = re.compile(r'\b(?:Mr|Ms|Mrs|Dr|Shri|Smt)\.?\s+[A-Z][\w-]+(?:\s+[A-Z][\w
 MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|ceased|cessation|retir\w*|superannu\w*|tenure extension)\b', re.I)
 NEGATED = re.compile(r'\b(?:not|no|never)\b.{0,35}\b(?:awarded|received|secured|approved|appointed|resigned)\b', re.I)
 
+def uncertain(text):
+    # Fail closed for unresolved negation or modality in a claimed event.
+    # This intentionally withholds some mixed-clause disclosures for review.
+    return bool(re.search(
+        r"\b(?:not|no|never|neither|nor|without|will|shall|may|might|would|could|"
+        r"expected|planned|proposed|denied|denies|rumou?r|unconfirmed)\b", text, re.I))
+
 def candidates(title, description):
     result, seen = [], set()
     # Select before limiting: useful facts can be at the end of a long filing.
@@ -29,12 +36,12 @@ def evaluate_event(category, company, title, description):
     if category == 'ORDER_WIN':
         chosen = [p for p in points if ORDER_ACTION.search(p)
                   and re.search(r'\b(?:order|contract|letter of (?:intent|award)|LOI|LOA)\b', p, re.I)
-                  and (AMOUNT.search(p) or CAPACITY.search(p)) and not NEGATED.search(p)]
+                  and (AMOUNT.search(p) or CAPACITY.search(p)) and not uncertain(p)]
         label, reason = 'ORDER UPDATE', 'ORDER_REQUIRES_ACTION_AND_VALUE_OR_CAPACITY'
     elif category == 'CAPACITY_UPDATE':
         chosen = [p for p in points if re.search(r"\b(?:has (?:fully )?commissioned|commissioned|commenced commercial)\b", p, re.I)
                   and CAPACITY.search(p)
-                  and not re.search(r"\b(?:will|shall|expected|planned|not)\b.{0,40}\bcommission", p, re.I)]
+                  and not uncertain(p)]
         label, reason = 'CAPACITY UPDATE', 'CAPACITY_REQUIRES_COMPLETED_ACTION_AND_QUANTITY'
     elif category == 'FINANCING':
         chosen = [p for p in points if re.search(r'\b(?:loan|lease|financ\w*|credit facility)\b', p, re.I)

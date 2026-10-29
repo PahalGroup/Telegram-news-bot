@@ -40,7 +40,7 @@ def main():
                 result["layout_review"] = [{"page": i+1, "blocks": [list(b[:5]) for b in page.get_text("blocks") if any(normalized(fact) in normalized(str(b[4])) for fact in case["facts"])]} for i, page in enumerate(doc)]
             evidence = AnnexureParser.extract_evidence(data)
             item = dict(case, pdf_url=case["url"],
-                        description="\n".join(e["text"] for e in evidence[:6]))
+                        description="\n".join(e["text"] for e in evidence))
             engine = FilterEngine()
             passed, reason, candidate = engine.evaluate_stage_1(item)
             evaluation = engine.evaluate_stage_2(candidate) if passed else {}

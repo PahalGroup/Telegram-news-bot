@@ -40,7 +40,7 @@ logger = logging.getLogger("RealtimeDaemon")
 # Imports with graceful fallback
 from src.filter_engine import FilterEngine
 from src.formatter import Formatter
-from src.state_store import StateStore
+from src.state_store import StateStore, StateIntegrityError
 from telegram_dispatcher import TelegramDispatcher
 
 # Source fetchers
@@ -265,8 +265,11 @@ class RealtimeDaemon:
                     self.state.mark_seen(fii_key, "NSE_FLOWS")
                     self.state.record_published(fii_key, f"FII/DII ACTIVITY – {trade_date}", "FII_DII_FLOWS")
                     self.fii_posted_today = True
+            except StateIntegrityError:
+                raise
             except Exception as e:
-                logger.debug(f"FII/DII fetch routine: {e}")
+                self.total_errors += 1
+                logger.warning(f"FII/DII fetch routine failed: {e}")
 
     def prepare_items(self, items):
         """Bounded PDF queue: slow filings never block text-only flashes.
@@ -415,6 +418,8 @@ class RealtimeDaemon:
                     count = self.process_cycle()
                     if count:
                         logger.info("Cycle %s: dispatched %s items", self.cycle_count, count)
+                except StateIntegrityError:
+                    raise
                 except Exception:
                     logger.exception("Error during daemon cycle %s", self.cycle_count)
                     self.total_errors += 1

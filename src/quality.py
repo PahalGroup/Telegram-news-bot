@@ -39,7 +39,7 @@ def substantive(text):
         return False
     return bool(ACTION.search(value))
 
-def clean_points(points, headline=""):
+def clean_points(points, headline="", limit=6):
     result, seen = [], {clean(headline).casefold()}
     for point in points:
         value = clean(point).lstrip("•-▪►* \ufe0f")
@@ -47,7 +47,7 @@ def clean_points(points, headline=""):
         if substantive(value) and key not in seen:
             result.append(value)
             seen.add(key)
-    return result[:6]
+    return result if limit is None else result[:limit]
 
 def sentences(text):
     # Protect common abbreviations and decimals before identifying sentence boundaries.

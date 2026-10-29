@@ -12,9 +12,14 @@ import sqlite3
 import subprocess
 import tempfile
 import logging
+import math
 from typing import Set, Dict, Any, List
 
 logger = logging.getLogger("StateStore")
+
+class StateIntegrityError(RuntimeError):
+    """Stop delivery when the deduplication ledger cannot be trusted."""
+
 
 class StateStore:
     def __init__(self, db_path: str = None, json_state_path: str = None):
@@ -30,8 +35,13 @@ class StateStore:
         self.published_records: List[Dict[str, Any]] = []
         self.event_cooldowns: Dict[str, float] = {}
         
+        self._failed = False
         self._init_sqlite()
         self.load_state()
+
+    def _fail(self, message, cause):
+        self._failed = True
+        raise StateIntegrityError(message) from cause
 
     def _init_sqlite(self):
         """Initialize SQLite schema if needed."""
@@ -71,7 +81,7 @@ class StateStore:
                 """)
                 conn.commit()
         except Exception as e:
-            logger.error(f"Error initializing SQLite: {e}")
+            self._fail("Cannot initialize deduplication database; delivery stopped", e)
 
     def load_state(self):
         """Load state from SQLite, falling back to JSON state snapshot."""
@@ -92,24 +102,44 @@ class StateStore:
                     if ek and lts:
                         self.event_cooldowns[str(ek)] = float(lts)
         except Exception as e:
-            logger.warning(f"Could not read from SQLite: {e}")
+            self._fail("Cannot read deduplication database; delivery stopped", e)
 
         # 2. Merge from persistent JSON state snapshot
         if os.path.exists(self.json_state_path):
             try:
                 with open(self.json_state_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.seen_ids.update(data.get("seen_ids", []))
+                    self._validate_snapshot(data)
+                    self.seen_ids.update(data["seen_ids"])
                     self.semantic_hashes.update(data.get("semantic_hashes", []))
                     for k, v in data.get("event_cooldowns", {}).items():
                         self.event_cooldowns[k] = float(v)
                     self.published_records = data.get("published_records", [])[-200:]
                     logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
             except Exception as e:
-                logger.error(f"Error reading {self.json_state_path}: {e}")
+                self._fail("Cannot trust deduplication snapshot; restore or reconcile it before delivery", e)
+
+    @staticmethod
+    def _validate_snapshot(data):
+        if not isinstance(data, dict):
+            raise ValueError("Snapshot must be an object")
+        for field in ("seen_ids", "semantic_hashes"):
+            values = data.get(field)
+            if not isinstance(values, list) or any(not isinstance(v, str) or not v for v in values):
+                raise ValueError(f"Invalid or missing {field}")
+        cooldowns = data.get("event_cooldowns", {})
+        if not isinstance(cooldowns, dict) or any(
+                not isinstance(k, str) or not isinstance(v, (int, float)) or isinstance(v, bool)
+                or not math.isfinite(v) or v < 0 for k, v in cooldowns.items()):
+            raise ValueError("Invalid event_cooldowns")
+        records = data.get("published_records", [])
+        if not isinstance(records, list) or any(not isinstance(v, dict) for v in records):
+            raise ValueError("Invalid published_records")
 
     def save_state(self, sync_git: bool = False):
         """Save state to SQLite and JSON snapshot. Optionally sync to git in cloud."""
+        if self._failed:
+            raise StateIntegrityError("State is unhealthy; refusing to overwrite its snapshot")
         # Keep the complete ledger: slicing an unordered set discards arbitrary recent IDs.
         payload = {
             "seen_ids": sorted(self.seen_ids),
@@ -177,7 +207,7 @@ class StateStore:
                 """, (key, now_ts))
                 conn.commit()
         except Exception as e:
-            logger.debug(f"SQLite cooldown insert error: {e}")
+            self._fail("Cannot persist delivery cooldown; delivery stopped", e)
 
     def is_seen(self, item_id: str, fingerprint: str = None) -> bool:
         """Check if an item ID or its semantic fingerprint has already been processed."""
@@ -201,7 +231,7 @@ class StateStore:
                     cursor.execute("INSERT OR IGNORE INTO semantic_hashes (fingerprint) VALUES (?)", (str(fingerprint),))
                 conn.commit()
         except Exception as e:
-            logger.debug(f"SQLite insert: {e}")
+            self._fail("Cannot persist deduplication ledger; delivery stopped", e)
 
     def record_published(self, item_id: str, headline: str, category: str):
         """Log a successfully dispatched Telegram announcement."""
@@ -218,5 +248,5 @@ class StateStore:
                                (str(item_id), headline, category))
                 conn.commit()
         except Exception as e:
-            logger.debug(f"SQLite insert published: {e}")
+            self._fail("Cannot persist published record; delivery stopped", e)
         self.save_state(sync_git=False)

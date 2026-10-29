@@ -64,7 +64,7 @@ class AnnexureParser:
                         if substantive(value) and value.casefold() not in seen:
                             evidence.append({"text": value, "page": index + 1})
                             seen.add(value.casefold())
-        return evidence[:12]
+        return evidence
 
     @classmethod
     def extract_annexure_bullets(cls, pdf_url, session=None):
@@ -84,7 +84,7 @@ class AnnexureParser:
                 logger.warning("PDF requires table-aware extraction or OCR: %s", pdf_url)
                 return "", []
             logger.info("PDF evidence pages: %s", sorted({e["page"] for e in evidence}))
-            return "", [e["text"] for e in evidence[:6]]
+            return "", [e["text"] for e in evidence]
         except Exception:
             logger.exception("PDF extraction failed: %s", pdf_url)
             return "", []

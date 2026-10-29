@@ -486,29 +486,25 @@ class FilterEngine:
                     "rejection_reason": "" if points else "MISSING_REDEMPTION_PRICE_AND_UNIT",
                 }
 
-            # Handle RBI VRR auction specifically
+            # Auction figures remain verbatim. A number alone does not establish
+            # currency, scale, tenor, or reversal date.
             if "variable rate repo" in combined.lower() or "vrr auction" in combined.lower():
-                bullets = []
-                m_amt = re.search(r'(?:notified amount[^\.:|]*[:|]?\s*|amount\s*(?:of)?\s*)(?:rs\.?|inr|₹)?\s*([0-9,]+(?:\.\d+)?)\s*(?:cr(?:ore)?s?)?', combined, re.I)
-                if m_amt:
-                    bullets.append(f"Notified Amount: ₹{m_amt.group(1)} Crore")
-                m_ten = re.search(r'(\d+)[-\s]*day', combined, re.I)
-                if m_ten:
-                    bullets.append(f"Tenor: {m_ten.group(1)} Days")
-                m_rev = re.search(r'(?:date of reversal[^\.:|]*[:|]?\s*)([A-Za-z0-9,\s]+?\d{4})', combined, re.I)
-                if m_rev:
-                    bullets.append(f"Date of Reversal: {m_rev.group(1).strip()}")
-                if bullets:
-                    return {
-                        "publish": True,
-                        "materiality_score": 92,
-                        "category": category,
-                        "rejection_reason": "",
-                        "headline": clean_title.upper(),
-                        "key_metrics": [],
-                        "summary_points": bullets,
-                        "what_it_means": ""
-                    }
+                points = [p for p in clean_points(desc.splitlines() + sentences(desc), limit=None)
+                          if re.search(r"(?:₹|Rs\.?|INR)\s*[\d,]+", p, re.I)
+                          and re.search(r"\b(?:crores?|lakhs?|million|billion)\b", p, re.I)]
+                # Short labelled amount fields may not contain an action keyword.
+                for p in sentences(desc):
+                    if (re.search(r"\bnotified amount\b", p, re.I)
+                            and re.search(r"(?:₹|Rs\.?|INR)\s*[\d,]+", p, re.I)
+                            and re.search(r"\b(?:crores?|lakhs?|million|billion)\b", p, re.I)
+                            and p not in points):
+                        points.append(p)
+                return {
+                    "publish": bool(points), "materiality_score": 92 if points else 0,
+                    "category": category, "headline": clean_title.upper(),
+                    "summary_points": points[:3], "key_metrics": [], "what_it_means": "",
+                    "rejection_reason": "" if points else "AUCTION_REQUIRES_EXPLICIT_AMOUNT_AND_UNIT",
+                }
 
             bullets = []
             if desc and clean_title.lower() != desc.strip().lower():
@@ -533,14 +529,14 @@ class FilterEngine:
 
         # Preserve source prose, including signs, periods and units; never infer table columns.
         if category == "FINANCIAL_RESULTS":
-            points = clean_points(desc.splitlines() + sentences(title))
+            points = clean_points(desc.splitlines() + sentences(title), limit=None)
             points = [p for p in points if re.search(
                 r"(?:net profit|net loss|profit after tax|revenue|sales|ebitda).*?(?:₹|rs\.?|inr|crore|lakh|million|billion|%)",
                 p, re.I)]
             return {
                 "publish": bool(points), "materiality_score": 90 if points else 0,
                 "category": category, "headline": f"{norm_company} – FINANCIAL RESULTS",
-                "summary_points": points, "key_metrics": [], "what_it_means": "",
+                "summary_points": points[:5], "key_metrics": [], "what_it_means": "",
                 "rejection_reason": "" if points else "RESULTS_REQUIRE_EXPLICIT_METRICS_AND_UNITS",
             }
 
