@@ -276,7 +276,7 @@ class RealtimeDaemon:
                 self.total_errors += 1
                 logger.warning(f"FII/DII fetch routine failed: {e}")
 
-    def prepare_items(self, items):
+    def prepare_items(self, items, wait_pdfs=False):
         """Bounded PDF queue: slow filings never block text-only flashes.
         Failed/unsupported PDFs remain unconsumed and retry after a backoff.
         """
@@ -324,12 +324,20 @@ class RealtimeDaemon:
                     AnnexureParser.extract_annexure_bullets, url))
             else:
                 ready.append(item)
+        if wait_pdfs and self._pdf_pending:
+            from concurrent.futures import wait
+            wait([future for _, future in self._pdf_pending.values()], timeout=60)
+            ready.extend(self.prepare_items([]))
+            if self._pdf_pending:
+                self.total_errors += len(self._pdf_pending)
+                logger.error("Single-pass PDF timeout: %s pending filings", len(self._pdf_pending))
         return ready
 
     def process_cycle(self, wait_sources=False) -> int:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
         self.cycle_count += 1
-        items = self.prepare_items(self.poll_all_sources(wait_sources=True) if wait_sources else self.poll_all_sources())
+        raw_items = self.poll_all_sources(wait_sources=True) if wait_sources else self.poll_all_sources()
+        items = self.prepare_items(raw_items, wait_pdfs=True) if wait_sources else self.prepare_items(raw_items)
         dispatched_count = 0
 
         for it in items:
@@ -457,6 +465,8 @@ def main():
         count = daemon.process_cycle(wait_sources=True)
         daemon.state.save_state(sync_git=False)
         logger.info(f"Single pass complete. Dispatched {count} announcements.")
+        if daemon.total_errors:
+            raise RuntimeError("Single pass had errors; inspect the run log.")
     else:
         daemon.run_daemon()
 

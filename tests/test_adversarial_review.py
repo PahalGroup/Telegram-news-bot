@@ -104,3 +104,25 @@ class EventQualificationTests(unittest.TestCase):
             ("MANAGEMENT_CHANGE", "Mr. Example Person has not, after extensive discussions, resigned as director."),
         ]:
             self.assertFalse(evaluate_event(category, "EXAMPLE", "", text)["publish"])
+
+class SinglePassTests(unittest.TestCase):
+    def test_one_shot_drains_newly_queued_pdf(self):
+        from concurrent.futures import Future
+        from src.daemon import RealtimeDaemon
+        daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        daemon.state = MagicMock()
+        daemon.state.is_seen.return_value = False
+        daemon.filter_engine = MagicMock()
+        daemon.filter_engine.should_drop.return_value = False
+        daemon._pdf_pending = {}
+        daemon._pdf_retry = {}
+        daemon._pdf_pool = MagicMock()
+        daemon.total_errors = 0
+        done = Future()
+        done.set_result(("", ["Example received an order worth INR 250 crore."]))
+        daemon._pdf_pool.submit.return_value = done
+        items = daemon.prepare_items([{"id": "one-shot", "source": "NSE",
+                                       "pdf_url": "https://example.com/order.pdf"}], wait_pdfs=True)
+        self.assertEqual(len(items), 1)
+        self.assertIn("INR 250 crore", items[0]["description"])
+        self.assertEqual(daemon._pdf_pending, {})

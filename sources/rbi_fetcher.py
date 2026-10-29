@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class RBIFetcher:
     def __init__(self):
+        self.last_health = {}
         self.url = "https://rbi.org.in/pressreleases_rss.xml"
         self.ctx = ssl.create_default_context()
         self.headers = {
@@ -38,6 +39,9 @@ class RBIFetcher:
                 if root.tag != "rss" or root.find("channel") is None:
                     raise ValueError("RBI response is not an RSS channel")
                 items = []
+                raw_items = root.findall(".//item")
+                self.last_health = {"raw_items": len(raw_items), "rejected_dates": 0,
+                                    "sample_dates": [it.findtext("pubDate", "") for it in raw_items[:3]]}
                 for it in root.findall(".//item"):
                     title_el = it.find("title")
                     desc_el = it.find("description")
@@ -52,7 +56,10 @@ class RBIFetcher:
                     title = self._clean_html(title)
                     desc = self._clean_html(desc)
                     
-                    if not title or not fresh_rss_date(pub, 86400):
+                    if not title:
+                        continue
+                    if not fresh_rss_date(pub, 86400):
+                        self.last_health["rejected_dates"] += 1
                         continue
 
                     # Filter out routine operational State Govt auction circulars & daily LAF ops

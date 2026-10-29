@@ -28,6 +28,8 @@ def main():
         count = daemon.process_cycle(wait_sources=True)
         daemon.state.save_state(sync_git=False)
         print(f"[✓] Single cycle complete. Dispatched {count} announcements.")
+        if daemon.total_errors:
+            raise RuntimeError("Single pass had errors; inspect the run log.")
     else:
         daemon.run_daemon()
 

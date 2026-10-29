@@ -58,5 +58,33 @@
     ],
     "sha256": "d7d3f15c1bd6dbbbabc3c8bfb8f5d6880bfe471e7a3a68a954e64cf1587d24eb",
     "source": "NSE"
+  },
+  {
+    "id": "hcl_management_charge",
+    "company": "Hindustan Copper Limited",
+    "title": "Change in Senior Management",
+    "source": "COMPANY",
+    "url": "https://hindustancopper.com//Content/PDF/Shri%20Nagesh%20Shenoy,%20Unit%20Head-%20MCP%20took%20over%20the%20charge%20as%20ED%20%20(Mining-Production,%20Safety%20&%20ISO%20Chief,CO%20_12.10.2026.pdf",
+    "category": "MANAGEMENT_CHANGE",
+    "facts": [
+      "Nagesh Shenoy",
+      "Executive Director",
+      "12.10.2026"
+    ],
+    "sha256": "REQUIRES_SOURCE_HASH_REVIEW"
+  },
+  {
+    "id": "hcl_director_appointment",
+    "company": "Hindustan Copper Limited",
+    "title": "Appointment of Independent Director",
+    "source": "COMPANY",
+    "url": "https://hindustancopper.com//Content/PDF/appointment-of%20smt.-madhumita-daolagupu-as-independent-director-15.08.2026.pdf",
+    "category": "MANAGEMENT_CHANGE",
+    "facts": [
+      "Madhumita Daolagupu",
+      "14.08.2026",
+      "Annual General Meeting"
+    ],
+    "sha256": "REQUIRES_SOURCE_HASH_REVIEW"
   }
 ]

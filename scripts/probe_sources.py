@@ -14,10 +14,11 @@ from sources.liveblog_fetcher import LiveBlogFetcher
 
 def main():
     news = NewsFetcher()
+    rbi = RBIFetcher()
     calls = {
         'bse': lambda: BSEFetcher().fetch_announcements(skip_pdf=True),
         'nse': lambda: NSEFetcher().fetch_announcements(),
-        'rbi': lambda: RBIFetcher().fetch_press_releases(),
+        'rbi': rbi.fetch_press_releases,
         'rss': news.fetch_all_feeds,
         'liveblog': lambda: LiveBlogFetcher().fetch_live_flashes(),
     }
@@ -27,6 +28,8 @@ def main():
         try:
             count = len(call())
             result = {'status': 'items' if count else 'empty_unverified', 'items': count}
+            if name == 'rbi':
+                result['date_diagnostics'] = rbi.last_health
             if name == 'rss':
                 result['feeds'] = news.last_health
                 if any(h['status'] == 'error' for h in news.last_health.values()):
