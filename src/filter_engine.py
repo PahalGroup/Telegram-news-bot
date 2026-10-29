@@ -339,7 +339,7 @@ class FilterEngine:
             "sebi bars", "sebi fines", "sebi issues", "sebi tightens", "sebi circular", "sebi orders",
             "sebi cautions", "sebi approves", "rbi to conduct", "rbi governor", "rbi leaves", "rbi keeps",
             "rbi policy", "rbi directs", "fssai", "usfda", "gst council", "cabinet clears", "cabinet approves",
-            "crude oil", "opec", "sanctions", "tariff", "import duty", "export duty", "windfall tax"
+            "crude oil", "opec", "sanctions", "import duty", "export duty", "windfall tax"
         ]):
             return "POLICY_MACRO"
 
@@ -366,6 +366,10 @@ class FilterEngine:
             "details regarding expansion"
         ]):
             return "ORDER_WIN"
+
+        # Completed operational capacity is distinct from winning a contract.
+        if re.search(r"\\b(?:fully commissioned|commissioning of (?:additional|final)|commenced commercial)\\b", text):
+            return "CAPACITY_UPDATE"
 
         # Financing must not become management merely because a board approved it.
         if re.search(r"\b(?:term loan|loan facility|working capital|lease facility|financing agreement)\b", text):
@@ -540,7 +544,7 @@ class FilterEngine:
                 "rejection_reason": "" if points else "RESULTS_REQUIRE_EXPLICIT_METRICS_AND_UNITS",
             }
 
-        if category in ("FINANCING", "ORDER_WIN", "MANAGEMENT_CHANGE"):
+        if category in ("FINANCING", "ORDER_WIN", "MANAGEMENT_CHANGE", "CAPACITY_UPDATE"):
             from src.event_evidence import evaluate_event
             return evaluate_event(category, norm_company, title, desc)
 

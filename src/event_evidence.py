@@ -31,6 +31,11 @@ def evaluate_event(category, company, title, description):
                   and re.search(r'\b(?:order|contract|letter of (?:intent|award)|LOI|LOA)\b', p, re.I)
                   and (AMOUNT.search(p) or CAPACITY.search(p)) and not NEGATED.search(p)]
         label, reason = 'ORDER UPDATE', 'ORDER_REQUIRES_ACTION_AND_VALUE_OR_CAPACITY'
+    elif category == 'CAPACITY_UPDATE':
+        chosen = [p for p in points if re.search(r"\\b(?:has (?:fully )?commissioned|commissioned|commenced commercial)\\b", p, re.I)
+                  and CAPACITY.search(p)
+                  and not re.search(r"\\b(?:will|shall|expected|planned|not)\\b.{0,40}\\bcommission", p, re.I)]
+        label, reason = 'CAPACITY UPDATE', 'CAPACITY_REQUIRES_COMPLETED_ACTION_AND_QUANTITY'
     elif category == 'FINANCING':
         chosen = [p for p in points if re.search(r'\b(?:loan|lease|financ\w*|credit facility)\b', p, re.I)
                   and AMOUNT.search(p) and re.search(r'\b(?:approved|availed|executed|sanctioned|secured|entered)\b', p, re.I)

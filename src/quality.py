@@ -52,6 +52,8 @@ def clean_points(points, headline=""):
 def sentences(text):
     # Protect common abbreviations and decimals before identifying sentence boundaries.
     text = clean(text)
+    # Strip only a recognized introductory clause; retain the factual body verbatim.
+    text = re.sub(r"^(?:Pursuant to|In continuation of|With reference to).*?this is to inform you that\\s+", "", text, flags=re.I)
     protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Rs|Ltd|Ref|No)\.", r"\1<dot>", text)
     return [part.replace("<dot>", ".").strip() for part in
             re.split(r"(?<=[.!?])\s+(?=[A-Z])", protected) if part.strip()]
