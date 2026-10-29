@@ -10,7 +10,9 @@
       "GUVNL",
       "3.51/kWh",
       "25 years"
-    ]
+    ],
+    "sha256": "2e8033386df20c5c5e9d29b49085e53920be3d11c8c2968a85b3622fb9a274a1",
+    "source": "NSE"
   },
   {
     "id": "sical_financing",
@@ -22,7 +24,9 @@
       "81,00,00,000",
       "10,00,00,000",
       "Tata Capital"
-    ]
+    ],
+    "sha256": "b23f815197d37cc3e4ee64090561ad9dd401d020cb5762c9791f786d2dd33f22",
+    "source": "NSE"
   },
   {
     "id": "juniper_commissioning",
@@ -34,6 +38,11 @@
       "150 MW",
       "5 MW",
       "Gujarat Urja Vikas Nigam"
+    ],
+    "sha256": "5f820375f1a8a46b98a05e85444b0f407215f300b7ccffd4562e24cceca0a74e",
+    "source": "BSE",
+    "fallback_urls": [
+      "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e67637bf-2fbd-46e2-aaa0-84eda95e3e19.pdf"
     ]
   },
   {
@@ -46,6 +55,8 @@
       "1,727",
       "30%",
       "3,300"
-    ]
+    ],
+    "sha256": "d7d3f15c1bd6dbbbabc3c8bfb8f5d6880bfe471e7a3a68a954e64cf1587d24eb",
+    "source": "NSE"
   }
 ]

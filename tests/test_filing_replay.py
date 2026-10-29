@@ -19,3 +19,8 @@ class FilingReplayRegressions(unittest.TestCase):
         self.assertEqual(category, "CAPACITY_UPDATE")
         self.assertTrue(evaluate_event(category, "EXAMPLE", "", text)["publish"])
         self.assertFalse(evaluate_event(category, "EXAMPLE", "", "Example will commission a 150 MW project next year.")["publish"])
+
+    def test_whole_letter_block_preserves_paragraphs(self):
+        from src.quality import paragraph_sentences
+        block = "Sub: Regulatory disclosure\n\nDear Sir/Madam,\n\nPursuant to Regulation 30, this is to inform you that the board approved a loan of INR 10 crore.\n\nYours faithfully"
+        self.assertIn("the board approved a loan of INR 10 crore.", paragraph_sentences(block))
