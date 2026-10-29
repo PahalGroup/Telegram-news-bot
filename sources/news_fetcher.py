@@ -102,7 +102,7 @@ class NewsFetcher:
                         "link": link
                     })
         except Exception as e:
-            raise RuntimeError(f"RSS fetch failed: {name} ({url})") from e
+            raise RuntimeError(f"RSS fetch failed: {name} ({url}): {type(e).__name__}: {e}") from e
         return items
 
     def fetch_live_web_wires(self) -> List[Dict[str, Any]]:

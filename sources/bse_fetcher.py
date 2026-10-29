@@ -21,6 +21,7 @@ class BSEFetcher:
         self.primary_api = "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w"
         self.session = requests.Session(impersonate="chrome120")
         self.pdf_cache = {}
+        self.last_health = {}
 
     def fetch_announcements(self, skip_pdf: bool = False) -> List[Dict[str, Any]]:
         """Fetch latest corporate announcements from BSE across recent pages."""
@@ -28,6 +29,7 @@ class BSEFetcher:
         today_ist = now_ist.strftime("%Y%m%d")
         all_parsed = []
         seen_ids = set()
+        self.last_health = {"pages_ok": [], "page_errors": {}, "rejected_dates": 0}
 
         for page in (1, 2, 3):
             payload = {
@@ -49,6 +51,7 @@ class BSEFetcher:
                     if not isinstance(data, dict) or not isinstance(data.get("Table"), list):
                         raise ValueError("BSE response missing announcement Table")
                     items = data["Table"]
+                    self.last_health["pages_ok"].append(page)
                     if items:
                         for item in items:
                             company = item.get("SLONGNAME", "").strip()
@@ -62,15 +65,17 @@ class BSEFetcher:
                                 continue
                             seen_ids.add(newsid)
 
-                            # Freshness check: Skip filings older than 6 hours
-                            if news_dt:
-                                try:
-                                    dt_clean = news_dt.split(".")[0]
-                                    f_dt = datetime.fromisoformat(dt_clean).replace(tzinfo=ZoneInfo("Asia/Kolkata"))
-                                    if (now_ist - f_dt).total_seconds() > 21600:
-                                        continue
-                                except Exception:
-                                    pass
+                            # BSE naive timestamps are India time; retain explicit offsets.
+                            try:
+                                f_dt = datetime.fromisoformat(news_dt.replace("Z", "+00:00"))
+                                if f_dt.tzinfo is None:
+                                    f_dt = f_dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                                age = (now_ist - f_dt).total_seconds()
+                                if not -120 <= age <= 21600:
+                                    raise ValueError("stale or future timestamp")
+                            except (ValueError, TypeError):
+                                self.last_health["rejected_dates"] += 1
+                                continue
 
                             # Extract clean subject from NEWSSUB: "Company - SCRIP - Subject"
                             if " - " in raw_subj:
@@ -128,7 +133,9 @@ class BSEFetcher:
                             })
             except Exception as e:
                 logger.warning(f"BSE primary page {page} failed ({e})")
-                raise RuntimeError(f"BSE poll failed on page {page}") from e
+                self.last_health["page_errors"][str(page)] = str(e)
 
+        if not self.last_health["pages_ok"]:
+            raise RuntimeError("All BSE announcement pages failed")
         return all_parsed
 

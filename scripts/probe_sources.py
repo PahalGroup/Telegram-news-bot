@@ -13,10 +13,11 @@ from sources.news_fetcher import NewsFetcher
 from sources.liveblog_fetcher import LiveBlogFetcher
 
 def main():
+    bse = BSEFetcher()
     news = NewsFetcher()
     rbi = RBIFetcher()
     calls = {
-        'bse': lambda: BSEFetcher().fetch_announcements(skip_pdf=True),
+        'bse': lambda: bse.fetch_announcements(skip_pdf=True),
         'nse': lambda: NSEFetcher().fetch_announcements(),
         'rbi': rbi.fetch_press_releases,
         'rss': news.fetch_all_feeds,
@@ -28,6 +29,10 @@ def main():
         try:
             count = len(call())
             result = {'status': 'items' if count else 'empty_unverified', 'items': count}
+            if name == 'bse':
+                result['pages'] = bse.last_health
+                if bse.last_health.get('page_errors'):
+                    result['status'] = 'degraded'
             if name == 'rbi':
                 result['date_diagnostics'] = rbi.last_health
             if name == 'rss':

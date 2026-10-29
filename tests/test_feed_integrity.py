@@ -53,3 +53,28 @@ class FeedIntegrityTests(unittest.TestCase):
         value = "Thu, 29 Oct 2026 17:45:00"
         self.assertFalse(fresh_rss_date(value, 2700, now))
         self.assertTrue(fresh_rss_date(value, 2700, now, naive_timezone=ZoneInfo("Asia/Kolkata")))
+
+class BSEPartialFetchTests(unittest.TestCase):
+    def response(self, items=None, code=200):
+        response = MagicMock(status_code=code)
+        response.json.return_value = {"Table": items or []}
+        return response
+
+    def test_later_page_failure_preserves_earlier_announcements(self):
+        from sources.bse_fetcher import BSEFetcher
+        row = {"SLONGNAME": "Example", "NEWSSUB": "Receipt of order", "NEWSID": "123",
+               "NEWS_DT": datetime.now(timezone.utc).isoformat()}
+        fetcher = BSEFetcher()
+        with patch("sources.bse_fetcher.requests.get", side_effect=[
+                self.response([row]), self.response(code=503), self.response()]):
+            items = fetcher.fetch_announcements(skip_pdf=True)
+        self.assertEqual([item["newsid"] for item in items], ["123"])
+        self.assertIn("2", fetcher.last_health["page_errors"])
+
+    def test_invalid_or_future_bse_dates_are_withheld(self):
+        from sources.bse_fetcher import BSEFetcher
+        from datetime import timedelta
+        for date in ["", "bad", (datetime.now(timezone.utc) + timedelta(hours=3)).isoformat()]:
+            row = {"SLONGNAME": "Example", "NEWSSUB": "Receipt of order", "NEWSID": "123", "NEWS_DT": date}
+            with patch("sources.bse_fetcher.requests.get", return_value=self.response([row])):
+                self.assertEqual(BSEFetcher().fetch_announcements(skip_pdf=True), [])

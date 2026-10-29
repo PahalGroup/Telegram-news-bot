@@ -71,7 +71,7 @@
       "Executive Director",
       "12.10.2026"
     ],
-    "sha256": "REQUIRES_SOURCE_HASH_REVIEW"
+    "sha256": "5eca2fb5f631d5936be2fa335550f5c50657758e3dca02e33b058d79e09b983d"
   },
   {
     "id": "hcl_director_appointment",
@@ -85,6 +85,6 @@
       "14.08.2026",
       "Annual General Meeting"
     ],
-    "sha256": "REQUIRES_SOURCE_HASH_REVIEW"
+    "sha256": "d6819f57dd9a41b44203e09245b41f49b363052da4cd4093dddfffa993548f9e"
   }
 ]

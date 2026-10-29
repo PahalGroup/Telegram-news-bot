@@ -126,6 +126,10 @@ class RealtimeDaemon:
                     "published_at": it.get("news_dt"),
                 })
             if "bse" in completed:
+                page_errors = getattr(self.bse, "last_health", {}).get("page_errors", {})
+                if page_errors:
+                    self.total_errors += len(page_errors)
+                    logger.warning("BSE page failures: %s", page_errors)
                 logger.info(f"[BSE] Fetched {len(bse_items)} items")
         except Exception as e:
             logger.warning(f"BSE poll error: {e}")

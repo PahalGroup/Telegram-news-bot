@@ -58,6 +58,8 @@ def main():
             result["source_review"] = source[:14000]
         except Exception as exc:
             result.update(passed=False, error=str(exc))
+        if not result.get("passed") and result.get("evidence"):
+            print(json.dumps({"id": case["id"], "failed_evidence_review": result["evidence"][:15]}, ensure_ascii=False))
         results.append(result)
         print(json.dumps({k:v for k,v in result.items() if k not in ("source_review", "layout_review", "evidence", "post")}, ensure_ascii=False))
     Path("filing-replay.json").write_text(json.dumps(results, ensure_ascii=False, indent=2))
