@@ -23,9 +23,34 @@ class AnnexureParser:
         seen = set()
         with pymupdf.open(stream=pdf_bytes, filetype="pdf") as doc:
             for index in range(min(len(doc), cls.MAX_PAGES)):
+                # Numerical extraction is enabled only for unambiguous explicit headers.
+                from sources.financial_tables import table_evidence
+                page = doc[index]
+                table_boxes = []
+                try:
+                    tables = page.find_tables()
+                    table_boxes = [pymupdf.Rect(t.bbox) for t in tables.tables]
+                    for table in tables.tables:
+                        rows = table.extract()
+                        # Disclosure forms contain prose in individual cells. Keep those
+                        # cells separate; never join a label to unrelated numeric columns.
+                        for row in rows:
+                            for cell in row:
+                                for text in sentences(cell or ""):
+                                    if substantive(text) and len(text.split()) >= 8 and text.casefold() not in seen:
+                                        evidence.append({"text": text, "page": index + 1, "method": "table_prose"})
+                                        seen.add(text.casefold())
+                        for fact in table_evidence(rows, page.get_text(), index + 1):
+                            if fact["text"].casefold() not in seen:
+                                evidence.append(fact)
+                                seen.add(fact["text"].casefold())
+                except Exception:
+                    logger.warning("Table extraction unavailable on page %s", index + 1)
                 # Block boundaries keep columns from being merged into invented rows.
                 for block in doc[index].get_text("blocks", sort=True):
                     if len(block) < 5:
+                        continue
+                    if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):
                         continue
                     raw = cls.clean_text(block[4])
                     lines = [clean(line) for line in raw.splitlines() if clean(line)]
@@ -62,3 +87,4 @@ class AnnexureParser:
         except Exception:
             logger.exception("PDF extraction failed: %s", pdf_url)
             return "", []
+

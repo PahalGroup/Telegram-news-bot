@@ -32,3 +32,12 @@ Track exact HTTP status and parser outcome before adding alternative endpoints. 
 - Liveblog freshness checks retain timezone offsets, reject missing/invalid/future dates, and also cover the HTML fallback.
 - SGB redemption notices require the source's actual price and unit; legal background alone is withheld.
 - 43 offline tests pass locally. This does not complete stages 1 or 2; broader source health and typed event coverage remain pending.
+
+## 29 October implementation checkpoint
+
+- GitHub host probe from the preceding revision returned BSE 143, NSE 20, RBI 4 and RSS 3 items. Liveblog remained empty/unverified. Local HTTP 403 did not establish a production-host outage.
+- Replaced order/financing/management fallback summaries with verbatim evidence gates. Orders require an award/receipt action and value or capacity. Financing requires action plus amount. Management requires an explicitly titled person's name, role and action. These conservative rules can withhold valid disclosures phrased differently; broader recall validation remains open.
+- Removed automatic rupee conversion and inferred management-action headings from those paths. A tender submission alone does not qualify as an order win.
+- Added bounded financial-table support: one explicit scope and unit, independently labelled period columns, recognized metric rows and unchanged numeric signs/parentheses. Merged headers, mixed scopes, scans and unlabelled tables remain unsupported. No financial arithmetic is inferred.
+- Kept prose in disclosure-table cells separate from numeric tables. Replayed and visually reviewed the original Powerica disclosure to ensure its useful prose survives table detection.
+- 52 offline tests pass, including table-to-PDF integration tests. This is limited table support, not completion of financial extraction or OCR. No production deployment and no Telegram messages.
