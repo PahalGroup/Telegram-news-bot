@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 from html import unescape
 import re
 import logging
+from sources.feed_utils import fresh_rss_date
 from curl_cffi import requests
 
 logger = logging.getLogger(__name__)
@@ -42,8 +43,7 @@ DISCARD_PATTERNS = [
 class NewsFetcher:
     def __init__(self):
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
+        self.last_health = {}
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
@@ -72,6 +72,8 @@ class NewsFetcher:
             with urllib.request.urlopen(req, context=self.ctx, timeout=10) as resp:
                 data = resp.read()
                 root = ET.fromstring(data)
+                if root.tag != "rss" or root.find("channel") is None:
+                    raise ValueError("Response is not an RSS channel")
                 for it in root.findall(".//item"):
                     title_el = it.find("title")
                     desc_el = it.find("description")
@@ -89,17 +91,8 @@ class NewsFetcher:
                     if not title or self.is_noise(f"{title} {desc}"):
                         continue
 
-                    if pub:
-                        try:
-                            import email.utils
-                            from datetime import datetime, timezone
-                            dt = email.utils.parsedate_to_datetime(pub)
-                            now_utc = datetime.now(timezone.utc)
-                            # Freshness window: 45 minutes
-                            if (now_utc - dt).total_seconds() > 2700:
-                                continue
-                        except Exception:
-                            pass
+                    if not fresh_rss_date(pub, 2700):
+                        continue
 
                     items.append({
                         "source": name,
@@ -109,7 +102,7 @@ class NewsFetcher:
                         "link": link
                     })
         except Exception as e:
-            logger.debug(f"Feed fetch error ({name} - {url}): {e}")
+            raise RuntimeError(f"RSS fetch failed: {name} ({url})") from e
         return items
 
     def fetch_live_web_wires(self) -> List[Dict[str, Any]]:
@@ -139,6 +132,14 @@ class NewsFetcher:
     def fetch_all_feeds(self) -> List[Dict[str, Any]]:
         # RSS requests use independent urllib connections. Untimestamped category
         # page headings are not live flashes and cannot establish freshness.
+        def fetch_checked(feed):
+            try:
+                items = self.fetch_feed(feed)
+                return items, {"status": "items" if items else "empty_unverified", "items": len(items)}
+            except Exception as exc:
+                logger.warning("%s", exc)
+                return [], {"status": "error", "error": str(exc)}
         with ThreadPoolExecutor(max_workers=5) as pool:
-            batches = pool.map(self.fetch_feed, NEWS_FEEDS)
-            return [item for batch in batches for item in batch]
+            results = list(pool.map(fetch_checked, NEWS_FEEDS))
+        self.last_health = {feed["url"]: result[1] for feed, result in zip(NEWS_FEEDS, results)}
+        return [item for items, _ in results for item in items]

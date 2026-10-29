@@ -8,14 +8,19 @@ ORDER_ACTION = re.compile(r'\b(?:awarded|secured|received|receives|wins?|won)\b'
 ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director)\b', re.I)
 PERSON = re.compile(r'\b(?:Mr|Ms|Mrs|Dr|Shri|Smt)\.?\s+[A-Z][\w-]+(?:\s+[A-Z][\w-]+)+\b')
 MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|ceased|cessation|retir\w*|superannu\w*|tenure extension)\b', re.I)
-NEGATED = re.compile(r'\b(?:not|no|never)\b.{0,35}\b(?:awarded|received|secured|approved|appointed|resigned)\b', re.I)
-
-def uncertain(text):
-    # Fail closed for unresolved negation or modality in a claimed event.
-    # This intentionally withholds some mixed-clause disclosures for review.
+def uncertain(text, action_pattern):
+    # Reference numbers are not negation. Otherwise unresolved negative claims
+    # remain withheld; modality must qualify the event, not a later delivery term.
+    value = re.sub(r"\b(?:Ref(?:erence)?\.?\s+)?No\.\s*", "", text, flags=re.I)
+    if re.search(r"\b(?:not|no|never|neither|nor|without|denied|denies|rumou?r|unconfirmed)\b", value, re.I):
+        return True
+    action = re.search(action_pattern, value, re.I)
+    if not action:
+        return True
+    prefix = value[:action.start()]
+    prefix = re.sub(r"\bMay\s+\d{1,2}\b", "", prefix)
     return bool(re.search(
-        r"\b(?:not|no|never|neither|nor|without|will|shall|may|might|would|could|"
-        r"expected|planned|proposed|denied|denies|rumou?r|unconfirmed)\b", text, re.I))
+        r"\b(?:will|shall|may|might|would|could|expected|planned|proposed|if)\b", prefix, re.I))
 
 def candidates(title, description):
     result, seen = [], set()
@@ -36,21 +41,21 @@ def evaluate_event(category, company, title, description):
     if category == 'ORDER_WIN':
         chosen = [p for p in points if ORDER_ACTION.search(p)
                   and re.search(r'\b(?:order|contract|letter of (?:intent|award)|LOI|LOA)\b', p, re.I)
-                  and (AMOUNT.search(p) or CAPACITY.search(p)) and not uncertain(p)]
+                  and (AMOUNT.search(p) or CAPACITY.search(p)) and not uncertain(p, ORDER_ACTION.pattern)]
         label, reason = 'ORDER UPDATE', 'ORDER_REQUIRES_ACTION_AND_VALUE_OR_CAPACITY'
     elif category == 'CAPACITY_UPDATE':
         chosen = [p for p in points if re.search(r"\b(?:has (?:fully )?commissioned|commissioned|commenced commercial)\b", p, re.I)
                   and CAPACITY.search(p)
-                  and not uncertain(p)]
+                  and not uncertain(p, r"\b(?:commissioned|commenced commercial)\b")]
         label, reason = 'CAPACITY UPDATE', 'CAPACITY_REQUIRES_COMPLETED_ACTION_AND_QUANTITY'
     elif category == 'FINANCING':
         chosen = [p for p in points if re.search(r'\b(?:loan|lease|financ\w*|credit facility)\b', p, re.I)
                   and AMOUNT.search(p) and re.search(r'\b(?:approved|availed|executed|sanctioned|secured|entered)\b', p, re.I)
-                  and not NEGATED.search(p)]
+                  and not uncertain(p, r"\b(?:approved|availed|executed|sanctioned|secured|entered)\b")]
         label, reason = 'FINANCING', 'FINANCING_REQUIRES_ACTION_AND_AMOUNT'
     elif category == 'MANAGEMENT_CHANGE':
         chosen = [p for p in points if ROLE.search(p) and MANAGEMENT_ACTION.search(p)
-                  and PERSON.search(p) and not NEGATED.search(p)]
+                  and PERSON.search(p) and not uncertain(p, MANAGEMENT_ACTION.pattern)]
         label, reason = 'MANAGEMENT UPDATE', 'MANAGEMENT_REQUIRES_NAMED_PERSON_ROLE_AND_ACTION'
     else:
         raise ValueError('Unsupported evidence category')

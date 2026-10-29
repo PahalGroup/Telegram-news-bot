@@ -91,3 +91,16 @@ class EvidenceBoundaryTests(unittest.TestCase):
         text = "\n".join(result["summary_points"])
         self.assertNotIn("Crore", text)
         self.assertIn("500 million", text)
+
+class EventQualificationTests(unittest.TestCase):
+    def test_order_reference_and_future_delivery_do_not_negate_award(self):
+        text = ("Example received an order vide Ref. No. ABC/123 for 50 MW capacity "
+                "which will be delivered within 25 years.")
+        self.assertEqual(evaluate_event("ORDER_WIN", "EXAMPLE", "", text)["summary_points"], [text])
+
+    def test_negated_financing_and_management_are_withheld(self):
+        for category, text in [
+            ("FINANCING", "The bank has never sanctioned a loan of INR 250 crore to Example."),
+            ("MANAGEMENT_CHANGE", "Mr. Example Person has not, after extensive discussions, resigned as director."),
+        ]:
+            self.assertFalse(evaluate_event(category, "EXAMPLE", "", text)["publish"])

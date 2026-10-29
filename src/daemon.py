@@ -189,6 +189,11 @@ class RealtimeDaemon:
                     "source_url": it.get("link", ""),
                 })
             if "news" in completed:
+                failures = [url for url, health in getattr(self.news, "last_health", {}).items()
+                            if health.get("status") == "error"]
+                if failures:
+                    self.total_errors += len(failures)
+                    logger.warning("RSS sources failed: %s", failures)
                 logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
             logger.warning(f"News poll error: {e}")

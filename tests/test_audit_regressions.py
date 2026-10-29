@@ -33,6 +33,10 @@ class AuditTests(unittest.TestCase):
         <item><title>Monetary Policy Statement: repo rate revised</title></item>
         </channel></rss>"""
         response = MagicMock()
+        from email.utils import format_datetime
+        from datetime import datetime, timezone
+        date = format_datetime(datetime.now(timezone.utc)).encode()
+        xml = xml.replace(b"</item>", b"<pubDate>" + date + b"</pubDate></item>")
         response.__enter__.return_value.read.return_value = xml
         with patch("sources.rbi_fetcher.urllib.request.urlopen", return_value=response):
             items = RBIFetcher().fetch_press_releases()
