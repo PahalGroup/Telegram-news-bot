@@ -6,7 +6,7 @@ Status: draft repair branch; production has not been migrated. Each stage requir
 | --- | --- | --- | --- |
 | 1 | Source health and freshness: BSE, NSE, RBI, RSS, liveblog | HTTP/schema errors visible; empty/stale feeds distinguished; timezone and missing-date tests; compare live source items with normalized output | In progress |
 | 2 | Complete event summaries | Typed required fields for orders, financing, management, results and policy; original evidence attached to fields; no invented units or facts; review original-document cases | In progress: initial-sentence truncation remains |
-| 3 | PDF tables and scans | Period, unit, standalone/consolidated scope and sign retained; ambiguous tables withheld with reason; OCR evaluated on real scan fixtures | Pending; conservative prose extraction available |
+| 3 | PDF tables and scans | Period, unit, standalone/consolidated scope and sign retained; ambiguous tables withheld with reason; OCR evaluated on real scan fixtures | In progress; explicit tables and geometry-backed merged headers; OCR review only |
 | 4 | Delivery and restart recovery | Dedup ledger survives restart; failures retry; distinct updates pass; state-write failure is visible; cross-source duplicate evaluation | Basic regression tests pass; restart/live validation pending |
 | 5 | Official event coverage | Verify accessible official RBI/PIB/SEBI feeds and licensing/availability; distinguish published text from live speech; document actual coverage | Pending |
 | 6 | Market-session shadow validation | No Telegram sends; source health, discovery, extraction and ready timestamps; adjudicated errors and omissions; p50/p95 processing delay, source outages, backlog | Short smoke checks only; full session pending |
@@ -43,3 +43,12 @@ Track exact HTTP status and parser outcome before adding alternative endpoints. 
 - 52 offline tests pass, including table-to-PDF integration tests. This is limited table support, not completion of financial extraction or OCR. No production deployment and no Telegram messages.
 
 - GitHub installed PyMuPDF 2.0 under the open version range; both table integration tests failed there. Pinned PyMuPDF 1.26.6, the local tested extractor, for reproducible behavior.
+
+
+## Merged-header and scan checkpoint
+
+- Merged period headers now use PDF cell rectangles to assign explicit labels to columns. Missing cells are never filled from neighboring text alone. Multiple dates/kinds in a column are rejected.
+- Tests cover quarter/year groups, missing span geometry, conflicting dates and a generated PDF with a merged header.
+- Added a local OCR inspection command (`python scripts/inspect_scanned_pdf.py input.pdf --output review.json`). It records page numbers, word confidence and failures; requires optional Tesseract English data. Output is explicitly non-publishable and never enters Telegram or dedup state.
+- OCR is bounded to 20 MB, five pages, eight million pixels per page, twenty seconds per subprocess and a sixty-second processing budget. Recognition confidence is not a guarantee of accurate figures.
+- 60 local regression tests pass. A rasterized version of an original disclosure is used as a smoke test, not as proof of real-world scan accuracy. Broad original-scan and financial-table validation remains outstanding; automatic publication of OCR output remains disabled.

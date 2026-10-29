@@ -24,7 +24,7 @@ class AnnexureParser:
         with pymupdf.open(stream=pdf_bytes, filetype="pdf") as doc:
             for index in range(min(len(doc), cls.MAX_PAGES)):
                 # Numerical extraction is enabled only for unambiguous explicit headers.
-                from sources.financial_tables import table_evidence
+                from sources.financial_tables import table_evidence, resolve_merged_headers
                 page = doc[index]
                 table_boxes = []
                 try:
@@ -40,7 +40,8 @@ class AnnexureParser:
                                     if substantive(text) and len(text.split()) >= 8 and text.casefold() not in seen:
                                         evidence.append({"text": text, "page": index + 1, "method": "table_prose"})
                                         seen.add(text.casefold())
-                        for fact in table_evidence(rows, page.get_text(), index + 1):
+                        resolved_rows = resolve_merged_headers(rows, [row.cells for row in table.rows])
+                        for fact in table_evidence(resolved_rows, page.get_text(), index + 1):
                             if fact["text"].casefold() not in seen:
                                 evidence.append(fact)
                                 seen.add(fact["text"].casefold())
