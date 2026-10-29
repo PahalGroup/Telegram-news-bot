@@ -1,0 +1,30 @@
+name: Original Filing Replay
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'sources/**'
+      - 'tests/fixtures/public_filings.json'
+      - 'scripts/replay_public_filings.py'
+      - '.github/workflows/filing-replay.yml'
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/replay_public_filings.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-filing-replay
+          path: filing-replay.json
+          retention-days: 7
