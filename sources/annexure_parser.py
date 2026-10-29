@@ -9,6 +9,10 @@ from src.quality import clean, substantive, sentences, paragraph_sentences
 
 logger = logging.getLogger(__name__)
 
+class PDFExtractionError(RuntimeError):
+    """A PDF could not be downloaded or parsed; distinct from unsupported evidence."""
+
+
 class AnnexureParser:
     MAX_BYTES = 20 * 1024 * 1024
     MAX_PAGES = 40
@@ -81,19 +85,21 @@ class AnnexureParser:
             return "", []
         try:
             client = session or requests
-            response = client.get(pdf_url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+            response = client.get(pdf_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            if response.status_code == 404 and parsed.hostname == "www.bseindia.com" and parsed.path.startswith("/xml-data/corpfiling/AttachLive/"):
+                archive_url = pdf_url.replace("/AttachLive/", "/AttachHis/", 1)
+                response = client.get(archive_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
             if response.status_code != 200:
-                return "", []
+                raise PDFExtractionError(f"PDF HTTP {response.status_code}")
             data = response.content
             if len(data) > cls.MAX_BYTES or not data.lstrip().startswith(b"%PDF-"):
-                return "", []
+                raise PDFExtractionError("PDF exceeds size limit or has invalid content")
             evidence = cls.extract_evidence(data)
             if not evidence:
                 logger.warning("PDF requires table-aware extraction or OCR: %s", pdf_url)
                 return "", []
             logger.info("PDF evidence pages: %s", sorted({e["page"] for e in evidence}))
             return "", [e["text"] for e in evidence]
-        except Exception:
-            logger.exception("PDF extraction failed: %s", pdf_url)
-            return "", []
+        except Exception as exc:
+            raise PDFExtractionError(f"PDF extraction failed: {pdf_url}: {exc}") from exc
 

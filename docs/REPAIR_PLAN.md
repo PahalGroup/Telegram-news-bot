@@ -5,7 +5,7 @@ Status: draft repair branch; production has not been migrated. Each stage requir
 | Order | Work | Acceptance evidence | Status |
 | --- | --- | --- | --- |
 | 1 | Source health and freshness: BSE, NSE, RBI, RSS, liveblog | HTTP/schema errors visible; empty/stale feeds distinguished; timezone and missing-date tests; compare live source items with normalized output | In progress |
-| 2 | Complete event summaries | Typed required fields for orders, financing, management, results and policy; original evidence attached to fields; no invented units or facts; review original-document cases | In progress: initial-sentence truncation remains |
+| 2 | Complete event summaries | Typed required fields for orders, financing, management, results and policy; original evidence attached to fields; no invented units or facts; review original-document cases | In progress: premature evidence limits repaired; broader completeness validation remains |
 | 3 | PDF tables and scans | Period, unit, standalone/consolidated scope and sign retained; ambiguous tables withheld with reason; OCR evaluated on real scan fixtures | In progress; explicit tables and geometry-backed merged headers; OCR review only |
 | 4 | Delivery and restart recovery | Dedup ledger survives restart; failures retry; distinct updates pass; state-write failure is visible; cross-source duplicate evaluation | Basic regression tests pass; restart/live validation pending |
 | 5 | Official event coverage | Verify accessible official RBI/PIB/SEBI feeds and licensing/availability; distinguish published text from live speech; document actual coverage | Pending |
@@ -52,3 +52,29 @@ Track exact HTTP status and parser outcome before adding alternative endpoints. 
 - Added a local OCR inspection command (`python scripts/inspect_scanned_pdf.py input.pdf --output review.json`). It records page numbers, word confidence and failures; requires optional Tesseract English data. Output is explicitly non-publishable and never enters Telegram or dedup state.
 - OCR is bounded to 20 MB, five pages, eight million pixels per page, twenty seconds per subprocess and a sixty-second processing budget. Recognition confidence is not a guarantee of accurate figures.
 - 60 local regression tests pass. A rasterized version of an original disclosure is used as a smoke test, not as proof of real-world scan accuracy. Broad original-scan and financial-table validation remains outstanding; automatic publication of OCR output remains disabled.
+
+
+## Adversarial review, 29 October 2026
+
+The earlier four passing filing examples were insufficient release evidence. New negative tests at c79f33b produced 13 failing assertions across nine test methods, while the original four filings still passed.
+
+Confirmed problems and repairs:
+- Corrupt SQLite/JSON and malformed snapshot schemas could be silently ignored. Startup now stops; failed ledger writes propagate; an unhealthy ledger cannot overwrite its snapshot.
+- PDF facts were cut to twelve and then six entries before event selection. Extraction now retains evidence within the existing forty-page bound. Financial-result filtering selects relevant metrics before applying the post limit.
+- Distant negation and uncertain commissioning statements could pass event checks. Checks now account for event qualification, while distinguishing reference numbers and later delivery terms. Conservative mixed-clause rejection still affects recall.
+- Auction formatting could convert an explicit million amount into crore. Auction evidence and broker target currencies now preserve the source wording instead of inventing units.
+- One-shot runs queued PDFs and exited without draining their results. They now wait for bounded PDF completion and report errors.
+- NSE, RBI and RSS errors could look like empty feeds. They now expose failures; RSS preserves healthy-source items during partial outages. BSE preserves successfully fetched pages when another page fails.
+- RSS missing/invalid/future dates are withheld. RBI omits timezone offsets in its actual feed, so that adapter explicitly uses Asia/Kolkata for naive timestamps. BSE likewise uses India time only for naive timestamps and preserves explicit offsets.
+- Two original management disclosures exposed line-per-block PDF layout failures. Full-width, adjacent aligned blocks are joined using PDF coordinates; column, blank, numbered-item and paragraph-gap boundaries are retained. Effective dates and tenure survive the reviewed examples.
+- Signature-only company-secretary text no longer establishes a management event. Took/taken-over-charge wording and Smt. abbreviations are supported without relabelling the action as an appointment.
+- A real no-delivery smoke run exposed PDF download failures hidden from the daemon error total. Download/parse errors now propagate and remain retryable; unsupported evidence is counted separately. The download timeout is thirty seconds and BSE's official archive is tried only after a live-attachment 404.
+
+Validation boundaries:
+- The original corpus now contains six pinned documents; selected facts and category checks do not establish completeness or general factual accuracy.
+- The first ninety-second live-source smoke prepared seventeen posts and made zero Telegram attempts, but logged two PDF timeouts hidden by the old accounting. Its green status was not proof of error-free operation.
+- Source probes have alternated between success and degraded results: BSE page errors and Moneycontrol RSS outages occurred. Such errors must remain visible; rerunning until green does not erase them.
+- No full market-session comparison has been completed. No live Telegram acknowledgement, crash-after-send reconciliation or production-state remote-persistence failure drill has been completed.
+- A Telegram request timeout can leave delivery uncertain. The current dispatcher retries exceptions, so duplicate delivery remains possible in that window. Git-backed state can also be lost if an ephemeral runner disappears before upload/push. These remain release blockers, not guarantees supplied by the ledger fixes.
+- Live speech capture, PIB/SEBI integrations, broad original-scan/table verification and a hosting plan satisfying the intended latency remain open. OCR remains review-only.
+- Production has not been changed. Do not describe this draft as a completed rollout or lifetime-free real-time service.

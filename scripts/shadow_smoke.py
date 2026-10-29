@@ -46,6 +46,7 @@ def main():
             "telegram_attempts": dispatcher.attempts,
             "ready_posts": daemon.total_dispatched,
             "errors": daemon.total_errors,
+            "pdf_outcomes": getattr(daemon, "_pdf_outcomes", {}),
             "pending_pdfs": len(getattr(daemon, "_pdf_pending", {})),
             "cycles": records,
             "note": "90-second smoke only. Ready-post counts are not accuracy, coverage, or delivery proof.",

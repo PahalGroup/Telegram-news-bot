@@ -288,20 +288,29 @@ class RealtimeDaemon:
             self._pdf_pending = {}
             self._pdf_retry = {}
             self._pdf_pool = None
+        if not hasattr(self, "_pdf_outcomes"):
+            self._pdf_outcomes = {"extracted": 0, "unsupported": 0, "errors": 0, "queue_full_deferrals": 0}
         ready = []
         for key, (item, future) in list(self._pdf_pending.items()):
             if not future.done():
                 continue
             del self._pdf_pending[key]
+            failed = False
             try:
                 lead, bullets = future.result()
             except Exception:
                 logger.exception("PDF worker failed: %s", key)
+                self.total_errors += 1
+                self._pdf_outcomes["errors"] += 1
+                failed = True
                 bullets = []
             if bullets:
+                self._pdf_outcomes["extracted"] += 1
                 item["description"] = "\n".join(bullets)
                 ready.append(item)
             else:
+                if not failed:
+                    self._pdf_outcomes["unsupported"] += 1
                 self._pdf_retry[key] = time.time() + 300
                 logger.warning("Withheld %s: no reliable PDF evidence", key)
         for item in items:
@@ -320,6 +329,7 @@ class RealtimeDaemon:
                 if key in self._pdf_pending or self._pdf_retry.get(key, 0) > time.time():
                     continue
                 if len(self._pdf_pending) >= 32:
+                    self._pdf_outcomes["queue_full_deferrals"] += 1
                     continue
                 if self._pdf_pool is None:
                     self._pdf_pool = ThreadPoolExecutor(max_workers=3)
