@@ -265,7 +265,13 @@ class RealtimeDaemon:
                     formatted_msg = Formatter.format_fii_dii(trade_date, fii_net, dii_net)
                     logger.info(f"Posting daily FII/DII flows for {trade_date}...")
                     if not self.dry_run:
-                        if not self.dispatcher.send_message(formatted_msg, parse_mode="HTML"):
+                        self.state.begin_delivery(fii_key, fingerprint("", formatted_msg))
+                        try:
+                            delivery = self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
+                        except Exception as exc:
+                            raise StateIntegrityError("FII/DII delivery is uncertain; reconcile the saved intent") from exc
+                        if not delivery:
+                            self.state.complete_delivery(fii_key)
                             self.total_errors += 1
                             logger.error("FII/DII delivery failed; leaving it eligible for retry.")
                             return
@@ -273,6 +279,8 @@ class RealtimeDaemon:
                         print(f"\n[DRY RUN FII/DII DISPATCH]:\n{formatted_msg}\n")
                     self.state.mark_seen(fii_key, "NSE_FLOWS")
                     self.state.record_published(fii_key, f"FII/DII ACTIVITY – {trade_date}", "FII_DII_FLOWS")
+                    if not self.dry_run:
+                        self.state.complete_delivery(fii_key)
                     self.fii_posted_today = True
             except StateIntegrityError:
                 raise
@@ -405,6 +413,7 @@ class RealtimeDaemon:
 
             # Publish to Telegram
             if not self.dry_run:
+                self.state.begin_delivery(item_id, post_fp)
                 try:
                     delivery = Formatter.execute_with_retry(
                         self.dispatcher.send_message,
@@ -412,14 +421,14 @@ class RealtimeDaemon:
                         parse_mode="HTML"
                     )
                     if not delivery:
+                        self.state.complete_delivery(item_id)
                         self.total_errors += 1
                         logger.error("Telegram delivery failed for %s; leaving it eligible for retry.", item_id)
                         continue
                     logger.info(f"Published: {eval_data.get('headline')}")
                 except Exception as e:
                     self.total_errors += 1
-                    logger.error(f"Failed to dispatch to Telegram: {e}")
-                    continue
+                    raise StateIntegrityError("Telegram delivery is uncertain; reconcile the saved intent") from e
             else:
                 print(f"\n[DRY RUN DISPATCH - Score {eval_data.get('materiality_score')}]:\n{formatted_post}\n{'-'*50}")
 
@@ -428,6 +437,8 @@ class RealtimeDaemon:
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=post_fp)
             self.state.record_cooldown(norm_company, category)
             self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
+            if not self.dry_run:
+                self.state.complete_delivery(item_id)
             dispatched_count += 1
 
         # Check FII/DII routine

@@ -53,11 +53,14 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(daemon.process_cycle(), 1)
         self.assertTrue(self.state.is_seen("event-1"))
 
-    def test_delivery_exception_remains_retryable(self):
+    def test_delivery_exception_stops_for_reconciliation(self):
         daemon = self.daemon()
-        daemon.dispatcher.send_message.side_effect = RuntimeError("delivery unavailable")
-        self.assertEqual(daemon.process_cycle(), 0)
+        from src.state_store import StateIntegrityError
+        daemon.dispatcher.send_message.side_effect = RuntimeError("delivery outcome unknown")
+        with self.assertRaises(StateIntegrityError):
+            daemon.process_cycle()
         self.assertFalse(self.state.is_seen("event-1"))
+        self.assertIn("event-1", self.state.pending_deliveries)
 
     def test_success_persists_id_and_cooldown_together(self):
         daemon = self.daemon()

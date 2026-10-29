@@ -75,6 +75,11 @@ Validation boundaries:
 - The first ninety-second live-source smoke prepared seventeen posts and made zero Telegram attempts, but logged two PDF timeouts hidden by the old accounting. Its green status was not proof of error-free operation.
 - Source probes have alternated between success and degraded results: BSE page errors and Moneycontrol RSS outages occurred. Such errors must remain visible; rerunning until green does not erase them.
 - No full market-session comparison has been completed. No live Telegram acknowledgement, crash-after-send reconciliation or production-state remote-persistence failure drill has been completed.
-- A Telegram request timeout can leave delivery uncertain. The current dispatcher retries exceptions, so duplicate delivery remains possible in that window. Git-backed state can also be lost if an ephemeral runner disappears before upload/push. These remain release blockers, not guarantees supplied by the ledger fixes.
+- Telegram request exceptions now stop automatic resend. A delivery intent is saved before sending; unresolved intents block restart until manual reconciliation. Definitive rejection clears the intent and permits retry; acknowledgement clears it only after the published ledger is saved. Git-backed state can still be lost if an ephemeral runner disappears before upload/push; this remains a release blocker, not an exactly-once guarantee.
 - Live speech capture, PIB/SEBI integrations, broad original-scan/table verification and a hosting plan satisfying the intended latency remain open. OCR remains review-only.
 - Production has not been changed. Do not describe this draft as a completed rollout or lifetime-free real-time service.
+
+
+### Delivery reconciliation
+
+Run `python scripts/reconcile_delivery.py` to inspect pending IDs and fingerprints. Verify the actual destination channel before resolving any item. If delivered, use `--item-id ID --outcome delivered --message-id VERIFIED_ID --confirm-reviewed`; if verified absent, use `--item-id ID --outcome not-delivered --confirm-reviewed`. Optional `--db` and `--snapshot` select restored recovery files. The command does not contact Telegram or send a message. Preserve and commit both updated state files before restarting an ephemeral runner. If the outcome is still unknown, leave the intent unresolved.

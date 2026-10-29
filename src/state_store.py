@@ -22,7 +22,7 @@ class StateIntegrityError(RuntimeError):
 
 
 class StateStore:
-    def __init__(self, db_path: str = None, json_state_path: str = None):
+    def __init__(self, db_path: str = None, json_state_path: str = None, allow_pending: bool = False):
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.path.join(self.base_dir, "data", "market_wire.db")
         self.json_state_path = json_state_path or os.path.join(self.base_dir, "state", "daemon_state.json")
@@ -34,10 +34,13 @@ class StateStore:
         self.semantic_hashes: Set[str] = set()
         self.published_records: List[Dict[str, Any]] = []
         self.event_cooldowns: Dict[str, float] = {}
+        self.pending_deliveries: Dict[str, Dict[str, str]] = {}
         
         self._failed = False
         self._init_sqlite()
         self.load_state()
+        if self.pending_deliveries and not allow_pending:
+            raise StateIntegrityError("Unresolved Telegram delivery intent; reconcile before restarting delivery")
 
     def _fail(self, message, cause):
         self._failed = True
@@ -115,6 +118,7 @@ class StateStore:
                     for k, v in data.get("event_cooldowns", {}).items():
                         self.event_cooldowns[k] = float(v)
                     self.published_records = data.get("published_records", [])[-200:]
+                    self.pending_deliveries = data.get("pending_deliveries", {})
                     logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
             except Exception as e:
                 self._fail("Cannot trust deduplication snapshot; restore or reconcile it before delivery", e)
@@ -132,6 +136,11 @@ class StateStore:
                 not isinstance(k, str) or not isinstance(v, (int, float)) or isinstance(v, bool)
                 or not math.isfinite(v) or v < 0 for k, v in cooldowns.items()):
             raise ValueError("Invalid event_cooldowns")
+        pending = data.get("pending_deliveries", {})
+        if not isinstance(pending, dict) or any(
+                not isinstance(k, str) or not isinstance(v, dict)
+                or not isinstance(v.get("post_fingerprint"), str) for k, v in pending.items()):
+            raise ValueError("Invalid pending_deliveries")
         records = data.get("published_records", [])
         if not isinstance(records, list) or any(not isinstance(v, dict) for v in records):
             raise ValueError("Invalid published_records")
@@ -142,6 +151,7 @@ class StateStore:
             raise StateIntegrityError("State is unhealthy; refusing to overwrite its snapshot")
         # Keep the complete ledger: slicing an unordered set discards arbitrary recent IDs.
         payload = {
+            "pending_deliveries": self.pending_deliveries,
             "seen_ids": sorted(self.seen_ids),
             "semantic_hashes": sorted(self.semantic_hashes),
             "event_cooldowns": dict(sorted(self.event_cooldowns.items())),
@@ -208,6 +218,30 @@ class StateStore:
                 conn.commit()
         except Exception as e:
             self._fail("Cannot persist delivery cooldown; delivery stopped", e)
+
+    def begin_delivery(self, item_id, post_fingerprint):
+        """Persist intent before sending; an interrupted send must not retry blindly."""
+        if self.pending_deliveries:
+            raise StateIntegrityError("Unresolved Telegram delivery intent; delivery stopped")
+        self.pending_deliveries[str(item_id)] = {"post_fingerprint": str(post_fingerprint)}
+        self.save_state(sync_git=False)
+
+    def reconcile_delivery(self, item_id, delivered, message_id=None):
+        """Operator-only recovery after checking the destination channel."""
+        intent = self.pending_deliveries.get(str(item_id))
+        if intent is None:
+            raise ValueError("No pending delivery for this item")
+        if delivered:
+            if not isinstance(message_id, int) or isinstance(message_id, bool) or message_id <= 0:
+                raise ValueError("Verified Telegram message ID is required")
+            self.mark_seen(item_id, "RECONCILED", fingerprint=intent["post_fingerprint"])
+            self.record_published(item_id, f"Reconciled Telegram message {message_id}", "RECOVERY")
+        self.complete_delivery(item_id)
+
+    def complete_delivery(self, item_id):
+        """Clear intent only after definitive rejection or persisted acknowledgement."""
+        self.pending_deliveries.pop(str(item_id), None)
+        self.save_state(sync_git=False)
 
     def is_seen(self, item_id: str, fingerprint: str = None) -> bool:
         """Check if an item ID or its semantic fingerprint has already been processed."""
