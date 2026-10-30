@@ -36,13 +36,12 @@ class NSEFetcher:
             
             if r.status_code == 200:
                 data = r.json()
-                if isinstance(data, list):
+                if isinstance(data, list) and all(isinstance(row, dict) for row in data):
                     return data
-            return []
+            raise RuntimeError(f"NSE announcements invalid HTTP/schema: {r.status_code}")
         except Exception as e:
-            logger.error(f"Error fetching NSE announcements: {e}")
             self._warm = False
-            return []
+            raise RuntimeError("NSE announcements request failed") from e
 
     def fetch_fii_dii(self) -> List[Dict[str, Any]]:
         """Fetch latest FII / DII net trade data from NSE."""
@@ -58,9 +57,8 @@ class NSEFetcher:
             r = self.session.get(url, headers=headers, timeout=10)
             if r.status_code == 200:
                 data = r.json()
-                if isinstance(data, list):
+                if isinstance(data, list) and all(isinstance(row, dict) for row in data):
                     return data
-            return []
+            raise RuntimeError(f"NSE FII/DII invalid HTTP/schema: {r.status_code}")
         except Exception as e:
-            logger.error(f"Error fetching NSE FII/DII data: {e}")
-            return []
+            raise RuntimeError("NSE FII/DII request failed") from e

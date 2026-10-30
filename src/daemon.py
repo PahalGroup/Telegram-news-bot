@@ -2,14 +2,14 @@
 Production Daemon: Real-Time Continuous Polling Engine (src/daemon.py)
 SINGLE source of truth for GitHub Actions production.
 
-Sub-15-Second Continuous Polling Loop:
+Concurrent polling loop (not a latency guarantee):
 - Runs for configurable duration per workflow run (default: 54 min)
-- Polls upstream endpoints concurrently (BSE, NSE, RBI, News RSS, Liveblog) every 12s
+- Polls upstream endpoints concurrently, with a 12-second pause between cycles
 - Stage 1: Deterministic Hard Filter (src/filter_engine.py)
 - Stage 2: Few-Shot Calibrated AI Materiality Gate
 - Pixel-Accurate Formatter (Telegram HTML)
 - Persistent state management via src.state_store
-- Zero-gap handoff: Triggers workflow_dispatch before exiting cleanly
+- Workflow-owned handoff after state persistence; startup gaps remain possible
 """
 
 import os
@@ -17,6 +17,11 @@ import sys
 import time
 import argparse
 import logging
+import tempfile
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from multiprocessing import get_context
+from src.quality import fingerprint
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
 
@@ -36,7 +41,7 @@ logger = logging.getLogger("RealtimeDaemon")
 # Imports with graceful fallback
 from src.filter_engine import FilterEngine
 from src.formatter import Formatter
-from src.state_store import StateStore
+from src.state_store import StateStore, StateIntegrityError
 from telegram_dispatcher import TelegramDispatcher
 
 # Source fetchers
@@ -53,9 +58,19 @@ class RealtimeDaemon:
         self.shift_seconds = shift_seconds
         self.start_time = time.time()
 
-        self.state = StateStore()
-        self.filter_engine = FilterEngine()
         self.dispatcher = TelegramDispatcher()
+        if not dry_run and not self.dispatcher.is_live:
+            raise RuntimeError("Live mode requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID.")
+        # Dry runs must never consume the production dedup ledger.
+        self._dry_state_dir = tempfile.TemporaryDirectory(prefix="market-wire-dry-") if dry_run else None
+        if self._dry_state_dir:
+            self.state = StateStore(
+                db_path=os.path.join(self._dry_state_dir.name, "market_wire.db"),
+                json_state_path=os.path.join(self._dry_state_dir.name, "daemon_state.json"),
+            )
+        else:
+            self.state = StateStore()
+        self.filter_engine = FilterEngine()
 
         # Ingest Sources
         self.bse = BSEFetcher()
@@ -70,44 +85,40 @@ class RealtimeDaemon:
         self.total_dispatched = 0
         self.total_errors = 0
 
-    def trigger_github_workflow_dispatch(self):
-        """Zero-gap handoff: Dispatch next runner via GitHub REST API."""
-        gh_token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_PAT") or os.getenv("BOT_PAT")
-        repo = os.getenv("GITHUB_REPOSITORY", "PahalGroup/Telegram-news-bot")
-        workflow_id = "corn.yml"
+    def _trace(self, stage, item, reason='', **details):
+        observer = getattr(self, "observer", None)
+        if observer is not None:
+            observer.record(stage, item, reason, **details)
 
-        if not gh_token:
-            logger.info("No GITHUB_TOKEN present; skipping self-relay workflow dispatch.")
-            return
-
-        import urllib.request
-        url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_id}/dispatches"
-        req = urllib.request.Request(
-            url,
-            data=b'{"ref":"main"}',
-            headers={
-                "Authorization": f"Bearer {gh_token}",
-                "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "PahalMarketWireDaemon"
-            },
-            method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                if resp.status in [200, 204]:
-                    logger.info("Successfully triggered next GitHub workflow dispatch for zero-gap handoff!")
-                else:
-                    logger.warning(f"Workflow dispatch status: {resp.status}")
-        except Exception as e:
-            logger.warning(f"Self-relay trigger encountered: {e}")
-
-    def poll_all_sources(self) -> List[Dict[str, Any]]:
+    def poll_all_sources(self, wait_sources=False) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
         raw_items = []
+        # Keep one request per adapter in flight. Drain only completed requests;
+        # a slow feed must not hold up already available exchange announcements.
+        if not hasattr(self, "_source_pool"):
+            self._source_pool = ThreadPoolExecutor(max_workers=5)
+            self._source_pending = {}
+        calls = {
+            "bse": lambda: self.bse.fetch_announcements(skip_pdf=True),
+            "nse": self.nse.fetch_announcements,
+            "rbi": self.rbi.fetch_press_releases,
+            "news": self.news.fetch_all_feeds,
+            "liveblog": self.liveblog.fetch_live_flashes,
+        }
+        for name, call in calls.items():
+            if name not in self._source_pending:
+                self._source_pending[name] = self._source_pool.submit(call)
+        futures = self._source_pending.copy()
+        if wait_sources:
+            from concurrent.futures import wait
+            wait(futures.values())
+        completed = {name for name, future in futures.items() if future.done()}
+        for name in completed:
+            del self._source_pending[name]
 
         # 1. BSE Corporate Announcements
         try:
-            bse_items = self.bse.fetch_announcements(skip_pdf=True) or []
+            bse_items = (futures["bse"].result() or []) if "bse" in completed else []
             for it in bse_items:
                 raw_items.append({
                     "id": f"BSE_{it.get('newsid', it.get('raw_subject', ''))}",
@@ -117,15 +128,22 @@ class RealtimeDaemon:
                     "description": f"{it.get('headline', '')} {it.get('more', '')}".strip(),
                     "pdf_url": it.get("pdf_url"),
                     "raw_subject": it.get("raw_subject", ""),
+                    "source_url": it.get("pdf_url"),
+                    "published_at": it.get("news_dt"),
                 })
-            logger.info(f"[BSE] Fetched {len(bse_items)} items")
+            if "bse" in completed:
+                page_errors = getattr(self.bse, "last_health", {}).get("page_errors", {})
+                if page_errors:
+                    self.total_errors += len(page_errors)
+                    logger.warning("BSE page failures: %s", page_errors)
+                logger.info(f"[BSE] Fetched {len(bse_items)} items")
         except Exception as e:
             logger.warning(f"BSE poll error: {e}")
             self.total_errors += 1
 
         # 2. NSE Corporate Filings
         try:
-            nse_items = self.nse.fetch_announcements() or []
+            nse_items = (futures["nse"].result() or []) if "nse" in completed else []
             for it in nse_items:
                 symbol = it.get("symbol", "")
                 subject = it.get("desc", "") or it.get("subject", "")
@@ -133,7 +151,7 @@ class RealtimeDaemon:
                 attchmnt_text = it.get("attchmntText", "") or it.get("details", "")
                 title = attchmnt_text or subject
                 pdf_url = it.get("attchmntFile")
-                seq_id = it.get("dt") or it.get("seq_id") or subject[:40]
+                seq_id = it.get("seq_id") or fingerprint(symbol, str(pdf_url or "") + str(it.get("dt", "")) + title)
 
                 raw_items.append({
                     "id": f"NSE_{symbol}_{seq_id}",
@@ -142,32 +160,37 @@ class RealtimeDaemon:
                     "title": title,
                     "description": attchmnt_text,
                     "pdf_url": pdf_url,
+                    "source_url": pdf_url,
+                    "published_at": it.get("an_dt") or it.get("dt"),
                 })
-            logger.info(f"[NSE] Fetched {len(nse_items)} items")
+            if "nse" in completed:
+                logger.info(f"[NSE] Fetched {len(nse_items)} items")
         except Exception as e:
             logger.warning(f"NSE poll error: {e}")
             self.total_errors += 1
 
         # 3. RBI Press Releases
         try:
-            rbi_items = self.rbi.fetch_press_releases() or []
+            rbi_items = (futures["rbi"].result() or []) if "rbi" in completed else []
             for it in rbi_items:
                 raw_items.append({
-                    "id": f"RBI_{it.get('title', '')[:50]}",
+                    "id": "RBI_" + fingerprint("", it.get("link") or it.get("title", "")),
                     "source": "RBI",
                     "company": "RESERVE BANK OF INDIA",
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
-                    "pdf_url": it.get("link"),
+                    "source_url": it.get("link"),
+                    "published_at": it.get("pub_date"),
                 })
-            logger.info(f"[RBI] Fetched {len(rbi_items)} items")
+            if "rbi" in completed:
+                logger.info(f"[RBI] Fetched {len(rbi_items)} items")
         except Exception as e:
             logger.warning(f"RBI poll error: {e}")
             self.total_errors += 1
 
         # 4. News RSS Wires (Economic Times, Moneycontrol, Mint, BusinessLine)
         try:
-            news_items = self.news.fetch_all_feeds() or []
+            news_items = (futures["news"].result() or []) if "news" in completed else []
             for it in news_items:
                 raw_items.append({
                     "id": f"NEWS_{it.get('link', it.get('title', '')[:40])}",
@@ -175,15 +198,23 @@ class RealtimeDaemon:
                     "company": "",  # Extracted by filter
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
+                    "source_url": it.get("link", ""),
+                    "published_at": it.get("pub_date"),
                 })
-            logger.info(f"[NEWS] Fetched {len(news_items)} items")
+            if "news" in completed:
+                failures = [url for url, health in getattr(self.news, "last_health", {}).items()
+                            if health.get("status") == "error"]
+                if failures:
+                    self.total_errors += len(failures)
+                    logger.warning("RSS sources failed: %s", failures)
+                logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
             logger.warning(f"News poll error: {e}")
             self.total_errors += 1
 
         # 5. LiveBlog Breaking (Moneycontrol real-time flashes)
         try:
-            lb_items = self.liveblog.fetch_live_flashes() or []
+            lb_items = (futures["liveblog"].result() or []) if "liveblog" in completed else []
             for it in lb_items:
                 raw_items.append({
                     "id": f"LIVE_{it.get('id', it.get('title', '')[:30])}",
@@ -191,12 +222,32 @@ class RealtimeDaemon:
                     "company": "",
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
+                    "source_url": it.get("link", ""),
+                    "published_at": it.get("pub_date"),
                 })
-            logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
+            if "liveblog" in completed:
+                logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
         except Exception as e:
             logger.warning(f"LiveBlog poll error: {e}")
             self.total_errors += 1
 
+        observer = getattr(self, "observer", None)
+        if observer is not None:
+            if not hasattr(self, "_observed_sources"):
+                self._observed_sources = set()
+            source_names = {"bse": "BSE", "nse": "NSE", "rbi": "RBI", "news": "NEWS", "liveblog": "LIVEBLOG"}
+            for name in completed:
+                batch = [it for it in raw_items if it["source"] == source_names[name]]
+                for it in batch:
+                    it["_warm_start"] = name not in self._observed_sources
+                status = "error" if futures[name].exception() else "ok"
+                if name == "bse" and getattr(self.bse, "last_health", {}).get("page_errors"):
+                    status = "partial_error"
+                if name == "news" and any(h.get("status") == "error" for h in getattr(self.news, "last_health", {}).values()):
+                    status = "partial_error"
+                observer.source(source_names[name], status, count=len(batch))
+                if status == "ok":
+                    self._observed_sources.add(name)
         return raw_items
 
     def check_fii_dii_routine(self):
@@ -206,9 +257,6 @@ class RealtimeDaemon:
 
         # Do not dispatch on weekends (Saturday / Sunday) when cash markets are closed
         if ist_now.weekday() in (5, 6):
-            return
-
-        if self.fii_posted_today:
             return
 
         today_str = ist_now.strftime("%d-%b-%Y").upper()
@@ -221,35 +269,133 @@ class RealtimeDaemon:
             try:
                 fii_data = self.nse.fetch_fii_dii() or []
                 if fii_data and isinstance(fii_data, list) and len(fii_data) >= 2:
-                    data_date = fii_data[0].get("date", "").upper()
-                    fii_net = 0.0
-                    dii_net = 0.0
+                    flows = {}
                     for entry in fii_data:
-                        cat = entry.get("category", "").upper()
-                        raw_net = str(entry.get("netValue", 0)).replace(",", "")
-                        net = float(raw_net) if raw_net else 0.0
-                        if "FII" in cat or "FPI" in cat:
-                            fii_net = net
-                        elif "DII" in cat:
-                            dii_net = net
-
-                    trade_date = data_date or today_str
+                        if str(entry.get("date", "")).upper() != today_str:
+                            continue
+                        cat = str(entry.get("category", "")).upper()
+                        raw_net = str(entry.get("netValue", "")).replace(",", "").strip()
+                        try:
+                            net = Decimal(raw_net)
+                        except InvalidOperation:
+                            continue
+                        if not net.is_finite():
+                            continue
+                        key = "FII" if ("FII" in cat or "FPI" in cat) else ("DII" if "DII" in cat else None)
+                        if key:
+                            flows[key] = net
+                    if set(flows) != {"FII", "DII"}:
+                        logger.warning("FII/DII data missing, invalid, or stale; waiting for today's figures.")
+                        return
+                    fii_net, dii_net = flows["FII"], flows["DII"]
+                    trade_date = today_str
                     formatted_msg = Formatter.format_fii_dii(trade_date, fii_net, dii_net)
                     logger.info(f"Posting daily FII/DII flows for {trade_date}...")
                     if not self.dry_run:
-                        self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
+                        self.state.begin_delivery(fii_key, fingerprint("", formatted_msg))
+                        try:
+                            delivery = self.dispatcher.send_message(formatted_msg, parse_mode="HTML")
+                        except Exception as exc:
+                            raise StateIntegrityError("FII/DII delivery is uncertain; reconcile the saved intent") from exc
+                        if not delivery:
+                            self.state.complete_delivery(fii_key)
+                            self.total_errors += 1
+                            logger.error("FII/DII delivery failed; leaving it eligible for retry.")
+                            return
                     else:
                         print(f"\n[DRY RUN FII/DII DISPATCH]:\n{formatted_msg}\n")
                     self.state.mark_seen(fii_key, "NSE_FLOWS")
                     self.state.record_published(fii_key, f"FII/DII ACTIVITY – {trade_date}", "FII_DII_FLOWS")
+                    if not self.dry_run:
+                        self.state.complete_delivery(fii_key)
                     self.fii_posted_today = True
+            except StateIntegrityError:
+                raise
             except Exception as e:
-                logger.debug(f"FII/DII fetch routine: {e}")
+                self.total_errors += 1
+                logger.warning(f"FII/DII fetch routine failed: {e}")
 
-    def process_cycle(self) -> int:
+    def prepare_items(self, items, wait_pdfs=False):
+        """Bounded PDF queue: slow filings never block text-only flashes.
+        Failed/unsupported PDFs remain unconsumed and retry after a backoff.
+        """
+        if not hasattr(self, "_pdf_pending"):
+            self._pdf_pending = {}
+            self._pdf_retry = {}
+            self._pdf_pool = None
+        if not hasattr(self, "_pdf_outcomes"):
+            self._pdf_outcomes = {"extracted": 0, "unsupported": 0, "errors": 0, "queue_full_deferrals": 0}
+        ready = []
+        for key, (item, future) in list(self._pdf_pending.items()):
+            if not future.done():
+                continue
+            del self._pdf_pending[key]
+            failed = False
+            try:
+                lead, bullets = future.result()
+            except Exception:
+                logger.exception("PDF worker failed: %s", key)
+                self.total_errors += 1
+                self._pdf_outcomes["errors"] += 1
+                self._trace("pdf_error", item, "EXTRACTION_ERROR")
+                failed = True
+                bullets = []
+            if bullets:
+                self._pdf_outcomes["extracted"] += 1
+                self._trace("pdf_extracted", item, evidence_points=len(bullets))
+                item["description"] = "\n".join(bullets)
+                ready.append(item)
+            else:
+                if not failed:
+                    self._pdf_outcomes["unsupported"] += 1
+                    self._trace("pdf_unsupported", item, "NO_RELIABLE_PDF_EVIDENCE")
+                self._pdf_retry[key] = time.time() + 300
+                logger.warning("Withheld %s: no reliable PDF evidence", key)
+        for item in items:
+            key = item.get("id")
+            self._trace("discovered", item)
+            if not key or self.state.is_seen(key):
+                self._trace("already_seen", item)
+                continue
+            url = str(item.get("pdf_url") or "")
+            is_pdf = url.lower().split("?")[0].endswith(".pdf")
+            if is_pdf and item.get("source") in ("BSE", "NSE"):
+                context = f"{item.get('title', '')} {item.get('raw_subject', '')}"
+                if self.filter_engine.should_drop(context):
+                    self._trace("rejected", item, "TITLE_HARD_FILTER")
+                    self.state.mark_seen(key, item.get("source", "UNKNOWN"))
+                    continue
+                if any(r.get("id") == key for r in ready):
+                    continue
+                if key in self._pdf_pending or self._pdf_retry.get(key, 0) > time.time():
+                    continue
+                if len(self._pdf_pending) >= 32:
+                    self._pdf_outcomes["queue_full_deferrals"] += 1
+                    self._trace("queue_deferred", item, "PDF_QUEUE_FULL")
+                    continue
+                if self._pdf_pool is None:
+                    # PyMuPDF is not thread-safe. Each worker owns its document state.
+                    self._pdf_pool = ProcessPoolExecutor(max_workers=3, mp_context=get_context("spawn"))
+                self._trace("pdf_queued", item)
+                from sources.annexure_parser import AnnexureParser
+                self._pdf_pending[key] = (item, self._pdf_pool.submit(
+                    AnnexureParser.extract_annexure_bullets, url))
+            else:
+                ready.append(item)
+        if wait_pdfs and self._pdf_pending:
+            from concurrent.futures import wait
+            wait([future for _, future in self._pdf_pending.values()], timeout=60)
+            ready.extend(self.prepare_items([]))
+            if self._pdf_pending:
+                self.total_errors += len(self._pdf_pending)
+                logger.error("Single-pass PDF timeout: %s pending filings", len(self._pdf_pending))
+        return ready
+
+    def process_cycle(self, wait_sources=False) -> int:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
         self.cycle_count += 1
-        items = self.poll_all_sources()
+        raw_items = self.poll_all_sources(wait_sources=True) if wait_sources else self.poll_all_sources()
+        items = self.prepare_items(raw_items, wait_pdfs=True) if wait_sources else self.prepare_items(raw_items)
         dispatched_count = 0
 
         for it in items:
@@ -257,45 +403,26 @@ class RealtimeDaemon:
             if not item_id or self.state.is_seen(item_id):
                 continue
 
-            # Lazy PDF Extraction: Only for unseen corporate filings matching target catalysts
-            pdf_url = it.get("pdf_url")
-            if pdf_url and str(pdf_url).lower().endswith(".pdf") and it.get("source") in ("BSE", "NSE"):
-                title_context = f"{it.get('company', '')} {it.get('title', '')} {it.get('raw_subject', '')}".lower()
-                is_target_filing = any(k in title_context for k in [
-                    "order", "contract", "results", "directorate", "board meeting", "outcome",
-                    "mou", "acquisition", "expansion", "dividend", "qip", "ipo",
-                    "buyback", "financial", "tender", "rating", "press release", "investor", "clarification"
-                ])
-                if is_target_filing and not self.filter_engine.should_drop(title_context):
-                    try:
-                        from sources.annexure_parser import AnnexureParser
-                        lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url)
-                        if pdf_bullets:
-                            formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
-                            if lead_sum:
-                                it["description"] = f"{lead_sum}\n" + "\n".join(formatted_b)
-                            else:
-                                it["description"] = "\n".join(formatted_b)
-                    except Exception as pe:
-                        logger.debug(f"Lazy PDF extract error for {item_id}: {pe}")
-
             # Stage 1: Deterministic Hard Filter
             try:
                 passed_s1, reason_s1, candidate = self.filter_engine.evaluate_stage_1(it)
             except Exception as e:
+                self._trace("processing_error", it, "STAGE_1_ERROR")
                 logger.debug(f"Stage 1 error for {item_id}: {e}")
-                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                self.total_errors += 1
                 continue
 
             if not passed_s1:
+                self._trace("rejected", it, str(reason_s1))
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
-            # Rolling 6-Hour Entity Event Cooldown Gate
+            # Compare complete claims; distinct events for the same company remain eligible.
             norm_company = self.filter_engine.normalize_entity_name(candidate.get("company", ""))
             category = candidate.get("category", "")
-            if self.state.is_in_cooldown(norm_company, category, cooldown_seconds=21600):
-                logger.info(f"Skipping {norm_company}:{category} due to 6h rolling cooldown.")
+            event_fp = fingerprint(norm_company, it.get("title", "") + "\n" + it.get("description", ""))
+            if self.state.is_seen(item_id, fingerprint=event_fp):
+                self._trace("duplicate", it, "COMPLETE_CLAIM")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
@@ -303,41 +430,60 @@ class RealtimeDaemon:
             try:
                 eval_data = self.filter_engine.evaluate_stage_2(candidate)
             except Exception as e:
+                self._trace("processing_error", it, "STAGE_2_ERROR")
                 logger.warning(f"Stage 2 error for {item_id}: {e}")
-                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                self.total_errors += 1
                 continue
 
+            self._trace("evaluated", it, category=category, evidence_rejections=eval_data.get("evidence_rejections", {}))
             if not eval_data.get("publish", False) or eval_data.get("materiality_score", 0) < 70:
+                self._trace("rejected", it, str(eval_data.get("rejection_reason") or "INSUFFICIENT_MATERIAL_EVIDENCE"))
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
             # Format via pixel-accurate Telegram Formatter
             formatted_post = Formatter.format_post(eval_data, it)
             if not Formatter.validate_completeness(formatted_post):
+                self._trace("rejected", it, "FORMATTING_INCOMPLETE")
                 logger.info(f"Skipping incomplete/half post ({eval_data.get('headline')}): failed completeness validation.")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
+            post_fp = fingerprint("", formatted_post)
+            if self.state.is_seen(item_id, fingerprint=post_fp):
+                self._trace("duplicate", it, "FORMATTED_POST")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                continue
+
+            self._trace("ready", it, formatted_post=formatted_post)
             # Publish to Telegram
             if not self.dry_run:
+                self.state.begin_delivery(item_id, post_fp)
                 try:
-                    Formatter.execute_with_retry(
+                    delivery = Formatter.execute_with_retry(
                         self.dispatcher.send_message,
                         formatted_post,
                         parse_mode="HTML"
                     )
+                    if not delivery:
+                        self.state.complete_delivery(item_id)
+                        self.total_errors += 1
+                        logger.error("Telegram delivery failed for %s; leaving it eligible for retry.", item_id)
+                        continue
                     logger.info(f"Published: {eval_data.get('headline')}")
                 except Exception as e:
-                    logger.error(f"Failed to dispatch to Telegram: {e}")
-                    continue
+                    self.total_errors += 1
+                    raise StateIntegrityError("Telegram delivery is uncertain; reconcile the saved intent") from e
             else:
                 print(f"\n[DRY RUN DISPATCH - Score {eval_data.get('materiality_score')}]:\n{formatted_post}\n{'-'*50}")
 
             # Persist state and cooldown
-            fingerprint = candidate.get("fingerprint")
-            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=fingerprint)
-            self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
+            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=event_fp)
+            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=post_fp)
             self.state.record_cooldown(norm_company, category)
+            self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
+            if not self.dry_run:
+                self.state.complete_delivery(item_id)
             dispatched_count += 1
 
         # Check FII/DII routine
@@ -347,40 +493,33 @@ class RealtimeDaemon:
         return dispatched_count
 
     def run_daemon(self):
-        """Main continuous daemon loop."""
-        logger.info(f"Starting Production Daemon (Duration: {self.shift_seconds}s, Poll: {self.poll_interval}s, DryRun: {self.dry_run})...")
-        relay_triggered = False
-
-        while True:
-            elapsed = time.time() - self.start_time
-            if elapsed >= self.shift_seconds:
-                logger.info(f"Shift duration of {self.shift_seconds}s reached. Clean shutdown.")
-                break
-
-            # Zero-gap handoff: Trigger next workflow run 2 minutes before shift ends
-            if elapsed >= (self.shift_seconds - 120) and not relay_triggered:
-                logger.info("Zero-Gap Handoff Window: Triggering next GitHub workflow runner...")
-                self.trigger_github_workflow_dispatch()
-                relay_triggered = True
-
-            try:
-                count = self.process_cycle()
-                if count > 0:
-                    logger.info(f"Cycle {self.cycle_count}: dispatched {count} items (total: {self.total_dispatched})")
-            except Exception as e:
-                logger.error(f"Error during daemon cycle {self.cycle_count}: {e}")
-                self.total_errors += 1
-
-            time.sleep(self.poll_interval)
-
-        # Trigger relay at end if not already done
-        if not relay_triggered:
-            logger.info("End-of-shift relay trigger...")
-            self.trigger_github_workflow_dispatch()
-
-        # Save and persist state upon exit
-        self.state.save_state(sync_git=True)
-        logger.info(f"Daemon finished. Cycles: {self.cycle_count}, Dispatched: {self.total_dispatched}, Errors: {self.total_errors}")
+        """Run one shift. The workflow persists state before dispatching its successor."""
+        logger.info("Starting daemon: duration=%ss dry_run=%s", self.shift_seconds, self.dry_run)
+        try:
+            while time.time() - self.start_time < self.shift_seconds:
+                try:
+                    count = self.process_cycle()
+                    if count:
+                        logger.info("Cycle %s: dispatched %s items", self.cycle_count, count)
+                except StateIntegrityError:
+                    raise
+                except Exception:
+                    logger.exception("Error during daemon cycle %s", self.cycle_count)
+                    self.total_errors += 1
+                self.state.save_state(sync_git=False)
+                remaining = self.shift_seconds - (time.time() - self.start_time)
+                if remaining > 0:
+                    time.sleep(min(self.poll_interval, remaining))
+        finally:
+            if getattr(self, "_source_pool", None):
+                self._source_pool.shutdown(wait=True, cancel_futures=True)
+            if getattr(self, "_pdf_pool", None):
+                self._pdf_pool.shutdown(wait=True, cancel_futures=True)
+            self.state.save_state(sync_git=False)
+        logger.info("Daemon finished. Cycles: %s, Dispatched: %s, Errors: %s",
+                    self.cycle_count, self.total_dispatched, self.total_errors)
+        if self.total_errors:
+            raise RuntimeError("Daemon encountered errors; inspect the run log.")
 
 
 def main():
@@ -393,12 +532,16 @@ def main():
     daemon = RealtimeDaemon(dry_run=args.dry_run, shift_seconds=args.duration)
     if args.once:
         logger.info("Executing single pass (--once)...")
-        count = daemon.process_cycle()
+        count = daemon.process_cycle(wait_sources=True)
         daemon.state.save_state(sync_git=False)
         logger.info(f"Single pass complete. Dispatched {count} announcements.")
+        if daemon.total_errors:
+            raise RuntimeError("Single pass had errors; inspect the run log.")
     else:
         daemon.run_daemon()
 
 
 if __name__ == "__main__":
     main()
+
+

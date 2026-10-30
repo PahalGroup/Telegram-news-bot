@@ -5,15 +5,16 @@ from typing import List, Dict, Any
 from html import unescape
 import re
 import logging
+from sources.feed_utils import fresh_rss_date
+from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
 
 class RBIFetcher:
     def __init__(self):
+        self.last_health = {}
         self.url = "https://rbi.org.in/pressreleases_rss.xml"
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
@@ -36,7 +37,13 @@ class RBIFetcher:
             with urllib.request.urlopen(req, context=self.ctx, timeout=12) as resp:
                 data = resp.read()
                 root = ET.fromstring(data)
+                if root.tag != "rss" or root.find("channel") is None:
+                    raise ValueError("RBI response is not an RSS channel")
                 items = []
+                raw_items = root.findall(".//item")
+                self.last_health = {"raw_items": len(raw_items), "rejected_dates": 0,
+                                    "naive_date_policy": "RBI dates interpreted in Asia/Kolkata",
+                                    "sample_dates": [it.findtext("pubDate", "") for it in raw_items[:3]]}
                 for it in root.findall(".//item"):
                     title_el = it.find("title")
                     desc_el = it.find("description")
@@ -53,6 +60,9 @@ class RBIFetcher:
                     
                     if not title:
                         continue
+                    if not fresh_rss_date(pub, 86400, naive_timezone=ZoneInfo("Asia/Kolkata")):
+                        self.last_health["rejected_dates"] += 1
+                        continue
 
                     # Filter out routine operational State Govt auction circulars & daily LAF ops
                     routine_patterns = [
@@ -63,7 +73,9 @@ class RBIFetcher:
                         r"overnight variable rate repo",
                         r"overnight variable rate reverse repo",
                         r"auction of government of india dated securities",
-                        r"underwriting auction"
+                        r"underwriting auction",
+                        r"auction result",
+                        r"result of .*auction of state government"
                     ]
                     combined_check = f"{title} {desc}".lower()
                     if any(re.search(pat, combined_check) for pat in routine_patterns):
@@ -80,5 +92,5 @@ class RBIFetcher:
                     })
                 return items
         except Exception as e:
-            logger.error(f"Error fetching RBI press releases: {e}")
-            return []
+            raise RuntimeError("RBI RSS request or parsing failed") from e
+

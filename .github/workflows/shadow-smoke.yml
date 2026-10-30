@@ -1,0 +1,34 @@
+name: No-delivery Pipeline Smoke
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'sources/**'
+      - 'scripts/shadow_smoke.py'
+      - '.github/workflows/shadow-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/shadow_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: no-delivery-shadow
+          path: |
+            shadow-report.json
+            shadow-posts.txt
+            pipeline-events.jsonl
+            pipeline-items.jsonl
+            pipeline-summary.json
+          retention-days: 7
+
