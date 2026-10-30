@@ -36,6 +36,8 @@ class AnnexureParser:
                     table_boxes = [pymupdf.Rect(t.bbox) for t in tables.tables]
                     for table in tables.tables:
                         rows = table.extract()
+                        from sources.disclosure_tables import disclosure_table_evidence
+                        evidence.extend(disclosure_table_evidence(rows, index + 1))
                         # Disclosure forms contain prose in individual cells. Keep those
                         # cells separate; never join a label to unrelated numeric columns.
                         for row in rows:
@@ -52,15 +54,15 @@ class AnnexureParser:
                 except Exception:
                     logger.warning("Table extraction unavailable on page %s", index + 1)
                 # Join full-width wrapped lines using geometry; retain column/table boundaries.
-                from sources.pdf_layout import join_wrapped_blocks
+                from sources.pdf_layout import join_wrapped_blocks, join_bullet_continuations
                 raw_blocks = doc[index].get_text("blocks", sort=True)
                 prose_blocks = []
                 for block in raw_blocks:
                     if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):
-                        prose_blocks.append([0, 0, 0, 0, ""])  # explicit boundary
+                        prose_blocks.append([*block[:4], ""])  # explicit boundary
                     else:
                         prose_blocks.append(block)
-                for block in join_wrapped_blocks(prose_blocks, page.rect.width):
+                for block in join_wrapped_blocks(join_bullet_continuations(prose_blocks, page.rect.width), page.rect.width):
                     if len(block) < 5:
                         continue
                     if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):

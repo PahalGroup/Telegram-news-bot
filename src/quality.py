@@ -19,6 +19,7 @@ ACTION = re.compile(
     r"acquir\w*|acquis\w*|resign\w*|appoint\w*|commission\w*|invest\w*|"
     r"revenue|net profit|net loss|profit after tax|ebitda|dividend|"
     r"assumed charge|(?:took|taken) over (?:the )?charge|loan|financ\w*|capacity|contract|agreement|order|rating|"
+    r"inspection|Form 483|target entity|shares? (?:will be |are |is |to be )?transfer\w*|"
     r"repo|auction|policy|tariff|tax|duty|stake|merger|buyback)\b", re.I
 )
 

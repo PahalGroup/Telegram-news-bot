@@ -21,6 +21,8 @@ def main():
             if response.status_code != 200 or not data.startswith(b"%PDF") or len(data) > AnnexureParser.MAX_BYTES:
                 raise ValueError(f"Invalid PDF response: HTTP {response.status_code}")
             row["sha256"] = hashlib.sha256(data).hexdigest()
+            if row["sha256"] != case["sha256"]:
+                raise ValueError("Original document changed; review required")
             with pymupdf.open(stream=data, filetype="pdf") as doc:
                 row["pages"] = len(doc)
                 row["page_review"] = []
@@ -41,12 +43,19 @@ def main():
             row["post"] = Formatter.format_post(evaluation, item) if evaluation.get("publish") else ""
             row["reason"] = reason or evaluation.get("rejection_reason")
             row["category"] = candidate.get("category")
+            import re
+            norm = lambda s: re.sub(r"\s+", "", s).casefold()
+            row["checks"] = {fact: norm(fact) in norm(row["post"]) for fact in case["facts"]}
+            row["absent_checks"] = {fact: norm(fact) not in norm(row["post"]) for fact in case["absent"]}
+            row["passed"] = (bool(row["post"]) == case["publish"] and all(row["checks"].values())
+                             and all(row["absent_checks"].values())
+                             and (not case.get("category") or row["category"] == case["category"]))
         except Exception as exc:
             row["error"] = str(exc)
         results.append(row)
         print("PUBLIC_DOCUMENT_REVIEW " + json.dumps(row, ensure_ascii=False))
     Path("public-failure-review.json").write_text(json.dumps(results, ensure_ascii=False, indent=2))
-    return int(any("error" in row for row in results))
+    return int(any(not row.get("passed", False) for row in results))
 
 if __name__ == "__main__":
     sys.exit(main())

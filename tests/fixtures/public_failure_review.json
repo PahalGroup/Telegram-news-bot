@@ -3,42 +3,107 @@
     "id": "dcw",
     "company": "DCW Limited",
     "title": "Investor Presentation Q2 FY27",
-    "url": "https://nsearchives.nseindia.com/corporate/DCW_29102026232550_Covering_Letter_Investors_Presentation_29-10-2026.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/DCW_29102026232550_Covering_Letter_Investors_Presentation_29-10-2026.pdf",
+    "sha256": "adcd632d19e3ae63ad9a6801d6d66e6ad24de7c81bc75e092c8422dd20ac5133",
+    "facts": [
+      "6,629 Mn",
+      "31.5% growth in Speciality Chemicals and 19.9% growth in Basic Chemicals",
+      "loss of INR 188 Mn"
+    ],
+    "absent": [
+      "Geographical Revenue"
+    ],
+    "publish": true,
+    "category": "FINANCIAL_RESULTS"
   },
   {
     "id": "kims_acquired",
     "company": "Krishna Institute of Medical Sciences",
     "title": "Acquisition of 5.82% stake",
-    "url": "https://nsearchives.nseindia.com/corporate/KIMS_29102026230516_sangli_New.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/KIMS_29102026230516_sangli_New.pdf",
+    "sha256": "13b50aa73cf68ec948a40c8d8edd228c187b429fdd9b3614ce91dd65c8838d26",
+    "facts": [
+      "Ushahkal Abhinav",
+      "5.82%",
+      "₹15 Crore"
+    ],
+    "absent": [
+      "Objects and effects",
+      "website",
+      "316 beds"
+    ],
+    "publish": true,
+    "category": "CORP_RESTRUCTURE"
   },
   {
     "id": "kims_agreement",
     "company": "Krishna Institute of Medical Sciences",
     "title": "Agreement to acquire 51% equity stake",
-    "url": "https://nsearchives.nseindia.com/corporate/KIMS_29102026230354_Sarvittam.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/KIMS_29102026230354_Sarvittam.pdf",
+    "sha256": "48b89038fad921ecf8ca2fd56b8f62ec09450b7d2ad149cbd5103131190d3a33",
+    "facts": [
+      "Sarvottam",
+      "51.00%",
+      "₹79.50 Crore",
+      "Shares will be transferred"
+    ],
+    "absent": [
+      "Objects and effects",
+      "website",
+      "183 beds"
+    ],
+    "publish": true,
+    "category": "CORP_RESTRUCTURE"
   },
   {
     "id": "rubicon_fda",
     "company": "Rubicon Research Limited",
     "title": "General Updates",
-    "url": "https://nsearchives.nseindia.com/corporate/9823522970_30102026002126_RRLSEIntimationAmbernathUSFDAInspection30Oct2026.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/9823522970_30102026002126_RRLSEIntimationAmbernathUSFDAInspection30Oct2026.pdf",
+    "sha256": "737256d5e1bb6964e80b2a8a1afd037794fae19f0e24d8fce81bc6b375a4a282",
+    "facts": [
+      "Ambernath",
+      "Form 483",
+      "all 5",
+      "do not relate to data integrity"
+    ],
+    "absent": [],
+    "publish": true,
+    "category": "REGULATORY_UPDATE"
   },
   {
     "id": "epigral_rating",
     "company": "Epigral Limited",
     "title": "Credit Rating",
-    "url": "https://nsearchives.nseindia.com/corporate/EPIGRAL_29102026230356_EpigralCreditRating.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/EPIGRAL_29102026230356_EpigralCreditRating.pdf",
+    "sha256": "a05f9f2a7ce8200b865809ca00a775f6bb34188c9abbf675666ab72d49f1d356",
+    "facts": [
+      "1050 Crore",
+      "CRISIL AA/Stable",
+      "CRISIL A1+"
+    ],
+    "absent": [],
+    "publish": true,
+    "category": "CREDIT_RATING"
   },
   {
     "id": "drreddy_transcript",
     "company": "Dr Reddy Laboratories",
     "title": "Transcript",
-    "url": "https://nsearchives.nseindia.com/corporate/DRREDDY_29102026225525_SE_Intimation_Transcript_of_earning_call_recordings_signed.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/DRREDDY_29102026225525_SE_Intimation_Transcript_of_earning_call_recordings_signed.pdf",
+    "sha256": "90e6aff4a8b2a2d3dc078d6c0768b8399976b65249d721f6dfaea8c06f520a12",
+    "facts": [],
+    "absent": [],
+    "publish": false
   },
   {
     "id": "raymond_recording",
     "company": "Raymond Lifestyle",
     "title": "Link of Recording",
-    "url": "https://nsearchives.nseindia.com/corporate/RLL_29102026225241_RLLCallRecordingsigned.pdf"
+    "url": "https://nsearchives.nseindia.com/corporate/RLL_29102026225241_RLLCallRecordingsigned.pdf",
+    "sha256": "2501ff13feb3a89c24d0bd6670fa47bedf0d06dda89eafd7ecdab42754706aeb",
+    "facts": [],
+    "absent": [],
+    "publish": false
   }
 ]

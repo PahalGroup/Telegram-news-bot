@@ -17,7 +17,7 @@ BACKGROUND = re.compile(
     r'cash flow from operating activities|key monitorable|successfully listed|'
     r'completed \d+ years|net profit cross(?:ed|ing)?|brief (?:history|profile)|'
     r'guidance|guided|expect(?:ed|s)?|forecast|target(?:ed|s)?|CAGR|order book|'
-    r'adjusted PAT excludes|products that have been developed)\b', re.I)
+    r'geographical revenue|revenue break-up|historical financial|adjusted PAT excludes|products that have been developed)\b', re.I)
 RELATION = re.compile(r'\b(?:was|were|stood|grew|growing|growth|increas\w*|rose|risen|'
                       r'declin\w*|decreas\w*|fell|report\w*|record\w*|up|down|expanded|'
                       r'expands|improved|doubled|at|of)\b', re.I)

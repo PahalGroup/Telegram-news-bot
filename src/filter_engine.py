@@ -343,6 +343,9 @@ class FilterEngine:
         if re.search(r'\b(?:credit rating|rating (?:upgrade|downgrade|reaffirm|update))\b', title, re.I):
             return "CREDIT_RATING"
 
+        if re.search(r'\b(?:US\s*FDA|United States Food and Drug Administration|Form\s*483)\b', text, re.I):
+            return "REGULATORY_UPDATE"
+
         # Policy & Macro (SEBI, RBI, FSSAI, USFDA, Cabinet, Geopolitics - actor actions only)
         if any(k in text for k in [
             "sebi bars", "sebi fines", "sebi issues", "sebi tightens", "sebi orders",
@@ -568,8 +571,15 @@ class FilterEngine:
             from src.event_evidence import evaluate_event
             return evaluate_event(category, norm_company, title, desc)
 
+        if category == "REGULATORY_UPDATE":
+            from src.disclosure_evidence import regulatory
+            return regulatory(norm_company, title, desc)
+
         # 6. Corporate Restructure / M&A / Capital Action
         if category in ("CORP_RESTRUCTURE", "DIVIDEND_OR_SPLIT"):
+            if re.search(r'\b(?:acquisition of|acquires|agreement to acquire)\b', combined, re.I):
+                from src.disclosure_evidence import acquisition
+                return acquisition(norm_company, title, desc)
             badge = "BUYBACK" if "buyback" in combined.lower() else (
                 "STOCK SPLIT" if "split" in combined.lower() else (
                     "BONUS ISSUE" if "bonus" in combined.lower() else (
@@ -613,6 +623,10 @@ class FilterEngine:
 
         # 7. Credit Rating
         if category == "CREDIT_RATING":
+            from src.disclosure_evidence import rating
+            explicit = rating(norm_company, title, desc)
+            if explicit is not None:
+                return explicit
             agency = "CRISIL" if "crisil" in combined.lower() else (
                 "ICRA" if "icra" in combined.lower() else (
                     "CARE" if "care" in combined.lower() else "RATING AGENCY"
