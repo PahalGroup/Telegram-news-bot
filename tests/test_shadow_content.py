@@ -56,3 +56,33 @@ class ShadowContentTests(unittest.TestCase):
     def test_results_with_numbers_remain_verbatim(self):
         text = 'Net profit was INR -1.23 crore, down 54.40% YoY.'
         self.assertEqual(self.results(text)['summary_points'], [text])
+
+    def test_guidance_history_and_unlabelled_numeric_rows_are_not_results(self):
+        for text in [
+            'For the current fiscal year, we have guided for revenue growth of 80%, with an EBITDA margin of 24%.',
+            'The Company delivered a revenue CAGR of 28% and an earnings CAGR of 22% over FY23–FY26.',
+            'EBITDA Margins (%) 12.36% 12.30% 6 Bps 13.20% (84) Bps',
+            'Profit After Tax 22 58 (62.1)% 62 (64.5)%',
+            'Healthy order book: Rs. 900 crore (2.2x FY26 Revenue)',
+            'We have examined the financial data of subsidiaries which shows total net loss of Rs. 1.81 lacs.',
+            'EBITDA margin for Q2 FY27 was 12.36% despite combined headwinds of lower',
+        ]:
+            with self.subTest(text=text):
+                self.assertFalse(self.results(text)['publish'])
+
+    def test_explicit_table_fact_retains_period_scope_and_sign(self):
+        text = 'Consolidated net profit: INR (12.50) crore; Quarter ended 30-09-2026.'
+        self.assertEqual(self.results(text)['summary_points'], [text])
+
+    def test_rbi_rate_notice_keeps_rate_sentence_even_when_it_repeats_title(self):
+        title = 'Rate of Interest on Government of India Floating Rate Bond 2034'
+        fact = f'The {title} for October 30, 2026 to April 29, 2027 shall be 6.50 per cent per annum.'
+        result = self.engine.evaluate_stage_2({'category': 'POLICY_MACRO', 'title': title,
+            'description': fact + ' It may be recalled that the base rate includes a fixed spread of 0.98 per cent.'})
+        self.assertEqual(result['summary_points'], [fact])
+
+    def test_rbi_spread_alone_is_not_announced_coupon_rate(self):
+        result = self.engine.evaluate_stage_2({'category': 'POLICY_MACRO',
+            'title': 'Rate of Interest on Government of India Floating Rate Bond 2034',
+            'description': 'It may be recalled that FRB 2034 carries a coupon with a fixed spread of 0.98 per cent.'})
+        self.assertFalse(result['publish'])

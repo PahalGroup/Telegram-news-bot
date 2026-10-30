@@ -482,6 +482,21 @@ class FilterEngine:
             clean_title = re.sub(r'<[^>]+>', '', title).strip()
             headline = clean_title.upper() if len(clean_title) < 70 else self._truncate_clean(clean_title, 65).upper()
 
+            # A bond-rate announcement needs the announced coupon, not just its
+            # calculation background or fixed spread. Keep dates and rate verbatim.
+            if re.search(r'rate of interest.*(?:floating rate bond|FRB)', clean_title, re.I):
+                points = [p for p in sentences(desc)
+                          if re.search(r'\b(?:rate of interest|interest rate|coupon rate)\b', p, re.I)
+                          and re.search(r'\d+(?:\.\d+)?\s*(?:%|per cent|percent)', p, re.I)
+                          and re.search(r'\b(?:shall be|will be|is|fixed at|set at)\b', p, re.I)
+                          and not re.search(r'\b(?:recalled|spread|base rate|calculated|weighted average)\b', p, re.I)]
+                return {
+                    "publish": bool(points), "materiality_score": 92 if points else 0,
+                    "category": category, "headline": headline,
+                    "summary_points": points[:2], "key_metrics": [], "what_it_means": "",
+                    "rejection_reason": "" if points else "MISSING_ANNOUNCED_COUPON_RATE",
+                }
+
             # A redemption-price notice is incomplete without the actual price and unit.
             # Keep the source sentence intact rather than publishing only legal background.
             if "redemption price" in clean_title.lower():
