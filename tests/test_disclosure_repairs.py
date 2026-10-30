@@ -66,3 +66,16 @@ class DisclosureRepairTests(unittest.TestCase):
         facts = disclosure_table_evidence(rows, 1)
         self.assertEqual(len(facts), 3)
         self.assertEqual(facts[0]['text'], 'Long Term Rating: CRISIL AA/Stable')
+
+
+    def test_regulatory_paragraph_does_not_merge_into_subject(self):
+        from sources.pdf_layout import join_wrapped_blocks
+        from src.quality import paragraph_sentences, substantive
+        rows = [
+            [50, 208, 555, 235, 'Subject: Outcome of USFDA inspection of the manufacturing facility in Ambernath, India'],
+            [50, 243, 555, 292, 'Pursuant to Regulation 30, this is to inform you that the US FDA conducted an unannounced inspection of the manufacturing facility in Ambernath from 21 October to 29 October 2026.'],
+        ]
+        joined = join_wrapped_blocks(rows, 600)
+        self.assertEqual(len(joined), 2)
+        points = [p for b in joined for p in paragraph_sentences(b[4]) if substantive(p)]
+        self.assertTrue(any('US FDA conducted' in p and '29 October 2026' in p for p in points))

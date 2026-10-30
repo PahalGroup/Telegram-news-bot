@@ -24,7 +24,7 @@ def join_wrapped_blocks(blocks, page_width):
             and previous[2] - previous[0] >= page_width * 0.55
             and len(last_line) >= 55
             and not re.search(r"[.!?:]\s*$", last_line)
-            and not re.match(r"(?:\d+[.)]\s|Sub:|Dear\b|Sir\s*/|Yours\b|Thanking\b)", first_line, re.I)
+            and not re.match(r"(?:\d+[.)]\s|Sub:|Pursuant\b|In continuation\b|With reference\b|Dear\b|Sir\s*/|Yours\b|Thanking\b)", first_line, re.I)
         )
         if can_join:
             previous[2] = max(previous[2], current[2])
