@@ -7,6 +7,8 @@ on:
       - 'sources/**'
       - 'tests/fixtures/public_filings.json'
       - 'scripts/replay_public_filings.py'
+      - 'scripts/inspect_public_failures.py'
+      - 'tests/fixtures/public_failure_review.json'
       - '.github/workflows/filing-replay.yml'
 permissions:
   contents: read
@@ -22,9 +24,13 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements.txt
       - run: python scripts/replay_public_filings.py
+      - run: python scripts/inspect_public_failures.py
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: original-filing-replay
-          path: filing-replay.json
+          path: |
+            filing-replay.json
+            public-failure-review.json
           retention-days: 7
