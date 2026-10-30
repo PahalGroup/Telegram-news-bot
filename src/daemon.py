@@ -18,7 +18,8 @@ import time
 import argparse
 import logging
 import tempfile
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from multiprocessing import get_context
 from src.quality import fingerprint
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone, timedelta
@@ -83,6 +84,11 @@ class RealtimeDaemon:
         self.cycle_count = 0
         self.total_dispatched = 0
         self.total_errors = 0
+
+    def _trace(self, stage, item, reason='', **details):
+        observer = getattr(self, "observer", None)
+        if observer is not None:
+            observer.record(stage, item, reason, **details)
 
     def poll_all_sources(self, wait_sources=False) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
@@ -154,6 +160,8 @@ class RealtimeDaemon:
                     "title": title,
                     "description": attchmnt_text,
                     "pdf_url": pdf_url,
+                    "source_url": pdf_url,
+                    "published_at": it.get("an_dt") or it.get("dt"),
                 })
             if "nse" in completed:
                 logger.info(f"[NSE] Fetched {len(nse_items)} items")
@@ -191,6 +199,7 @@ class RealtimeDaemon:
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
                     "source_url": it.get("link", ""),
+                    "published_at": it.get("pub_date"),
                 })
             if "news" in completed:
                 failures = [url for url, health in getattr(self.news, "last_health", {}).items()
@@ -214,6 +223,7 @@ class RealtimeDaemon:
                     "title": it.get("title", ""),
                     "description": it.get("description", ""),
                     "source_url": it.get("link", ""),
+                    "published_at": it.get("pub_date"),
                 })
             if "liveblog" in completed:
                 logger.info(f"[LIVEBLOG] Fetched {len(lb_items)} items")
@@ -221,6 +231,23 @@ class RealtimeDaemon:
             logger.warning(f"LiveBlog poll error: {e}")
             self.total_errors += 1
 
+        observer = getattr(self, "observer", None)
+        if observer is not None:
+            if not hasattr(self, "_observed_sources"):
+                self._observed_sources = set()
+            source_names = {"bse": "BSE", "nse": "NSE", "rbi": "RBI", "news": "NEWS", "liveblog": "LIVEBLOG"}
+            for name in completed:
+                batch = [it for it in raw_items if it["source"] == source_names[name]]
+                for it in batch:
+                    it["_warm_start"] = name not in self._observed_sources
+                status = "error" if futures[name].exception() else "ok"
+                if name == "bse" and getattr(self.bse, "last_health", {}).get("page_errors"):
+                    status = "partial_error"
+                if name == "news" and any(h.get("status") == "error" for h in getattr(self.news, "last_health", {}).values()):
+                    status = "partial_error"
+                observer.source(source_names[name], status, count=len(batch))
+                if status == "ok":
+                    self._observed_sources.add(name)
         return raw_items
 
     def check_fii_dii_routine(self):
@@ -310,26 +337,32 @@ class RealtimeDaemon:
                 logger.exception("PDF worker failed: %s", key)
                 self.total_errors += 1
                 self._pdf_outcomes["errors"] += 1
+                self._trace("pdf_error", item, "EXTRACTION_ERROR")
                 failed = True
                 bullets = []
             if bullets:
                 self._pdf_outcomes["extracted"] += 1
+                self._trace("pdf_extracted", item, evidence_points=len(bullets))
                 item["description"] = "\n".join(bullets)
                 ready.append(item)
             else:
                 if not failed:
                     self._pdf_outcomes["unsupported"] += 1
+                    self._trace("pdf_unsupported", item, "NO_RELIABLE_PDF_EVIDENCE")
                 self._pdf_retry[key] = time.time() + 300
                 logger.warning("Withheld %s: no reliable PDF evidence", key)
         for item in items:
             key = item.get("id")
+            self._trace("discovered", item)
             if not key or self.state.is_seen(key):
+                self._trace("already_seen", item)
                 continue
             url = str(item.get("pdf_url") or "")
             is_pdf = url.lower().split("?")[0].endswith(".pdf")
             if is_pdf and item.get("source") in ("BSE", "NSE"):
                 context = f"{item.get('title', '')} {item.get('raw_subject', '')}"
                 if self.filter_engine.should_drop(context):
+                    self._trace("rejected", item, "TITLE_HARD_FILTER")
                     self.state.mark_seen(key, item.get("source", "UNKNOWN"))
                     continue
                 if any(r.get("id") == key for r in ready):
@@ -338,9 +371,12 @@ class RealtimeDaemon:
                     continue
                 if len(self._pdf_pending) >= 32:
                     self._pdf_outcomes["queue_full_deferrals"] += 1
+                    self._trace("queue_deferred", item, "PDF_QUEUE_FULL")
                     continue
                 if self._pdf_pool is None:
-                    self._pdf_pool = ThreadPoolExecutor(max_workers=3)
+                    # PyMuPDF is not thread-safe. Each worker owns its document state.
+                    self._pdf_pool = ProcessPoolExecutor(max_workers=3, mp_context=get_context("spawn"))
+                self._trace("pdf_queued", item)
                 from sources.annexure_parser import AnnexureParser
                 self._pdf_pending[key] = (item, self._pdf_pool.submit(
                     AnnexureParser.extract_annexure_bullets, url))
@@ -371,11 +407,13 @@ class RealtimeDaemon:
             try:
                 passed_s1, reason_s1, candidate = self.filter_engine.evaluate_stage_1(it)
             except Exception as e:
+                self._trace("processing_error", it, "STAGE_1_ERROR")
                 logger.debug(f"Stage 1 error for {item_id}: {e}")
                 self.total_errors += 1
                 continue
 
             if not passed_s1:
+                self._trace("rejected", it, str(reason_s1))
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
@@ -384,6 +422,7 @@ class RealtimeDaemon:
             category = candidate.get("category", "")
             event_fp = fingerprint(norm_company, it.get("title", "") + "\n" + it.get("description", ""))
             if self.state.is_seen(item_id, fingerprint=event_fp):
+                self._trace("duplicate", it, "COMPLETE_CLAIM")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
@@ -391,26 +430,32 @@ class RealtimeDaemon:
             try:
                 eval_data = self.filter_engine.evaluate_stage_2(candidate)
             except Exception as e:
+                self._trace("processing_error", it, "STAGE_2_ERROR")
                 logger.warning(f"Stage 2 error for {item_id}: {e}")
                 self.total_errors += 1
                 continue
 
+            self._trace("evaluated", it, category=category, evidence_rejections=eval_data.get("evidence_rejections", {}))
             if not eval_data.get("publish", False) or eval_data.get("materiality_score", 0) < 70:
+                self._trace("rejected", it, str(eval_data.get("rejection_reason") or "INSUFFICIENT_MATERIAL_EVIDENCE"))
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
             # Format via pixel-accurate Telegram Formatter
             formatted_post = Formatter.format_post(eval_data, it)
             if not Formatter.validate_completeness(formatted_post):
+                self._trace("rejected", it, "FORMATTING_INCOMPLETE")
                 logger.info(f"Skipping incomplete/half post ({eval_data.get('headline')}): failed completeness validation.")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
             post_fp = fingerprint("", formatted_post)
             if self.state.is_seen(item_id, fingerprint=post_fp):
+                self._trace("duplicate", it, "FORMATTED_POST")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
+            self._trace("ready", it, formatted_post=formatted_post)
             # Publish to Telegram
             if not self.dry_run:
                 self.state.begin_delivery(item_id, post_fp)
@@ -498,4 +543,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

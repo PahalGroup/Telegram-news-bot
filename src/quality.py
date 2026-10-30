@@ -6,10 +6,11 @@ import re
 PLACEHOLDER = re.compile(
     r"please (?:refer|find)|self explanatory|verified from official|"
     r"press release$|^transaction details:?$|^board .* decisions:?$|"
-    r"kindly take|enclosed (?:herewith|file)|dear sir|"
+    r"kindly take|enclos(?:ed|ing) (?:herewith|file)|dear sir|"
     r"has informed (?:bse|the exchange)|pursuant to regulation|"
     r"reason for change.*appointment|removal.*death|"
     r"monitoring agency report|dispatched via github|investorrelations@|"
+    r"\b(?:Tel|Email)\s*:|\bDeputy General Manager \(Communications\)|"
     r"^CIN:|^name of the entity awarding|^significant terms and conditions|"
     r"^whether |^time period by which|^broad consideration or size", re.I
 )
@@ -64,3 +65,4 @@ def paragraph_sentences(text):
     # and greetings from the factual paragraph; do not flatten them together.
     return [sentence for paragraph in re.split(r"\n\s*\n", str(text or ""))
             for sentence in sentences(paragraph)]
+

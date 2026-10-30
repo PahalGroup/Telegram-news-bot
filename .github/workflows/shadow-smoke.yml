@@ -27,4 +27,8 @@ jobs:
           path: |
             shadow-report.json
             shadow-posts.txt
+            pipeline-events.jsonl
+            pipeline-items.jsonl
+            pipeline-summary.json
           retention-days: 7
+

@@ -83,3 +83,16 @@ Validation boundaries:
 ### Delivery reconciliation
 
 Run `python scripts/reconcile_delivery.py` to inspect pending IDs and fingerprints. Verify the actual destination channel before resolving any item. If delivered, use `--item-id ID --outcome delivered --message-id VERIFIED_ID --confirm-reviewed`; if verified absent, use `--item-id ID --outcome not-delivered --confirm-reviewed`. Optional `--db` and `--snapshot` select restored recovery files. The command does not contact Telegram or send a message. Preserve and commit both updated state files before restarting an ephemeral runner. If the outcome is still unknown, leave the intent unresolved.
+
+## Shadow-output review, 30 October 2026
+
+Reading the actual 26 prepared posts exposed errors that successful test counts and extraction totals concealed. Auditor scope paragraphs described subsidiary figures as results; chart labels and historic presentation milestones appeared as current results. A dividend-tax notice became a memorandum-of-understanding post because `mou` matched `amount`. Routine SEBI references became macro news, and rating rationales became earnings stories because their background mentioned EBITDA.
+
+Targeted regressions reproduced nine failing assertions before repair. Result selection now requires an explicit numeric value/unit, excludes recognized audit-scope/background text and selected clipped fragments, and keeps negative values verbatim. Dividend-tax paperwork is rejected, MOU matching uses word boundaries, and explicit credit-rating titles take precedence over background earnings. These are conservative safeguards, not complete period, scope or numerical reconciliation; valid stories can still be withheld.
+
+The previous PDF logs also contained PyMuPDF text-page/weak-reference errors despite a zero-error aggregate. PyMuPDF explicitly does not support multithreaded use (https://pymupdf.readthedocs.io/en/latest/recipes-multiprocessing.html). PDF parsing now uses three spawned processes, with independent documents; source HTTP polling remains threaded. A real spawned-process test checks six distinct documents for cross-document fact contamination.
+
+`python scripts/shadow_smoke.py --duration 90 --output-dir fresh-run-directory` now creates per-item JSONL evidence and a summary, alongside prepared posts. Repeated queue deferrals are counted separately from unique deferred items. Each item retains its first discovery, final pipeline status, rejection reason and discovery-to-ready delay. Initial source batches are marked warm-start; missing, ambiguous and future publication timestamps are excluded from publication-delay statistics. Ready means prepared, not delivered or accurate. Fatal cycle errors still write evidence. The rejecting Telegram stub and temporary delivery ledger remain in place.
+
+The default CI run remains a 90-second smoke. Longer observation is configurable but has not established a full market-session benchmark or reference-channel win rate. Remaining issues include incomplete RBI rate/data notices, broader result-period/scope validation, source coverage, source outages, durable production-state recovery, and actual delivery validation. No production rollout is implied by this checkpoint.
+

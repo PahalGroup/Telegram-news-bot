@@ -154,6 +154,11 @@ class FilterEngine:
         if len(full_text) < 15:
             return False, "EMPTY_OR_TOO_SHORT", {}
 
+        if re.search(r'\b(?:tax on .*dividend|tax deduction.*dividend|dividend.*(?:tax deduction|form 15[gh]))\b', title, re.I):
+            return False, "DIVIDEND_TAX_PAPERWORK", {}
+        if re.search(r'\bappointment of (?:the )?secretarial auditor\b', title, re.I):
+            return False, "ROUTINE_AUDITOR_APPOINTMENT", {}
+
         # 1. RBI Press Releases - Dedicated Bypass
         if source == "RBI" or "RESERVE BANK OF INDIA" in raw_company.upper():
             candidate = {
@@ -334,9 +339,13 @@ class FilterEngine:
     def _classify_category(self, title: str, desc: str, pdf_url: str = "") -> str:
         text = f"{title} {desc} {pdf_url or ''}".lower()
 
+        # A specific document title outranks incidental metrics in a rating rationale.
+        if re.search(r'\b(?:credit rating|rating (?:upgrade|downgrade|reaffirm|update))\b', title, re.I):
+            return "CREDIT_RATING"
+
         # Policy & Macro (SEBI, RBI, FSSAI, USFDA, Cabinet, Geopolitics - actor actions only)
         if any(k in text for k in [
-            "sebi bars", "sebi fines", "sebi issues", "sebi tightens", "sebi circular", "sebi orders",
+            "sebi bars", "sebi fines", "sebi issues", "sebi tightens", "sebi orders",
             "sebi cautions", "sebi approves", "rbi to conduct", "rbi governor", "rbi leaves", "rbi keeps",
             "rbi policy", "rbi directs", "fssai", "usfda", "gst council", "cabinet clears", "cabinet approves",
             "crude oil", "opec", "sanctions", "import duty", "export duty", "windfall tax"
@@ -530,14 +539,13 @@ class FilterEngine:
 
         # Preserve source prose, including signs, periods and units; never infer table columns.
         if category == "FINANCIAL_RESULTS":
-            points = clean_points(desc.splitlines() + sentences(title), limit=None)
-            points = [p for p in points if re.search(
-                r"(?:net profit|net loss|profit after tax|revenue|sales|ebitda).*?(?:₹|rs\.?|inr|crore|lakh|million|billion|%)",
-                p, re.I)]
+            from src.result_evidence import select_result_points
+            points, evidence_rejections = select_result_points(title, desc)
             return {
                 "publish": bool(points), "materiality_score": 90 if points else 0,
                 "category": category, "headline": f"{norm_company} – FINANCIAL RESULTS",
                 "summary_points": points[:5], "key_metrics": [], "what_it_means": "",
+                "evidence_rejections": evidence_rejections,
                 "rejection_reason": "" if points else "RESULTS_REQUIRE_EXPLICIT_METRICS_AND_UNITS",
             }
 
@@ -552,7 +560,7 @@ class FilterEngine:
                     "BONUS ISSUE" if "bonus" in combined.lower() else (
                         "ACQUISITION" if "acquisition" in combined.lower() else (
                             "IPO UPDATE" if "ipo" in combined.lower() or "public offer" in combined.lower() else (
-                                "MEMORANDUM OF UNDERSTANDING" if "mou" in combined.lower() or "memorandum" in combined.lower() else (
+                                "MEMORANDUM OF UNDERSTANDING" if re.search(r'\bmou\b|\bmemorandum of understanding\b', combined, re.I) else (
                                     "INTERIM DIVIDEND" if "dividend" in combined.lower() else "CORPORATE ACTION"
                                 )
                             )
@@ -638,4 +646,5 @@ class FilterEngine:
             "summary_points": [],
             "what_it_means": ""
         }
+
 
