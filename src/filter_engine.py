@@ -482,6 +482,16 @@ class FilterEngine:
 
         # 2. Policy & Macro (RBI, SEBI, FSSAI, Geopolitics)
         if category == "POLICY_MACRO":
+            from src.market_quotes import is_quote_story, extract_quotes
+            if is_quote_story(candidate):
+                quotes = extract_quotes(desc)
+                return {
+                    "publish": bool(quotes), "materiality_score": 92 if quotes else 0,
+                    "category": category, "headline": "CRUDE OIL – PRICE UPDATE",
+                    "summary_points": [quote["text"] for quote in quotes],
+                    "market_quotes": quotes, "key_metrics": [], "what_it_means": "",
+                    "rejection_reason": "" if quotes else "MISSING_EXPLICIT_BENCHMARK_PRICE",
+                }
             clean_title = re.sub(r'<[^>]+>', '', title).strip()
             headline = clean_title.upper() if len(clean_title) < 70 else self._truncate_clean(clean_title, 65).upper()
 

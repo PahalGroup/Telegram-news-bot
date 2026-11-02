@@ -422,7 +422,9 @@ class RealtimeDaemon:
             norm_company = self.filter_engine.normalize_entity_name(candidate.get("company", ""))
             category = candidate.get("category", "")
             event_fp = fingerprint(norm_company, it.get("title", "") + "\n" + it.get("description", ""))
-            if self.state.is_seen(item_id, fingerprint=event_fp):
+            from src.market_quotes import is_quote_story
+            quote_story = is_quote_story(candidate)
+            if not quote_story and self.state.is_seen(item_id, fingerprint=event_fp):
                 self._trace("duplicate", it, "COMPLETE_CLAIM")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -442,6 +444,17 @@ class RealtimeDaemon:
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
 
+            market_quote_event = None
+            if eval_data.get("market_quotes"):
+                from src.market_quotes import select_new_quotes
+                quotes, market_quote_event = select_new_quotes(
+                    eval_data["market_quotes"], it, self.state.published_records)
+                if not quotes:
+                    self._trace("duplicate", it, "MARKET_QUOTE_ALREADY_REPORTED_OR_OLDER")
+                    self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                    continue
+                eval_data = dict(eval_data, summary_points=[q["text"] for q in quotes])
+
             # Format via pixel-accurate Telegram Formatter
             formatted_post = Formatter.format_post(eval_data, it)
             if not Formatter.validate_completeness(formatted_post):
@@ -451,7 +464,7 @@ class RealtimeDaemon:
                 continue
 
             post_fp = fingerprint("", formatted_post)
-            if self.state.is_seen(item_id, fingerprint=post_fp):
+            if market_quote_event is None and self.state.is_seen(item_id, fingerprint=post_fp):
                 self._trace("duplicate", it, "FORMATTED_POST")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -482,7 +495,11 @@ class RealtimeDaemon:
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=event_fp)
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"), fingerprint=post_fp)
             self.state.record_cooldown(norm_company, category)
-            self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
+            if market_quote_event is not None:
+                self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""),
+                                            market_quote_event=market_quote_event)
+            else:
+                self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
             if not self.dry_run:
                 self.state.complete_delivery(item_id)
             dispatched_count += 1

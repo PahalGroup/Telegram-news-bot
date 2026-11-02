@@ -144,6 +144,10 @@ class StateStore:
         records = data.get("published_records", [])
         if not isinstance(records, list) or any(not isinstance(v, dict) for v in records):
             raise ValueError("Invalid published_records")
+        from src.market_quotes import validate_event
+        for record in records:
+            if "market_quote_event" in record:
+                validate_event(record["market_quote_event"])
 
     def save_state(self, sync_git: bool = False):
         """Save state to SQLite and JSON snapshot. Optionally sync to git in cloud."""
@@ -267,13 +271,17 @@ class StateStore:
         except Exception as e:
             self._fail("Cannot persist deduplication ledger; delivery stopped", e)
 
-    def record_published(self, item_id: str, headline: str, category: str):
+    def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None):
         """Log a successfully dispatched Telegram announcement."""
         rec = {
             "item_id": str(item_id),
             "headline": headline,
             "category": category
         }
+        if market_quote_event is not None:
+            from src.market_quotes import validate_event
+            validate_event(market_quote_event)
+            rec["market_quote_event"] = market_quote_event
         self.published_records.append(rec)
         try:
             with sqlite3.connect(self.db_path) as conn:
