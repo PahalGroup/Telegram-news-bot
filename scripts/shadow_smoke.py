@@ -17,10 +17,10 @@ class NoDelivery:
         self.attempts += 1
         raise AssertionError("Shadow run attempted Telegram delivery")
 
-def run_status(failure, errors, pending_sources, pending_pdfs):
+def run_status(failure, errors, pending_sources, pending_pdfs, pending_backlog=0):
     if failure:
         return "failed"
-    if pending_sources or pending_pdfs:
+    if pending_sources or pending_pdfs or pending_backlog:
         return "incomplete"
     return "degraded" if errors else "completed"
 
@@ -51,6 +51,7 @@ def main():
                     "processing_seconds": round(time.monotonic() - cycle_started, 3),
                     "pending_sources": len(getattr(daemon, "_source_pending", {})),
                     "pending_pdfs": len(getattr(daemon, "_pdf_pending", {})),
+                    "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {})),
                     "errors": daemon.total_errors,
                 })
                 time.sleep(min(12, max(0, args.duration - (time.monotonic() - started))))
@@ -63,13 +64,21 @@ def main():
             with patch.object(daemon, "poll_all_sources", return_value=final_items):
                 count = daemon.process_cycle()
                 records.append({"cycle": daemon.cycle_count, "ready_posts": count, "source_drain": True})
-            # Drain PDFs queued by the observation and final source batch.
-            if getattr(daemon, "_pdf_pending", None):
-                from concurrent.futures import wait
-                wait([f for _, f in daemon._pdf_pending.values()], timeout=60)
+            # Collect completions and refill from retained work within one budget.
+            # Backoff items remain visible rather than being called complete.
+            from concurrent.futures import FIRST_COMPLETED
+            deadline = time.monotonic() + 60
             with patch.object(daemon, "poll_all_sources", return_value=[]):
-                count = daemon.process_cycle()
-                records.append({"cycle": daemon.cycle_count, "ready_posts": count, "drain": True})
+                while True:
+                    count = daemon.process_cycle()
+                    records.append({"cycle": daemon.cycle_count, "ready_posts": count,
+                                    "drain": True,
+                                    "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {}))})
+                    pending = [f for _, f in getattr(daemon, "_pdf_pending", {}).values()]
+                    remaining = deadline - time.monotonic()
+                    if not pending or remaining <= 0:
+                        break
+                    wait(pending, timeout=remaining, return_when=FIRST_COMPLETED)
     except BaseException as exc:
         failure = type(exc).__name__
         raise
@@ -77,7 +86,8 @@ def main():
         report = {
             "status": run_status(failure, daemon.total_errors,
                                  len(getattr(daemon, "_source_pending", {})),
-                                 len(getattr(daemon, "_pdf_pending", {}))),
+                                 len(getattr(daemon, "_pdf_pending", {})),
+                                 len(getattr(daemon, "_pdf_backlog", {}))),
             "fatal_error_type": failure,
             "telegram_attempts": dispatcher.attempts,
             "ready_posts": daemon.total_dispatched,
@@ -85,6 +95,9 @@ def main():
             "pdf_outcomes": getattr(daemon, "_pdf_outcomes", {}),
             "pending_pdfs": len(getattr(daemon, "_pdf_pending", {})),
             "pending_sources": len(getattr(daemon, "_source_pending", {})),
+            "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {})),
+            "pdf_retry_waiting": sum(1 for key in getattr(daemon, "_pdf_backlog", {})
+                                     if getattr(daemon, "_pdf_retry", {}).get(key, 0) > time.time()),
             "cycles": records,
             "requested_seconds": args.duration,
             "note": "Bounded observation plus up to 20 seconds source and 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",

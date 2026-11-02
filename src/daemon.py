@@ -318,12 +318,15 @@ class RealtimeDaemon:
 
     def prepare_items(self, items, wait_pdfs=False):
         """Bounded PDF queue: slow filings never block text-only flashes.
-        Failed/unsupported PDFs remain unconsumed and retry after a backoff.
+        Deferred and failed PDFs stay in a bounded in-memory backlog; failures back off.
         """
+        items = list(items)
         if not hasattr(self, "_pdf_pending"):
             self._pdf_pending = {}
             self._pdf_retry = {}
             self._pdf_pool = None
+        if not hasattr(self, "_pdf_backlog"):
+            self._pdf_backlog = {}
         if not hasattr(self, "_pdf_outcomes"):
             self._pdf_outcomes = {"extracted": 0, "unsupported": 0, "errors": 0, "queue_full_deferrals": 0}
         ready = []
@@ -351,12 +354,24 @@ class RealtimeDaemon:
                     self._pdf_outcomes["unsupported"] += 1
                     self._trace("pdf_unsupported", item, "NO_RELIABLE_PDF_EVIDENCE")
                 self._pdf_retry[key] = time.time() + 300
+                self._pdf_backlog[key] = item
                 logger.warning("Withheld %s: no reliable PDF evidence", key)
+        # Sources need not return an item again. Retain deferrals locally and
+        # service them before new PDF arrivals; text items still pass immediately.
         for item in items:
-            key = item.get("id")
             self._trace("discovered", item)
+        work = list(self._pdf_backlog.values()) + list(items)
+        considered = set()
+        for item in work:
+            key = item.get("id")
+            if key in considered:
+                continue
+            considered.add(key)
             if not key or self.state.is_seen(key):
                 self._trace("already_seen", item)
+                self._pdf_backlog.pop(key, None)
+                continue
+            if self._pdf_retry.get(key, 0) > time.time():
                 continue
             url = str(item.get("pdf_url") or "")
             is_pdf = url.lower().split("?")[0].endswith(".pdf")
@@ -365,12 +380,18 @@ class RealtimeDaemon:
                 if self.filter_engine.should_drop(context):
                     self._trace("rejected", item, "TITLE_HARD_FILTER")
                     self.state.mark_seen(key, item.get("source", "UNKNOWN"))
+                    self._pdf_backlog.pop(key, None)
                     continue
                 if any(r.get("id") == key for r in ready):
                     continue
                 if key in self._pdf_pending or self._pdf_retry.get(key, 0) > time.time():
                     continue
                 if len(self._pdf_pending) >= 32:
+                    if key not in self._pdf_backlog and len(self._pdf_backlog) >= 512:
+                        self.total_errors += 1
+                        self._trace("queue_overflow", item, "PDF_BACKLOG_LIMIT_EXCEEDED")
+                        raise RuntimeError("PDF backlog limit exceeded; unprocessed filings require recovery")
+                    self._pdf_backlog[key] = item
                     self._pdf_outcomes["queue_full_deferrals"] += 1
                     self._trace("queue_deferred", item, "PDF_QUEUE_FULL")
                     continue
@@ -381,6 +402,8 @@ class RealtimeDaemon:
                 from sources.annexure_parser import AnnexureParser
                 self._pdf_pending[key] = (item, self._pdf_pool.submit(
                     AnnexureParser.extract_annexure_bullets, url))
+                self._pdf_backlog.pop(key, None)
+                self._pdf_retry.pop(key, None)
             else:
                 ready.append(item)
         if wait_pdfs and self._pdf_pending:
