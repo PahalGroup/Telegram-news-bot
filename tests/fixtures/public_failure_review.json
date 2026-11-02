@@ -152,5 +152,19 @@
       "Rs. 144 crores",
       "Rs.160 crores"
     ]
+  },
+  {
+    "id": "edelweiss_ipo",
+    "company": "Edelweiss Financial Services Limited",
+    "title": "IPO update",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/92504532-3fcd-4e74-93b3-019c48d435e6.pdf",
+    "sha256": "PENDING_ORIGINAL_REVIEW",
+    "publish": true,
+    "facts": [],
+    "absent": [
+      "a wholly",
+      "Name of the target entity",
+      "Corporate Identity Number"
+    ]
   }
 ]

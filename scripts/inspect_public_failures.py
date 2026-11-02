@@ -18,8 +18,9 @@ def main():
         try:
             data = download_pdf(case["url"], max_bytes=AnnexureParser.MAX_BYTES)
             row["sha256"] = hashlib.sha256(data).hexdigest()
-            if row["sha256"] != case["sha256"]:
-                raise ValueError("Original document changed; review required")
+            row["hash_verified"] = row["sha256"] == case["sha256"]
+            if not row["hash_verified"]:
+                row["review_required"] = "Original document changed or is not pinned; review required"
             with pymupdf.open(stream=data, filetype="pdf") as doc:
                 row["pages"] = len(doc)
                 row["page_review"] = []
@@ -44,7 +45,7 @@ def main():
             norm = lambda s: re.sub(r"\s+", "", s).casefold()
             row["checks"] = {fact: norm(fact) in norm(row["post"]) for fact in case["facts"]}
             row["absent_checks"] = {fact: norm(fact) not in norm(row["post"]) for fact in case["absent"]}
-            row["passed"] = (bool(row["post"]) == case["publish"] and all(row["checks"].values())
+            row["passed"] = (row["hash_verified"] and bool(row["post"]) == case["publish"] and all(row["checks"].values())
                              and all(row["absent_checks"].values())
                              and (not case.get("category") or row["category"] == case["category"]))
         except Exception as exc:
