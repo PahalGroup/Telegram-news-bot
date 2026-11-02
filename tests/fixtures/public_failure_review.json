@@ -176,12 +176,13 @@
     "company": "Physicswallah Limited",
     "title": "Grant of stock options",
     "url": "https://nsearchives.nseindia.com/corporate/NEAPSPW_02112026200807_Intimation.pdf",
-    "sha256": "PENDING_REVIEW",
+    "sha256": "631b3d5668b781cb7085fe0acdd913440ae88ae39c3e954d8fb9ac0dcd16f221",
     "publish": true,
     "category": "CORP_RESTRUCTURE",
     "facts": [
       "1,84,828",
-      "stock options"
+      "stock options",
+      "STOCK OPTION GRANT"
     ],
     "absent": [
       "STOCK SPLIT",
@@ -193,7 +194,7 @@
     "company": "Sheela Foam Limited",
     "title": "Financial Results",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/169d4133-be3e-4a74-bdac-adc3a0805e7a.pdf",
-    "sha256": "PENDING_REVIEW",
+    "sha256": "565b3df89cb3823f0cf241ca0f73b9e331c9b87111f233297070d451781750f9",
     "publish": false,
     "facts": [],
     "absent": [
@@ -205,7 +206,7 @@
     "company": "Sun Pharma Advanced Research Company Limited",
     "title": "Financial Results",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/019e4a37-dc8b-49aa-bebc-55015d4d0df5.pdf",
-    "sha256": "PENDING_REVIEW",
+    "sha256": "7a46a77b94a0852b425215e6f80abe6dd5608b228e666fa41797c7ae98951ccb",
     "publish": false,
     "facts": [],
     "absent": [

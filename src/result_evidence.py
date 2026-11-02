@@ -59,6 +59,12 @@ def metric_has_value(point):
 def unsafe_result_context(point):
     if re.search(r'\b(?:a|an|increasing|decreasing)\s*[.,;:]?$', point, re.I):
         return 'incomplete_fragment'
+    # Recognition/refund notes explicitly assigned to a previous period are not
+    # the current results. Keep ordinary current-versus-prior comparisons.
+    if (re.search(r'\b(?:recognised|recognized|refunded)\b', point, re.I)
+            and re.search(r'\b(?:previous|prior|preceding)\s+(?:quarter|year|period)\b', point, re.I)
+            and not re.search(r'\bcurrent\s+(?:quarter|year|period)\b', point, re.I)):
+        return 'prior_period_recognition_note'
     # Historical multi-year slides are not the current period's result.
     years = [int(y) + (2000 if len(y) == 2 else 0)
              for y in re.findall(r'\bFY\s*(\d{2,4})\b', point, re.I)]
@@ -114,7 +120,7 @@ def select_result_points(title, description):
         elif re.search(r'\b(?:grows|following|expansion|supported by healthy|and EBITDA|lower|higher)\s*[.:]?$|[-–]\s*$|\b(?:in|for|from|to)\s+Q[1-4]\s*$', point, re.I):
             rejected['incomplete_fragment'] += 1
         elif not EXPLICIT_TABLE.search(point) and re.search(
-                r'(?<![\w.])\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?', point):
+                r'(?<![\w.])[+-]?\(?\d[\d,.]*\)?%?(?:\s+bps)?\s+[+-]?\(?\d[\d,.]*\)?%?', point):
             rejected['unlabelled_numeric_row'] += 1
         elif point[:1].islower():
             rejected['leading_fragment'] += 1

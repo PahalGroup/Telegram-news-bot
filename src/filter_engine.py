@@ -402,6 +402,10 @@ class FilterEngine:
         ]):
             return "MANAGEMENT_CHANGE"
 
+        # Option grants must not depend on hypothetical split/bonus boilerplate.
+        if re.search(r'\b(?:stock options?|ESOP|ESOS)\b', text, re.I):
+            return "CORP_RESTRUCTURE"
+
         # Corporate Restructure / M&A / Capital Actions / Dividends
         if any(k in text for k in [
             "amalgamation", "merger", "demerger", "acquisition of", "acquires", "stake sale",
@@ -593,6 +597,9 @@ class FilterEngine:
 
         # 6. Corporate Restructure / M&A / Capital Action
         if category in ("CORP_RESTRUCTURE", "DIVIDEND_OR_SPLIT"):
+            from src.capital_evidence import OPTIONS, SPLIT, evaluate_capital_action
+            if OPTIONS.search(combined) or SPLIT.search(combined):
+                return evaluate_capital_action(norm_company, title, desc)
             if re.search(r'\b(?:acquisition of|acquires|agreement to acquire)\b', combined, re.I):
                 from src.disclosure_evidence import acquisition
                 return acquisition(norm_company, title, desc)
