@@ -16,14 +16,19 @@ logger = logging.getLogger(__name__)
 NEWS_FEEDS = [
     {"source": "Economic Times", "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"},
     {"source": "Economic Times", "url": "https://economictimes.indiatimes.com/markets/stocks/news/rssfeeds/2146842.cms"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/latestnews.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/MCtopnews.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/business.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/marketreports.xml"},
     {"source": "Mint", "url": "https://www.livemint.com/rss/markets"},
     {"source": "Mint", "url": "https://www.livemint.com/rss/companies"},
     {"source": "BusinessLine", "url": "https://www.thehindubusinessline.com/markets/feeder/default.rss"},
     {"source": "BusinessLine", "url": "https://www.thehindubusinessline.com/companies/feeder/default.rss"},
+]
+
+# Removed from active polling after the 2026-11-02 runner probe returned only
+# stale entries (2016/2024). Keep the gap explicit; no replacement is implied.
+DISABLED_NEWS_FEEDS = [
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/latestnews.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/MCtopnews.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/business.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/marketreports.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
 ]
 
 LIVE_WEB_PAGES = [

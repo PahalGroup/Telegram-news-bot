@@ -86,3 +86,31 @@ class ShadowContentTests(unittest.TestCase):
             'title': 'Rate of Interest on Government of India Floating Rate Bond 2034',
             'description': 'It may be recalled that FRB 2034 carries a coupon with a fixed spread of 0.98 per cent.'})
         self.assertFalse(result['publish'])
+
+    def test_metric_definition_footnote_is_not_a_reported_result(self):
+        text = ('1 EBITDA (before exceptional items) - Earning Before Interest, Tax, Depreciation '
+                'and Amortization - interest income (net) at 252 mn INR in Q3’26 (209 mn INR in Q3’25); '
+                '2Capex includes CWIP Note: Performance indicators on Standalone Financials')
+        self.assertFalse(self.results(text)['publish'])
+
+    def test_unclosed_comparison_is_not_published(self):
+        self.assertFalse(self.results('Consolidated revenue stood at INR 37 crore (vs.')['publish'])
+
+    def test_vs_abbreviation_keeps_complete_comparison(self):
+        from src.quality import sentences
+        text = 'Q2 FY27 revenue stood at INR 37 crore (vs. INR 20 crore in Q2 FY26).'
+        self.assertEqual(sentences(text), [text])
+        self.assertEqual(self.results(text)['summary_points'], [text])
+
+    def test_bullet_boundaries_do_not_mix_rating_with_results(self):
+        text = ('✓ EBITDA margin expanded to 91% in Q2 FY27 from 81% in Q2 FY26 '
+                '✓ Credit rating upgraded to AA- (Stable) / A1+ by ICRA '
+                '✓ Strengthening SPV credit profile: 7 upgrades across 9 SPVs')
+        self.assertEqual(self.results(text)['summary_points'],
+                         ['EBITDA margin expanded to 91% in Q2 FY27 from 81% in Q2 FY26'])
+
+    def test_future_customer_base_and_annualized_projection_are_not_results(self):
+        for text in ['This customer base generates revenue month-on-month, but there is about 100 million base which will get added over the next five years.',
+                     'So, when you look at the first half of FY 2027 performance, it is in our minds tracking annualized EBITDA well over Rs.80,000 Crores.']:
+            with self.subTest(text=text):
+                self.assertFalse(self.results(text)['publish'])

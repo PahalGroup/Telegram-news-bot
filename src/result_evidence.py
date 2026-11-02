@@ -17,6 +17,7 @@ BACKGROUND = re.compile(
     r'cash flow from operating activities|key monitorable|successfully listed|'
     r'completed \d+ years|net profit cross(?:ed|ing)?|brief (?:history|profile)|'
     r'guidance|guided|expect(?:ed|s)?|forecast|target(?:ed|s)?|CAGR|order book|'
+    r'annuali[sz]ed|over the next|will get added|earning[s]? before interest|performance indicators on|'
     r'geographical revenue|revenue break-up|historical financial|adjusted PAT excludes|products that have been developed)\b', re.I)
 RELATION = re.compile(r'\b(?:was|were|stood|grew|growing|growth|increas\w*|rose|risen|'
                       r'declin\w*|decreas\w*|fell|report\w*|record\w*|up|down|expanded|'
@@ -28,11 +29,13 @@ def select_result_points(title, description):
     candidates = []
     for line in description.splitlines() + [title]:
         # Embedded PDF bullet glyphs are boundaries, not a reason to combine metrics.
-        for bullet in re.split(r'[•▪\uf0b7]', line):
+        for bullet in re.split(r'[•▪●✓\uf0b7]', line):
             candidates.extend(sentences(bullet))
     points, rejected = [], Counter()
     for point in clean_points(candidates, limit=None):
-        if BACKGROUND.search(point):
+        if point.count('(') != point.count(')'):
+            rejected['incomplete_parenthesis'] += 1
+        elif BACKGROUND.search(point):
             rejected['audit_scope_or_background'] += 1
         elif not METRIC.search(point) or not VALUE.search(point):
             rejected['missing_explicit_metric_value'] += 1
@@ -46,3 +49,4 @@ def select_result_points(title, description):
         else:
             points.append(point)
     return points[:5], dict(rejected)
+

@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sources.bse_fetcher import BSEFetcher
 from sources.nse_fetcher import NSEFetcher
 from sources.rbi_fetcher import RBIFetcher
-from sources.news_fetcher import NewsFetcher
+from sources.news_fetcher import NewsFetcher, DISABLED_NEWS_FEEDS
 from sources.liveblog_fetcher import LiveBlogFetcher
 
 def main():
@@ -37,6 +37,8 @@ def main():
                 result['date_diagnostics'] = rbi.last_health
             if name == 'rss':
                 result['feeds'] = news.last_health
+                result['disabled_feeds'] = DISABLED_NEWS_FEEDS
+                result['coverage_note'] = 'Disabled stale feeds have no verified RSS replacement; connectivity is not coverage.'
                 if any(h['status'] == 'error' for h in news.last_health.values()):
                     result['status'] = 'degraded'
         except Exception as exc:
@@ -52,3 +54,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
