@@ -170,5 +170,47 @@
       "Corporate Identity Number",
       "acts as the Investment Manager"
     ]
+  },
+  {
+    "id": "physicswallah_esop",
+    "company": "Physicswallah Limited",
+    "title": "Grant of stock options",
+    "url": "https://nsearchives.nseindia.com/corporate/NEAPSPW_02112026200807_Intimation.pdf",
+    "sha256": "PENDING_REVIEW",
+    "publish": true,
+    "category": "CORP_RESTRUCTURE",
+    "facts": [
+      "1,84,828",
+      "stock options"
+    ],
+    "absent": [
+      "STOCK SPLIT",
+      "corporate actoi"
+    ]
+  },
+  {
+    "id": "sheela_percentage_row",
+    "company": "Sheela Foam Limited",
+    "title": "Financial Results",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/169d4133-be3e-4a74-bdac-adc3a0805e7a.pdf",
+    "sha256": "PENDING_REVIEW",
+    "publish": false,
+    "facts": [],
+    "absent": [
+      "9.4% 7.8%"
+    ]
+  },
+  {
+    "id": "sparc_historical_notes",
+    "company": "Sun Pharma Advanced Research Company Limited",
+    "title": "Financial Results",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/019e4a37-dc8b-49aa-bebc-55015d4d0df5.pdf",
+    "sha256": "PENDING_REVIEW",
+    "publish": false,
+    "facts": [],
+    "absent": [
+      "previous quarter",
+      "previous year"
+    ]
   }
 ]
