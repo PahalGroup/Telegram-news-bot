@@ -81,3 +81,31 @@ class ObserverTests(unittest.TestCase):
             self.assertEqual(summary['fatal_error_type'], 'RuntimeError')
             self.assertEqual(summary['telegram_attempts'], 0)
 
+
+
+    def test_final_source_drain_collects_late_failure_without_new_requests(self):
+        from concurrent.futures import Future
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock
+        from src.daemon import RealtimeDaemon
+        from scripts.shadow_smoke import run_status
+        daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        for name in ('bse', 'nse', 'rbi', 'news', 'liveblog'):
+            setattr(daemon, name, MagicMock())
+        daemon.news.last_health = {}
+        daemon.total_errors = 0
+        daemon._source_pool = MagicMock()
+        future = Future()
+        future.set_exception(RuntimeError('late RSS failure'))
+        daemon._source_pending = {'news': future}
+        self.assertEqual(daemon.poll_all_sources(submit_sources=False), [])
+        daemon._source_pool.submit.assert_not_called()
+        self.assertEqual(daemon._source_pending, {})
+        self.assertEqual(daemon.total_errors, 1)
+        self.assertEqual(run_status(None, daemon.total_errors, 0, 0), 'degraded')
+
+    def test_pending_work_cannot_be_a_completed_smoke(self):
+        from scripts.shadow_smoke import run_status
+        self.assertEqual(run_status(None, 0, 1, 0), 'incomplete')
+        self.assertEqual(run_status(None, 0, 0, 1), 'incomplete')
+        self.assertEqual(run_status(None, 0, 0, 0), 'completed')

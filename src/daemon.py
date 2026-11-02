@@ -90,7 +90,7 @@ class RealtimeDaemon:
         if observer is not None:
             observer.record(stage, item, reason, **details)
 
-    def poll_all_sources(self, wait_sources=False) -> List[Dict[str, Any]]:
+    def poll_all_sources(self, wait_sources=False, submit_sources=True) -> List[Dict[str, Any]]:
         """Fetch raw announcements from ALL upstream sources with correct method names."""
         raw_items = []
         # Keep one request per adapter in flight. Drain only completed requests;
@@ -106,7 +106,7 @@ class RealtimeDaemon:
             "liveblog": self.liveblog.fetch_live_flashes,
         }
         for name, call in calls.items():
-            if name not in self._source_pending:
+            if submit_sources and name not in self._source_pending:
                 self._source_pending[name] = self._source_pool.submit(call)
         futures = self._source_pending.copy()
         if wait_sources:

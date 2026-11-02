@@ -17,6 +17,14 @@ class NoDelivery:
         self.attempts += 1
         raise AssertionError("Shadow run attempted Telegram delivery")
 
+def run_status(failure, errors, pending_sources, pending_pdfs):
+    if failure:
+        return "failed"
+    if pending_sources or pending_pdfs:
+        return "incomplete"
+    return "degraded" if errors else "completed"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--duration', type=int, default=90)
@@ -46,7 +54,16 @@ def main():
                     "errors": daemon.total_errors,
                 })
                 time.sleep(min(12, max(0, args.duration - (time.monotonic() - started))))
-            # Drain already queued work; this does not submit another network poll.
+            # Collect already-submitted sources without starting another poll.
+            from concurrent.futures import wait
+            pending_sources = getattr(daemon, "_source_pending", {})
+            if pending_sources:
+                wait(list(pending_sources.values()), timeout=20)
+            final_items = daemon.poll_all_sources(submit_sources=False)
+            with patch.object(daemon, "poll_all_sources", return_value=final_items):
+                count = daemon.process_cycle()
+                records.append({"cycle": daemon.cycle_count, "ready_posts": count, "source_drain": True})
+            # Drain PDFs queued by the observation and final source batch.
             if getattr(daemon, "_pdf_pending", None):
                 from concurrent.futures import wait
                 wait([f for _, f in daemon._pdf_pending.values()], timeout=60)
@@ -58,7 +75,9 @@ def main():
         raise
     finally:
         report = {
-            "status": "failed" if failure else ("degraded" if daemon.total_errors else "completed"),
+            "status": run_status(failure, daemon.total_errors,
+                                 len(getattr(daemon, "_source_pending", {})),
+                                 len(getattr(daemon, "_pdf_pending", {}))),
             "fatal_error_type": failure,
             "telegram_attempts": dispatcher.attempts,
             "ready_posts": daemon.total_dispatched,
@@ -68,7 +87,7 @@ def main():
             "pending_sources": len(getattr(daemon, "_source_pending", {})),
             "cycles": records,
             "requested_seconds": args.duration,
-            "note": "Bounded observation plus up to 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",
+            "note": "Bounded observation plus up to 20 seconds source and 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",
         }
         summary = observer.finish(**report)
         (output_dir / "shadow-report.json").write_text(json.dumps(report, indent=2))
@@ -78,7 +97,7 @@ def main():
             if pool:
                 pool.shutdown(wait=True, cancel_futures=True)
         daemon._dry_state_dir.cleanup()
-    return int(bool(dispatcher.attempts or daemon.total_errors))
+    return int(bool(dispatcher.attempts or report["status"] != "completed"))
 
 if __name__ == "__main__":
     sys.exit(main())
