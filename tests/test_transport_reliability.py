@@ -174,3 +174,11 @@ class RSSResponseTests(unittest.TestCase):
                          {'raw_items': 4, 'missing_titles': 1, 'noise_filtered': 1,
                           'rejected_dates': 1, 'accepted_items': 1})
         response.read.assert_called_once_with(MAX_FEED_BYTES + 1)
+
+    def test_embedded_html_in_valid_rss_is_not_an_access_page(self):
+        body = b"""<?xml version="1.0"?><rss><channel><item>
+        <description><![CDATA[<html><body>Article content</body></html>]]></description>
+        </item></channel></rss>"""
+        root, metadata = parse_rss(body, 'application/rss+xml')
+        self.assertEqual(root.tag, 'rss')
+        self.assertNotIn('body_kind', metadata)

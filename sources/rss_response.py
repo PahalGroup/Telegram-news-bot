@@ -19,7 +19,9 @@ def parse_rss(data, content_type='', status=200, final_url=''):
     if len(data) > MAX_FEED_BYTES:
         raise FeedResponseError('RSS_SIZE_LIMIT_EXCEEDED', details)
     prefix = data[:4096].lower()
-    if re.search(br'<(?:!doctype\s+html|html(?:\s|>))', prefix):
+    # Match a document root, not HTML embedded in an RSS item's CDATA.
+    opening = prefix.lstrip(b'\xef\xbb\xbf \t\r\n')
+    if re.match(br'(?:<\?xml\b.*?\?>\s*)?(?:<!--.*?-->\s*)*<(?:!doctype\s+html|html(?:\s|>))', opening, re.DOTALL):
         details['body_kind'] = 'html'
         reason = 'RSS_ACCESS_CHALLENGE' if any(marker in prefix for marker in
             (b'access denied', b'captcha', b'request rejected', b'permission denied')) else 'RSS_HTML_INSTEAD_OF_FEED'
