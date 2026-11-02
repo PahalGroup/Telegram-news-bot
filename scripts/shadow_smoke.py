@@ -92,6 +92,11 @@ def main():
         summary = observer.finish(**report)
         (output_dir / "shadow-report.json").write_text(json.dumps(report, indent=2))
         print(json.dumps(summary, indent=2))
+        # Public prepared output is review evidence, not a Telegram delivery.
+        for row in observer.items.values():
+            if row.get("formatted_post"):
+                print("SHADOW_POST_REVIEW " + json.dumps(
+                    {"id": row["id"], "post": row["formatted_post"]}, ensure_ascii=False))
         for attr in ("_source_pool", "_pdf_pool"):
             pool = getattr(daemon, attr, None)
             if pool:
