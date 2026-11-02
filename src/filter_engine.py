@@ -610,6 +610,10 @@ class FilterEngine:
                 )
             )
 
+            if badge == "IPO UPDATE":
+                from src.ipo_evidence import evaluate_ipo
+                return evaluate_ipo(norm_company, title, desc, category)
+
             if badge == "INTERIM DIVIDEND":
                 from src.dividend_evidence import evaluate_dividend
                 return evaluate_dividend(norm_company, title, desc, category)

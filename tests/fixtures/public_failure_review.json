@@ -158,13 +158,17 @@
     "company": "Edelweiss Financial Services Limited",
     "title": "IPO update",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/92504532-3fcd-4e74-93b3-019c48d435e6.pdf",
-    "sha256": "PENDING_ORIGINAL_REVIEW",
+    "sha256": "8c04ae99799581da42977335ce602ac66394b71f08f7df183d6258deffccf82b",
     "publish": true,
-    "facts": [],
+    "facts": [
+      "72,07,207",
+      "1,665 per share",
+      "Edelweiss Securities and Investments Private Limited"
+    ],
     "absent": [
-      "a wholly",
       "Name of the target entity",
-      "Corporate Identity Number"
+      "Corporate Identity Number",
+      "acts as the Investment Manager"
     ]
   }
 ]

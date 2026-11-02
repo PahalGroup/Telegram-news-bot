@@ -58,3 +58,25 @@ class OutputPrecisionTests(unittest.TestCase):
         b = 'H1 FY27 Revenue from Operations reached ₹ 13,354 Mn, up 37.2% year on year'
         others = [f'Consolidated EBITDA of INR {i} Mn in Q{i} FY27 (+10% YoY)' for i in range(1, 5)]
         self.assertEqual(self.points(a, b, *others), [a, *others])
+
+
+class IPORecoveryTests(unittest.TestCase):
+    SALE = 'As part of the IPO, Edelweiss Securities and Investments Private Limited (“ESIPL”), a wholly owned subsidiary of the Company has sold 72,07,207 equity shares by way of Offer for Sale, at the price of Rs. 1,665 per share.'
+
+    def recover(self, blocks):
+        from src.ipo_evidence import recover_ipo_sale_paragraphs
+        return recover_ipo_sale_paragraphs(blocks, 600)
+
+    def test_complete_cover_paragraph_survives_false_table_overlap(self):
+        block = [72, 260, 548, 452, 'Other cover text\n\n' + self.SALE.replace('owned subsidiary', 'owned\nsubsidiary') + '\n\nTable follows']
+        self.assertEqual(self.recover([block]), [self.SALE])
+
+    def test_fragments_columns_and_negated_sale_are_not_reconstructed(self):
+        for blocks in [
+            [[72, 260, 548, 452, self.SALE.split('owned')[0]]],
+            [[72, 260, 250, 452, self.SALE]],
+            [[72, 260, 548, 452, self.SALE.replace('has sold', 'has not sold')]],
+            [[72, 260, 548, 452, self.SALE.replace('owned subsidiary', 'owned\n\nsubsidiary')]],
+        ]:
+            with self.subTest(blocks=blocks):
+                self.assertEqual(self.recover(blocks), [])

@@ -115,5 +115,9 @@ def select_result_points(title, description):
             rejected['leading_fragment'] += 1
         else:
             points.append(point)
-    return points[:5], dict(rejected)
+    from src.result_identity import unique_result_facts
+    unique = unique_result_facts(points)
+    if len(unique) < len(points):
+        rejected['repeated_explicit_result_fact'] += len(points) - len(unique)
+    return unique[:5], dict(rejected)
 

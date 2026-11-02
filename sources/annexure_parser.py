@@ -55,6 +55,12 @@ class AnnexureParser:
                 # Join full-width wrapped lines using geometry; retain column/table boundaries.
                 from sources.pdf_layout import join_wrapped_blocks, join_bullet_continuations
                 raw_blocks = doc[index].get_text("blocks", sort=True)
+                from src.ipo_evidence import recover_ipo_sale_paragraphs
+                for point in recover_ipo_sale_paragraphs(raw_blocks, page.rect.width):
+                    if point.casefold() not in seen:
+                        evidence.append({"text": point, "page": index + 1,
+                                         "method": "explicit_ipo_sale_paragraph"})
+                        seen.add(point.casefold())
                 prose_blocks = []
                 for block in raw_blocks:
                     if any(pymupdf.Rect(block[:4]).intersects(box) for box in table_boxes):
