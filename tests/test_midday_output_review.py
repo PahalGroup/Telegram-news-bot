@@ -122,3 +122,8 @@ class MiddayOutputTests(unittest.TestCase):
         ]:
             with self.subTest(text=text):
                 self.assertFalse(self.results(text)['publish'])
+
+    def test_constant_currency_growth_label_is_not_garbled_text(self):
+        for suffix in ('YoY CC', 'yoy cc'):
+            text = 'Revenue grew 43% ' + suffix
+            self.assertEqual(self.results(text)['summary_points'], [text])

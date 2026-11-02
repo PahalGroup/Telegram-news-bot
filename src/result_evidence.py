@@ -76,6 +76,9 @@ def unsafe_result_context(point):
                     r'\b(?:consolidated|standalone|Q[1-4]|H[12]|FY\s*\d{2,4}|'
                     r'quarter ended|year ended|half year ended)\b', point, re.I):
         return 'scorecard_missing_scope_or_period'
+    tail = re.search(r'%\s+([a-z]{1,3})\s+([a-z]{1,3})$', point)
+    if tail and tail.groups() not in (('yoy', 'cc'), ('qoq', 'cc'), ('vs', 'ly')):
+        return 'garbled_chart_tail'
     return ''
 
 
@@ -103,7 +106,7 @@ def select_result_points(title, description):
             rejected['audit_scope_or_background'] += 1
         elif not METRIC.search(point) or not VALUE.search(point) or not metric_has_value(point):
             rejected['missing_explicit_metric_value'] += 1
-        elif re.search(r'\b(?:grows|following|expansion|supported by healthy|and EBITDA|lower|higher)\s*[.:]?$|[-–]\s*$|\b(?:in|for|from|to)\s+Q[1-4]\s*$|%\s+[a-z]{1,3}\s+[a-z]{1,3}$', point, re.I):
+        elif re.search(r'\b(?:grows|following|expansion|supported by healthy|and EBITDA|lower|higher)\s*[.:]?$|[-–]\s*$|\b(?:in|for|from|to)\s+Q[1-4]\s*$', point, re.I):
             rejected['incomplete_fragment'] += 1
         elif not EXPLICIT_TABLE.search(point) and re.search(
                 r'(?<![\w.])\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?', point):
