@@ -111,7 +111,7 @@
     "company": "United Foodbrands Limited",
     "title": "Unaudited Financial Results",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/77b6f1c9-b505-448e-9520-f578952ef1c6.pdf",
-    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "sha256": "74bcad081ecead0d6cedcba1b3ebd25bf90154f193eb6ee655e31b2c05cfc0ff",
     "publish": false,
     "facts": [],
     "absent": [
@@ -124,7 +124,7 @@
     "company": "Nirlon Limited",
     "title": "Dividend Distribution Policy",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/eb172a12-7de1-44bd-ab32-e3fc9c77ebcb.pdf",
-    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "sha256": "c846b265e34b660aafb5350839684e5f6b09fe13dbddbab64ecd0c823be2bb08",
     "publish": false,
     "facts": [],
     "absent": [
@@ -136,7 +136,7 @@
     "company": "Muthoot Finance Limited",
     "title": "Investor Presentation",
     "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b352b257-615f-42e5-a428-6d26a7a7b3ca.pdf",
-    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "sha256": "995d3b426ea819a48734c9710fc427fba05105caf4408085041eabe7f8e29c6b",
     "publish": true,
     "category": "FINANCIAL_RESULTS",
     "facts": [

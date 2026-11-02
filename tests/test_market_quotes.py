@@ -51,6 +51,11 @@ class QuoteExtractionTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertEqual(extract_quotes(text), [])
 
+    def test_company_headline_without_extracted_entity_is_not_an_oil_quote(self):
+        from src.market_quotes import is_quote_story
+        self.assertFalse(is_quote_story({'source': 'NEWS', 'company': '',
+            'title': 'Oil India falls as crude prices decline'}))
+
     def test_missing_publication_time_does_not_enable_price_deduplication(self):
         quotes = extract_quotes(BRENT)
         self.assertEqual(select_new_quotes(quotes, {'source': 'NEWS'}, []), (quotes, None))

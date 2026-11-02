@@ -23,7 +23,8 @@ def is_quote_story(candidate):
     title = candidate.get('title', '')
     return (candidate.get('source') in ('NEWS', 'LIVEBLOG')
             and not candidate.get('company')
-            and bool(re.search(r'\b(?:oil|crude|brent|wti)\b', title, re.I))
+            and bool(re.match(r'^(?:oil\s+(?:prices?|slips?|falls?|rises?|gains?|drops?|climbs?|declines?)\b|'
+                              r'crude(?:\s+oil)?\b|brent\b|wti\b)', title.strip(), re.I))
             and bool(re.search(r'\b(?:prices?|slips?|falls?|rises?|gains?|drops?|climbs?|declines?)\b',
                                title, re.I)))
 
