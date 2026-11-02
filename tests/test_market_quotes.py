@@ -25,6 +25,13 @@ class QuoteExtractionTests(unittest.TestCase):
     def test_change_amount_is_not_the_current_price(self):
         self.assertEqual(extract_quotes(BOTH)[0]['price'], '111.84')
 
+    def test_per_barrel_change_is_not_mistaken_for_price(self):
+        self.assertEqual(extract_quotes('Brent crude fell by $1.59 per barrel.'), [])
+
+    def test_absolute_price_after_per_barrel_change_is_retained(self):
+        quotes = extract_quotes('Brent crude fell by $1.59 per barrel to $111.84 per barrel.')
+        self.assertEqual(quotes[0]['price'], '111.84')
+
     def test_unlabelled_title_price_cannot_establish_benchmark(self):
         engine = FilterEngine(config_path='/nonexistent/rules.json')
         output = engine.evaluate_stage_2({'source': 'NEWS', 'company': '', 'category': 'POLICY_MACRO',
