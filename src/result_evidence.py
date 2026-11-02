@@ -80,6 +80,11 @@ def unsafe_result_context(point):
 
 
 def select_result_points(title, description):
+    # Mixed group/parent disclosures may also contain unlabeled subsidiary panels.
+    # Never inherit the parent headline's scope merely from a nearby number.
+    scope_metric = r'\b{}\s+(?:profit after tax|net profit|revenue|EBITDA)\b'
+    mixed_scope = all(re.search(scope_metric.format(scope), description, re.I)
+                      for scope in ('consolidated', 'standalone'))
     candidates = []
     for line in description.splitlines() + [title]:
         # Embedded PDF bullet glyphs are boundaries, not a reason to combine metrics.
@@ -88,7 +93,9 @@ def select_result_points(title, description):
     points, rejected = [], Counter()
     for point in clean_points(candidates, limit=None):
         context_error = unsafe_result_context(point)
-        if context_error:
+        if mixed_scope and not re.search(r'\b(?:consolidated|standalone)\b', point, re.I):
+            rejected['ambiguous_scope_in_mixed_filing'] += 1
+        elif context_error:
             rejected[context_error] += 1
         elif point.count('(') != point.count(')'):
             rejected['incomplete_parenthesis'] += 1
@@ -96,7 +103,7 @@ def select_result_points(title, description):
             rejected['audit_scope_or_background'] += 1
         elif not METRIC.search(point) or not VALUE.search(point) or not metric_has_value(point):
             rejected['missing_explicit_metric_value'] += 1
-        elif re.search(r'\b(?:grows|following|expansion|supported by healthy|and EBITDA|lower|higher)\s*[.:]?$|[-–]\s*$', point, re.I):
+        elif re.search(r'\b(?:grows|following|expansion|supported by healthy|and EBITDA|lower|higher)\s*[.:]?$|[-–]\s*$|\b(?:in|for|from|to)\s+Q[1-4]\s*$|%\s+[a-z]{1,3}\s+[a-z]{1,3}$', point, re.I):
             rejected['incomplete_fragment'] += 1
         elif not EXPLICIT_TABLE.search(point) and re.search(
                 r'(?<![\w.])\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?\s+\(?\d[\d,.]*\)?%?', point):

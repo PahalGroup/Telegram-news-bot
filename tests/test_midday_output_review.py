@@ -106,3 +106,19 @@ class MiddayOutputTests(unittest.TestCase):
         result = self.engine.evaluate_stage_2({'source': 'BSE', 'company': 'Example',
             'category': 'POLICY_MACRO', 'title': 'Clarification sought', 'description': text})
         self.assertFalse(any('...' in point for point in result['summary_points']))
+
+    def test_period_alone_cannot_resolve_subsidiary_scope_in_mixed_filing(self):
+        group = 'Consolidated Profit After Tax: 39% YoY Increase at ₹6,103 Crores'
+        parent = 'Standalone Profit After Tax: 26% YoY Increase at ₹5,527 Crores'
+        subsidiary = 'Profit After Tax in H1 FY27 at Rs. 144 crores, compared to a loss of Rs.160 crores in H1 FY26.'
+        result = self.results('\n'.join([group, parent, subsidiary]))
+        self.assertEqual(result['summary_points'], [group, parent])
+        self.assertEqual(result['evidence_rejections']['ambiguous_scope_in_mixed_filing'], 1)
+
+    def test_clipped_comparative_period_and_chart_tail_are_withheld(self):
+        for text in [
+            'Revenue from operations stood at ₹295.7 crore, up 9% YoY from ₹270.2 crore in Q2',
+            'Q2 FY27 revenue of ₹4,293 million; Y-o-Y growth of +40.9% nue wth',
+        ]:
+            with self.subTest(text=text):
+                self.assertFalse(self.results(text)['publish'])
