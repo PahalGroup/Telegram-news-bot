@@ -79,6 +79,17 @@ class WorkRecoveryTests(unittest.TestCase):
         self.assertEqual(self.state.pending_items['filing']['item']['description'], '')
         self.assertNotIn('_warm_start', self.state.pending_items['filing']['item'])
 
+    def test_shift_shutdown_checkpoints_late_sources_without_delivery(self):
+        d = self.daemon(self.state)
+        d.start_time = 0
+        d.shift_seconds = 0
+        d._source_pool = MagicMock()
+        d.poll_all_sources.return_value = [self.item]
+        d.run_daemon()
+        d.poll_all_sources.assert_called_once_with(submit_sources=False)
+        d.dispatcher.send_message.assert_not_called()
+        self.assertIn('filing', self.restored().pending_items)
+
     def test_blocked_work_survives_restart_without_automatic_redownload(self):
         self.state.stage_items([self.item])
         self.state.defer_item('filing', blocked_reason='PDF_SIZE_LIMIT_EXCEEDED')

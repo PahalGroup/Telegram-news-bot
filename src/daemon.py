@@ -595,6 +595,9 @@ class RealtimeDaemon:
         finally:
             if getattr(self, "_source_pool", None):
                 self._source_pool.shutdown(wait=True, cancel_futures=True)
+                # Completed end-of-shift requests must survive the next runner.
+                # Only checkpoint here; shutdown never starts another delivery.
+                self.state.stage_items(self.poll_all_sources(submit_sources=False))
             if getattr(self, "_pdf_pool", None):
                 self._pdf_pool.shutdown(wait=True, cancel_futures=True)
             self.state.save_state(sync_git=False)
