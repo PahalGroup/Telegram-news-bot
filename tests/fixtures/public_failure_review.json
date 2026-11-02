@@ -105,5 +105,50 @@
     "facts": [],
     "absent": [],
     "publish": false
+  },
+  {
+    "id": "united_audit_scope",
+    "company": "United Foodbrands Limited",
+    "title": "Unaudited Financial Results",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/77b6f1c9-b505-448e-9520-f578952ef1c6.pdf",
+    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "publish": false,
+    "facts": [],
+    "absent": [
+      "The accompanying Statement includes",
+      "14.09 million"
+    ]
+  },
+  {
+    "id": "nirlon_dividend_policy",
+    "company": "Nirlon Limited",
+    "title": "Dividend Distribution Policy",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/eb172a12-7de1-44bd-ab32-e3fc9c77ebcb.pdf",
+    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "publish": false,
+    "facts": [],
+    "absent": [
+      "INTERIM DIVIDEND"
+    ]
+  },
+  {
+    "id": "muthoot_scopes",
+    "company": "Muthoot Finance Limited",
+    "title": "Investor Presentation",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b352b257-615f-42e5-a428-6d26a7a7b3ca.pdf",
+    "sha256": "PENDING_ORIGINAL_HASH_REVIEW",
+    "publish": true,
+    "category": "FINANCIAL_RESULTS",
+    "facts": [
+      "Consolidated Profit After Tax",
+      "6,103",
+      "Standalone Profit After Tax",
+      "5,527"
+    ],
+    "absent": [
+      "₹ 218 Crores",
+      "₹ 11 Crores",
+      "₹ 906 Crores"
+    ]
   }
 ]
