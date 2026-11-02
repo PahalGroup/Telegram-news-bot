@@ -100,6 +100,13 @@ class AnnexureParser:
             logger.info("PDF evidence pages: %s", sorted({e["page"] for e in evidence}))
             return "", [e["text"] for e in evidence]
         except Exception as exc:
-            raise PDFExtractionError(f"PDF extraction failed: {pdf_url}: {exc}") from exc
+            from sources.pdf_download import PDFDownloadError
+            failure = PDFExtractionError(f"PDF extraction failed: {pdf_url}: {exc}")
+            # Exception attributes survive process-pool serialization. Permanent
+            # download rejections need review, not repeated automatic downloads.
+            failure.reason = getattr(exc, "reason", "PDF_PARSE_ERROR")
+            failure.retryable = isinstance(exc, PDFDownloadError) and exc.retryable
+            raise failure from exc
+
 
 

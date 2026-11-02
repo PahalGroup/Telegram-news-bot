@@ -64,6 +64,10 @@ class RBIFetcher:
                         self.last_health["rejected_dates"] += 1
                         continue
 
+                    # A periodic administrative service report is not a policy announcement.
+                    if re.search(r"processing of applications received under.*citizen.?s charter", title, re.I):
+                        continue
+
                     # Filter out routine operational State Govt auction circulars & daily LAF ops
                     routine_patterns = [
                         r"offered to sell stock by way of auction",
@@ -92,5 +96,11 @@ class RBIFetcher:
                     })
                 return items
         except Exception as e:
-            raise RuntimeError("RBI RSS request or parsing failed") from e
+            # Keep diagnostics useful without printing response bodies or arbitrary URLs.
+            kind = type(e).__name__
+            status = getattr(e, "code", None)
+            detail = f"{kind}, HTTP {status}" if isinstance(status, int) else kind
+            self.last_health = {"status": "error", "error_type": kind, "http_status": status}
+            raise RuntimeError(f"RBI RSS request or parsing failed ({detail})") from e
+
 

@@ -323,10 +323,15 @@ class RealtimeDaemon:
         items = list(items)
         if not hasattr(self, "_pdf_pending"):
             self._pdf_pending = {}
-            self._pdf_retry = {}
+            journal = getattr(self.state, "pending_items", {})
+            self._pdf_retry = {key: entry.get("retry_after", 0) for key, entry in journal.items()} if isinstance(journal, dict) else {}
             self._pdf_pool = None
         if not hasattr(self, "_pdf_backlog"):
             self._pdf_backlog = {}
+        if not hasattr(self, "_pdf_blocked"):
+            journal = getattr(self.state, "pending_items", {})
+            self._pdf_blocked = {key: entry["blocked_reason"] for key, entry in journal.items()
+                                 if entry.get("blocked_reason")} if isinstance(journal, dict) else {}
         if not hasattr(self, "_pdf_outcomes"):
             self._pdf_outcomes = {"extracted": 0, "unsupported": 0, "errors": 0, "queue_full_deferrals": 0}
         ready = []
@@ -335,15 +340,18 @@ class RealtimeDaemon:
                 continue
             del self._pdf_pending[key]
             failed = False
+            blocked_reason = ""
             try:
                 lead, bullets = future.result()
-            except Exception:
+            except Exception as exc:
                 logger.exception("PDF worker failed: %s", key)
                 self.total_errors += 1
                 self._pdf_outcomes["errors"] += 1
                 self._trace("pdf_error", item, "EXTRACTION_ERROR")
                 failed = True
                 bullets = []
+                if getattr(exc, "retryable", True) is False:
+                    blocked_reason = getattr(exc, "reason", "PDF_REQUIRES_REVIEW")
             if bullets:
                 self._pdf_outcomes["extracted"] += 1
                 self._trace("pdf_extracted", item, evidence_points=len(bullets))
@@ -353,7 +361,12 @@ class RealtimeDaemon:
                 if not failed:
                     self._pdf_outcomes["unsupported"] += 1
                     self._trace("pdf_unsupported", item, "NO_RELIABLE_PDF_EVIDENCE")
-                self._pdf_retry[key] = time.time() + 300
+                    blocked_reason = "NO_RELIABLE_PDF_EVIDENCE"
+                self._pdf_retry[key] = 0 if blocked_reason else time.time() + 300
+                if blocked_reason:
+                    self._pdf_blocked[key] = blocked_reason
+                if isinstance(getattr(self.state, "pending_items", None), dict):
+                    self.state.defer_item(key, self._pdf_retry[key], blocked_reason)
                 self._pdf_backlog[key] = item
                 logger.warning("Withheld %s: no reliable PDF evidence", key)
         # Sources need not return an item again. Retain deferrals locally and
@@ -370,6 +383,9 @@ class RealtimeDaemon:
             if not key or self.state.is_seen(key):
                 self._trace("already_seen", item)
                 self._pdf_backlog.pop(key, None)
+                continue
+            if key in self._pdf_blocked:
+                self._pdf_backlog[key] = item
                 continue
             if self._pdf_retry.get(key, 0) > time.time():
                 continue
@@ -419,6 +435,12 @@ class RealtimeDaemon:
         """Executes a single end-to-end polling, filtration, formatting, and dispatch pass."""
         self.cycle_count += 1
         raw_items = self.poll_all_sources(wait_sources=True) if wait_sources else self.poll_all_sources()
+        if isinstance(getattr(self.state, "pending_items", None), dict):
+            warm_start = {item.get("id"): item.get("_warm_start", False) for item in raw_items}
+            self.state.stage_items(raw_items)
+            # Work on copies: PDF extraction must not rewrite the recovery source evidence.
+            raw_items = [dict(entry["item"], _warm_start=warm_start.get(key, True))
+                         for key, entry in self.state.pending_items.items()]
         items = self.prepare_items(raw_items, wait_pdfs=True) if wait_sources else self.prepare_items(raw_items)
         dispatched_count = 0
 
@@ -447,7 +469,7 @@ class RealtimeDaemon:
             event_fp = fingerprint(norm_company, it.get("title", "") + "\n" + it.get("description", ""))
             from src.market_quotes import is_quote_story
             quote_story = is_quote_story(candidate)
-            if not quote_story and self.state.is_seen(item_id, fingerprint=event_fp):
+            if not quote_story and category != "FINANCIAL_RESULTS" and self.state.is_seen(item_id, fingerprint=event_fp):
                 self._trace("duplicate", it, "COMPLETE_CLAIM")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -466,6 +488,21 @@ class RealtimeDaemon:
                 self._trace("rejected", it, str(eval_data.get("rejection_reason") or "INSUFFICIENT_MATERIAL_EVIDENCE"))
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
+
+            result_event = None
+            if category == "FINANCIAL_RESULTS":
+                from src.result_events import select_new_result_points
+                points, result_event, updated = select_new_result_points(
+                    eval_data.get("summary_points", []), it.get("company") or candidate.get("company", ""),
+                    it, self.state.published_records)
+                if not points:
+                    self._trace("duplicate", it, "RESULT_FACTS_ALREADY_REPORTED_OR_OLDER")
+                    self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                    continue
+                eval_data = dict(eval_data, summary_points=points)
+                if updated:
+                    eval_data["headline"] = eval_data.get("headline", "").replace(
+                        "FINANCIAL RESULTS", "FINANCIAL RESULTS UPDATE")
 
             market_quote_event = None
             if eval_data.get("market_quotes"):
@@ -487,7 +524,7 @@ class RealtimeDaemon:
                 continue
 
             post_fp = fingerprint("", formatted_post)
-            if market_quote_event is None and self.state.is_seen(item_id, fingerprint=post_fp):
+            if market_quote_event is None and result_event is None and self.state.is_seen(item_id, fingerprint=post_fp):
                 self._trace("duplicate", it, "FORMATTED_POST")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
@@ -521,6 +558,9 @@ class RealtimeDaemon:
             if market_quote_event is not None:
                 self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""),
                                             market_quote_event=market_quote_event)
+            elif result_event is not None:
+                self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""),
+                                            result_event=result_event)
             else:
                 self.state.record_published(item_id, eval_data.get("headline", ""), eval_data.get("category", ""))
             if not self.dry_run:
@@ -531,6 +571,7 @@ class RealtimeDaemon:
         self.check_fii_dii_routine()
 
         self.total_dispatched += dispatched_count
+        self.state.save_state(sync_git=False)
         return dispatched_count
 
     def run_daemon(self):
@@ -584,6 +625,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

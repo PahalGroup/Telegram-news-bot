@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from src.daemon import RealtimeDaemon
 from src.filter_engine import FilterEngine
-from src.state_store import StateStore
+from src.state_store import StateStore, StateIntegrityError
 from telegram_dispatcher import TelegramDispatcher
 
 
@@ -90,7 +90,7 @@ class ReliabilityTests(unittest.TestCase):
         original = Path(self.state.json_state_path).read_bytes()
         self.state.seen_ids.add("new")
         with patch("src.state_store.os.replace", side_effect=OSError("disk error")):
-            with self.assertRaises(OSError):
+            with self.assertRaises(StateIntegrityError):
                 self.state.save_state()
         self.assertEqual(original, Path(self.state.json_state_path).read_bytes())
         self.assertEqual(list(Path(self.tmp.name).glob(".state-*.json")), [])
@@ -197,3 +197,4 @@ class ReliabilityTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

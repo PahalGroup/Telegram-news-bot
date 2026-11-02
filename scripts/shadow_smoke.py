@@ -98,6 +98,8 @@ def main():
             "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {})),
             "pdf_retry_waiting": sum(1 for key in getattr(daemon, "_pdf_backlog", {})
                                      if getattr(daemon, "_pdf_retry", {}).get(key, 0) > time.time()),
+            "blocked_pdfs": len(getattr(daemon, "_pdf_blocked", {})),
+            "journal_pending_items": len(getattr(daemon.state, "pending_items", {})),
             "cycles": records,
             "requested_seconds": args.duration,
             "note": "Bounded observation plus up to 20 seconds source and 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",
@@ -119,5 +121,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 

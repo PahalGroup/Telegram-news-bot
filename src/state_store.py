@@ -35,6 +35,7 @@ class StateStore:
         self.published_records: List[Dict[str, Any]] = []
         self.event_cooldowns: Dict[str, float] = {}
         self.pending_deliveries: Dict[str, Dict[str, str]] = {}
+        self.pending_items: Dict[str, Dict[str, Any]] = {}
         
         self._failed = False
         self._init_sqlite()
@@ -119,6 +120,8 @@ class StateStore:
                         self.event_cooldowns[k] = float(v)
                     self.published_records = data.get("published_records", [])[-200:]
                     self.pending_deliveries = data.get("pending_deliveries", {})
+                    self.pending_items = {k: v for k, v in data.get("pending_items", {}).items()
+                                          if k not in self.seen_ids}
                     logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
             except Exception as e:
                 self._fail("Cannot trust deduplication snapshot; restore or reconcile it before delivery", e)
@@ -142,12 +145,30 @@ class StateStore:
                 or not isinstance(v.get("post_fingerprint"), str) for k, v in pending.items()):
             raise ValueError("Invalid pending_deliveries")
         records = data.get("published_records", [])
+        work = data.get("pending_items", {})
+        if not isinstance(work, dict) or len(work) > 1024:
+            raise ValueError("Invalid pending_items")
+        for key, entry in work.items():
+            if (not isinstance(key, str) or not isinstance(entry, dict)
+                    or not isinstance(entry.get("item"), dict)
+                    or entry["item"].get("id") != key):
+                raise ValueError("Invalid pending item identity")
+            if StateStore._work_item(entry["item"]) != entry["item"]:
+                raise ValueError("Unknown pending item fields")
+            retry = entry.get("retry_after", 0)
+            if (not isinstance(retry, (int, float)) or isinstance(retry, bool)
+                    or not math.isfinite(retry) or retry < 0
+                    or not isinstance(entry.get("blocked_reason", ""), str)):
+                raise ValueError("Invalid pending item retry state")
         if not isinstance(records, list) or any(not isinstance(v, dict) for v in records):
             raise ValueError("Invalid published_records")
         from src.market_quotes import validate_event
         for record in records:
             if "market_quote_event" in record:
                 validate_event(record["market_quote_event"])
+            if "result_event" in record:
+                from src.result_events import validate_result_event
+                validate_result_event(record["result_event"])
 
     def save_state(self, sync_git: bool = False):
         """Save state to SQLite and JSON snapshot. Optionally sync to git in cloud."""
@@ -155,6 +176,7 @@ class StateStore:
             raise StateIntegrityError("State is unhealthy; refusing to overwrite its snapshot")
         # Keep the complete ledger: slicing an unordered set discards arbitrary recent IDs.
         payload = {
+            "pending_items": self.pending_items,
             "pending_deliveries": self.pending_deliveries,
             "seen_ids": sorted(self.seen_ids),
             "semantic_hashes": sorted(self.semantic_hashes),
@@ -172,6 +194,8 @@ class StateStore:
                 handle.flush()
                 os.fsync(handle.fileno())
             os.replace(temp_path, self.json_state_path)
+        except Exception as exc:
+            self._fail("Cannot persist recovery snapshot; delivery stopped", exc)
         finally:
             if temp_path and os.path.exists(temp_path):
                 os.unlink(temp_path)
@@ -190,6 +214,40 @@ class StateStore:
             subprocess.run(["git", "push", "origin", "main"], check=False)
         except Exception as e:
             logger.warning(f"Git state sync non-fatal error: {e}")
+
+    @staticmethod
+    def _work_item(item):
+        # Only public source fields belong in a recovery snapshot, never clients,
+        # credentials, futures or arbitrary caller metadata.
+        fields = ("id", "source", "company", "title", "description", "pdf_url",
+                  "raw_subject", "source_url", "published_at")
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"]:
+            raise ValueError("Pending item needs a string ID")
+        result = {k: item[k] for k in fields if k in item and item[k] is not None}
+        if any(not isinstance(v, str) or len(v) > 65536 for v in result.values()):
+            raise ValueError("Invalid public source field")
+        if len(json.dumps(result)) > 262144:
+            raise ValueError("Pending item too large")
+        return result
+
+    def stage_items(self, items):
+        """Checkpoint discovery before processing; failed sends stay retryable."""
+        additions = {}
+        for raw in items:
+            item = self._work_item(raw)
+            key = item["id"]
+            if key not in self.seen_ids and key not in self.pending_items:
+                additions[key] = {"item": item, "retry_after": 0, "blocked_reason": ""}
+        if len(self.pending_items) + len(additions) > 1024:
+            raise StateIntegrityError("Pending work journal full; review retained work before continuing")
+        if additions:
+            self.pending_items.update(additions)
+            self.save_state(sync_git=False)
+
+    def defer_item(self, item_id, retry_after=0, blocked_reason=""):
+        entry = self.pending_items.get(str(item_id))
+        if entry is not None:
+            entry.update(retry_after=retry_after, blocked_reason=blocked_reason)
 
     def is_in_cooldown(self, entity: str, category: str, cooldown_seconds: int = 21600) -> bool:
         """Check if this (entity, category) event has already been published in the last 6 hours."""
@@ -258,6 +316,7 @@ class StateStore:
     def mark_seen(self, item_id: str, source: str = "UNKNOWN", fingerprint: str = None):
         """Record an item ID and optional semantic fingerprint."""
         self.seen_ids.add(str(item_id))
+        self.pending_items.pop(str(item_id), None)
         if fingerprint:
             self.semantic_hashes.add(str(fingerprint))
         
@@ -271,7 +330,7 @@ class StateStore:
         except Exception as e:
             self._fail("Cannot persist deduplication ledger; delivery stopped", e)
 
-    def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None):
+    def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None, result_event=None):
         """Log a successfully dispatched Telegram announcement."""
         rec = {
             "item_id": str(item_id),
@@ -282,6 +341,10 @@ class StateStore:
             from src.market_quotes import validate_event
             validate_event(market_quote_event)
             rec["market_quote_event"] = market_quote_event
+        if result_event is not None:
+            from src.result_events import validate_result_event
+            validate_result_event(result_event)
+            rec["result_event"] = result_event
         self.published_records.append(rec)
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -292,3 +355,4 @@ class StateStore:
         except Exception as e:
             self._fail("Cannot persist published record; delivery stopped", e)
         self.save_state(sync_git=False)
+

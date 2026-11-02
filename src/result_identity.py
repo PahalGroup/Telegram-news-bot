@@ -6,10 +6,10 @@ left alone; this does not reconcile separate filings or infer entity scope.
 import re
 from decimal import Decimal
 
-PERIOD = re.compile(r'\b(?:in\s+)?(?P<period>[QH][1-4])\s*FY\s*(?P<year>\d{2}(?:\d{2})?)\b', re.I)
+PERIOD = re.compile(r'\b(?:(?:in|for)\s+)?(?P<period>[QH][1-4])\s*FY\s*(?P<year>\d{2}(?:\d{2})?)\b', re.I)
 FACT = re.compile(
     r'^(?:(?P<scope>consolidated|standalone)\s+)?'
-    r'(?P<metric>revenue from operations|profit after tax|EBITDA)\s+'
+    r'(?P<metric>revenue from operations|revenue|net profit|profit after tax|profit before tax|operating EBITDA|EBITDA)\s+'
     r'(?:(?:of|was|stood at|reached)\s+)?'
     r'(?P<currency>₹|INR|Rs\.?|USD|EUR|GBP)\s*'
     r'(?P<amount>-?\d[\d,]*(?:\.\d+)?)\s*'
@@ -60,3 +60,4 @@ def unique_result_facts(points):
         if key is not None:
             seen.add(key)
     return result
+

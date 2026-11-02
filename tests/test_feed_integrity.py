@@ -34,6 +34,26 @@ class FeedIntegrityTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 RBIFetcher().fetch_press_releases()
 
+    def test_rbi_administrative_report_excluded_but_policy_retained(self):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = b'''<rss><channel>
+        <item><title>Processing of applications received under Citizen's Charter</title></item>
+        <item><title>Monetary Policy Statement: repo rate decision</title></item>
+        </channel></rss>'''
+        with patch("sources.rbi_fetcher.urllib.request.urlopen", return_value=response), patch(
+                "sources.rbi_fetcher.fresh_rss_date", return_value=True):
+            items = RBIFetcher().fetch_press_releases()
+        self.assertEqual([item['title'] for item in items],
+                         ['Monetary Policy Statement: repo rate decision'])
+
+    def test_rbi_diagnostic_identifies_failure_without_response_body(self):
+        fetcher = RBIFetcher()
+        with patch("sources.rbi_fetcher.urllib.request.urlopen", side_effect=TimeoutError("private body")):
+            with self.assertRaisesRegex(RuntimeError, r"failed \(TimeoutError\)") as caught:
+                fetcher.fetch_press_releases()
+        self.assertNotIn('private body', str(caught.exception))
+        self.assertEqual(fetcher.last_health['status'], 'error')
+
     def test_partial_rss_failure_keeps_good_items_and_records_failure(self):
         fetcher = NewsFetcher()
         feeds = [{"source": "good", "url": "https://example.com/good"},
@@ -78,3 +98,4 @@ class BSEPartialFetchTests(unittest.TestCase):
             row = {"SLONGNAME": "Example", "NEWSSUB": "Receipt of order", "NEWSID": "123", "NEWS_DT": date}
             with patch("sources.bse_fetcher.requests.get", return_value=self.response([row])):
                 self.assertEqual(BSEFetcher().fetch_announcements(skip_pdf=True), [])
+
