@@ -343,6 +343,12 @@ class FilterEngine:
         if re.search(r'\b(?:credit rating|rating (?:upgrade|downgrade|reaffirm|update))\b', title, re.I):
             return "CREDIT_RATING"
 
+        # Explicit financial document titles outrank incidental policy/commodity
+        # vocabulary in a transcript. A discussion of oil does not turn it into a flash.
+        if re.search(r'\b(?:financial results|earnings call transcript|'
+                     r'investors? presentation|earnings presentation|financial performance)\b', title, re.I):
+            return "FINANCIAL_RESULTS"
+
         if re.search(r'\b(?:US\s*FDA|United States Food and Drug Administration|Form\s*483)\b', text, re.I):
             return "REGULATORY_UPDATE"
 
@@ -549,7 +555,7 @@ class FilterEngine:
                 raw_sentences = sentences(desc)
                 for s in raw_sentences:
                     cs = self._truncate_clean(s, 160)
-                    if len(cs) > 25 and not any(k in cs.lower() for k in ["read more", "click here", "pfa", clean_title.lower()]):
+                    if len(cs) > 25 and not re.search(r"\.{3,}|…", cs) and not any(k in cs.lower() for k in ["read more", "click here", "pfa", clean_title.lower()]):
                         bullets.append(cs)
                     if len(bullets) >= 3:
                         break
@@ -603,6 +609,10 @@ class FilterEngine:
                     )
                 )
             )
+
+            if badge == "INTERIM DIVIDEND":
+                from src.dividend_evidence import evaluate_dividend
+                return evaluate_dividend(norm_company, title, desc, category)
 
             parsed_bullets = []
             if desc:
@@ -663,7 +673,10 @@ class FilterEngine:
         has_concrete_numbers = bool(
             re.search(r"(?:₹|rs\.?\s*|inr\s*)\s*\d+(?:\.\d+)?\s*(?:cr(?:ore)?|lakh|million|billion)", combined, re.I)
         )
-        if source in ("BSE", "NSE") and not is_generic_name and has_concrete_numbers and len(combined) > 40:
+        concrete_points = [point for point in clean_points(sentences(desc), limit=None)
+                           if re.search(r"(?:₹|rs\.?\s*|inr\s*)\s*[\d,]+(?:\.\d+)?\s*"
+                                        r"(?:cr(?:ore)?|lakh|million|billion)", point, re.I)]
+        if source in ("BSE", "NSE") and not is_generic_name and concrete_points:
             return {
                 "publish": True,
                 "materiality_score": 80,
@@ -671,7 +684,7 @@ class FilterEngine:
                 "rejection_reason": "",
                 "headline": f"{norm_company} – CORPORATE UPDATE",
                 "key_metrics": [],
-                "summary_points": [self._truncate_clean(title, 140), self._truncate_clean(desc, 150) if desc else ""],
+                "summary_points": concrete_points[:5],
                 "what_it_means": ""
             }
 

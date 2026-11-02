@@ -18,6 +18,7 @@ BACKGROUND = re.compile(
     r'completed \d+ years|net profit cross(?:ed|ing)?|brief (?:history|profile)|'
     r'guidance|guided|expect(?:ed|s)?|forecast|target(?:ed|s)?|CAGR|order book|'
     r'annuali[sz]ed|over the next|will get added|earning[s]? before interest|performance indicators on|'
+    r'accompanying statement|whose (?:interim )?financial|not been audited|franchisees?|'
     r'(?:additional )?revenue potential|proposed estimated investment|geographical revenue|revenue break-up|historical financial|adjusted PAT excludes|products that have been developed)\b', re.I)
 RELATION = re.compile(r'\b(?:was|were|stood|grew|growing|growth|increas\w*|rose|risen|'
                       r'declin\w*|decreas\w*|fell|report\w*|record\w*|up|down|expanded|'
@@ -54,15 +55,42 @@ def metric_has_value(point):
     return False
 
 
+
+def unsafe_result_context(point):
+    # Historical multi-year slides are not the current period's result.
+    years = [int(y) + (2000 if len(y) == 2 else 0)
+             for y in re.findall(r'\bFY\s*(\d{2,4})\b', point, re.I)]
+    span = re.search(r'\bFY\s*(\d{2})\s+to\s+(?:FY\s*)?(\d{2})\b', point, re.I)
+    if span:
+        years.extend([2000 + int(span[1]), 2000 + int(span[2])])
+    if (years and max(years) - min(years) > 1
+            and not re.search(r'\b(?:Q[1-4]|H[12])\s*FY', point, re.I)):
+        return 'historical_multi_year_comparison'
+    if re.search(r'\b(?:at|of|to|and)\s*,|\byou can see\b', point, re.I):
+        return 'incomplete_transcript_fragment'
+    # A bare scorecard row can belong to a subsidiary on another PDF panel.
+    # Do not attach it to the parent-company headline without explicit scope/period.
+    if re.match(r'^(?:total |operating )?(?:revenue(?:s)?(?: from operations)?|'
+                r'profit after tax(?: \(PAT\))?|net profit|adjusted EBITDA|EBITDA)\s*(?::|₹|Rs\b|INR\b)',
+                point, re.I) and not re.search(
+                    r'\b(?:consolidated|standalone|Q[1-4]|H[12]|FY\s*\d{2,4}|'
+                    r'quarter ended|year ended|half year ended)\b', point, re.I):
+        return 'scorecard_missing_scope_or_period'
+    return ''
+
+
 def select_result_points(title, description):
     candidates = []
     for line in description.splitlines() + [title]:
         # Embedded PDF bullet glyphs are boundaries, not a reason to combine metrics.
-        for bullet in re.split(r'[•▪●✓\uf0b7]|\s+(?=Premiums on our infrastructure\b)', line):
+        for bullet in re.split(r'[•▪●✓\uf0b7\uf0a7]|\s+(?=Premiums on our infrastructure\b)', line):
             candidates.extend(sentences(bullet))
     points, rejected = [], Counter()
     for point in clean_points(candidates, limit=None):
-        if point.count('(') != point.count(')'):
+        context_error = unsafe_result_context(point)
+        if context_error:
+            rejected[context_error] += 1
+        elif point.count('(') != point.count(')'):
             rejected['incomplete_parenthesis'] += 1
         elif BACKGROUND.search(point):
             rejected['audit_scope_or_background'] += 1
