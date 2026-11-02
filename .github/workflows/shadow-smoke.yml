@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements.txt
-      - run: python scripts/shadow_smoke.py
+      - run: python scripts/shadow_smoke.py --duration 180
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -31,4 +31,5 @@ jobs:
             pipeline-items.jsonl
             pipeline-summary.json
           retention-days: 7
+
 

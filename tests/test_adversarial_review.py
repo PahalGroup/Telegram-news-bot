@@ -57,7 +57,7 @@ class EvidenceBoundaryTests(unittest.TestCase):
             pdf = doc.tobytes()
         session = MagicMock()
         session.get.return_value.status_code = 200
-        session.get.return_value.content = pdf
+        session.get.side_effect = lambda *args, **kwargs: (kwargs["content_callback"](pdf), MagicMock(status_code=200))[1]
         _, bullets = AnnexureParser.extract_annexure_bullets("https://example.com/original.pdf", session)
         result = evaluate_event("ORDER_WIN", "EXAMPLE", "Receipt of order", "\n".join(bullets))
         self.assertIn(fact, result["summary_points"])
@@ -154,3 +154,4 @@ class ManagementAndUnitsTests(unittest.TestCase):
         for target in ["500", "USD 500", "INR 500"]:
             result = engine._parse_broker_note("Citi on Example: BUY, target " + target, "")
             self.assertEqual(result["target"], target)
+

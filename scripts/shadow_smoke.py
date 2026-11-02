@@ -70,9 +70,9 @@ def main():
             "requested_seconds": args.duration,
             "note": "Bounded observation plus up to 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",
         }
-        observer.finish(**report)
+        summary = observer.finish(**report)
         (output_dir / "shadow-report.json").write_text(json.dumps(report, indent=2))
-        print(json.dumps(report, indent=2))
+        print(json.dumps(summary, indent=2))
         for attr in ("_source_pool", "_pdf_pool"):
             pool = getattr(daemon, attr, None)
             if pool:
@@ -82,4 +82,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 

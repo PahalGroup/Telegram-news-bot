@@ -4,9 +4,9 @@ import json
 import sys
 from pathlib import Path
 import pymupdf
-from curl_cffi import requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sources.annexure_parser import AnnexureParser
+from sources.pdf_download import download_pdf
 from src.filter_engine import FilterEngine
 from src.formatter import Formatter
 
@@ -16,10 +16,7 @@ def main():
     for case in cases:
         row = dict(case)
         try:
-            response = requests.get(case["url"], timeout=30)
-            data = response.content
-            if response.status_code != 200 or not data.startswith(b"%PDF") or len(data) > AnnexureParser.MAX_BYTES:
-                raise ValueError(f"Invalid PDF response: HTTP {response.status_code}")
+            data = download_pdf(case["url"], max_bytes=AnnexureParser.MAX_BYTES)
             row["sha256"] = hashlib.sha256(data).hexdigest()
             if row["sha256"] != case["sha256"]:
                 raise ValueError("Original document changed; review required")
@@ -59,3 +56,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

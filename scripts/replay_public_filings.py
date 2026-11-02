@@ -5,10 +5,10 @@ import re
 import sys
 from pathlib import Path
 import pymupdf
-from curl_cffi import requests
 import requests as verified_requests
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sources.annexure_parser import AnnexureParser
+from sources.pdf_download import download_pdf
 from src.filter_engine import FilterEngine
 from src.formatter import Formatter
 
@@ -21,18 +21,23 @@ def main():
     for case in cases:
         result = {"id": case["id"], "url": case["url"]}
         try:
-            client = verified_requests if case.get("source") == "COMPANY" else requests
-            response = client.get(case["url"], timeout=20)
-            for fallback in case.get("fallback_urls", []):
-                if response.status_code != 404:
-                    break
-                response = requests.get(fallback, timeout=20)
-                result["retrieved_from"] = fallback
-            if response.status_code != 200 or not response.content.startswith(b"%PDF"):
-                raise ValueError(f"PDF unavailable: HTTP {response.status_code}")
-            data = response.content
-            if len(data) > AnnexureParser.MAX_BYTES:
-                raise ValueError("PDF too large")
+            if case.get("source") == "COMPANY":
+                # Preserve the verified TLS client for these two company originals.
+                with verified_requests.get(case["url"], timeout=20, stream=True) as response:
+                    response.raise_for_status()
+                    chunks, size = [], 0
+                    for chunk in response.iter_content(65536):
+                        size += len(chunk)
+                        if size > AnnexureParser.MAX_BYTES:
+                            raise ValueError("PDF too large")
+                        chunks.append(chunk)
+                    data = b"".join(chunks)
+                if not data.startswith(b"%PDF"):
+                    raise ValueError("Invalid company PDF response")
+                result["transport"] = "company_verified_tls"
+            else:
+                data = download_pdf(case["url"], max_bytes=AnnexureParser.MAX_BYTES)
+                result["transport"] = "production_pdf_downloader"
             result["sha256"] = hashlib.sha256(data).hexdigest()
             if result["sha256"] != case["sha256"]:
                 raise ValueError("Original document hash changed; source expectations need review")
@@ -69,3 +74,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

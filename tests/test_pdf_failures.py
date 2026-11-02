@@ -7,13 +7,13 @@ from src.daemon import RealtimeDaemon
 class PDFFailureTests(unittest.TestCase):
     def test_http_error_is_not_an_unsupported_document(self):
         session = MagicMock()
-        session.get.return_value.status_code = 503
+        session.get.return_value.status_code = 403
         with self.assertRaises(PDFExtractionError):
             AnnexureParser.extract_annexure_bullets("https://example.com/a.pdf", session)
 
     def test_bse_archive_fallback_only_after_404(self):
         session = MagicMock()
-        session.get.side_effect = [MagicMock(status_code=404), MagicMock(status_code=503)]
+        session.get.side_effect = [MagicMock(status_code=404), MagicMock(status_code=403)]
         with self.assertRaises(PDFExtractionError):
             AnnexureParser.extract_annexure_bullets(
                 "https://www.bseindia.com/xml-data/corpfiling/AttachLive/abc.pdf", session)
@@ -33,3 +33,4 @@ class PDFFailureTests(unittest.TestCase):
         self.assertEqual(daemon._pdf_outcomes["errors"], 1)
         self.assertIn("event", daemon._pdf_retry)
         daemon.state.mark_seen.assert_not_called()
+

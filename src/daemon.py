@@ -205,7 +205,8 @@ class RealtimeDaemon:
                 failures = [url for url, health in getattr(self.news, "last_health", {}).items()
                             if health.get("status") == "error"]
                 if failures:
-                    self.total_errors += len(failures)
+                    self.total_errors += sum(health.get("status") == "error" and health.get("attempted", True)
+                                             for health in self.news.last_health.values())
                     logger.warning("RSS sources failed: %s", failures)
                 logger.info(f"[NEWS] Fetched {len(news_items)} items")
         except Exception as e:
@@ -543,5 +544,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

@@ -1,7 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 import urllib.request
-import xml.etree.ElementTree as ET
 import ssl
+import time
+from urllib.error import HTTPError
+from sources.rss_response import parse_rss, FeedResponseError, MAX_FEED_BYTES
 from typing import List, Dict, Any
 from html import unescape
 import re
@@ -44,6 +46,8 @@ class NewsFetcher:
     def __init__(self):
         self.ctx = ssl.create_default_context()
         self.last_health = {}
+        self.response_diagnostics = {}
+        self._feed_backoff = {}
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
@@ -70,10 +74,9 @@ class NewsFetcher:
         try:
             req = urllib.request.Request(url, headers=self.headers)
             with urllib.request.urlopen(req, context=self.ctx, timeout=10) as resp:
-                data = resp.read()
-                root = ET.fromstring(data)
-                if root.tag != "rss" or root.find("channel") is None:
-                    raise ValueError("Response is not an RSS channel")
+                data = resp.read(MAX_FEED_BYTES + 1)
+                root, details = parse_rss(data, resp.headers.get('Content-Type', ''), resp.status, resp.geturl())
+                self.response_diagnostics[url] = details
                 for it in root.findall(".//item"):
                     title_el = it.find("title")
                     desc_el = it.find("description")
@@ -101,7 +104,14 @@ class NewsFetcher:
                         "pub_date": pub,
                         "link": link
                     })
+        except FeedResponseError as e:
+            self.response_diagnostics[url] = dict(e.diagnostics, reason=e.reason)
+            raise RuntimeError(f"RSS fetch failed: {name} ({url}): {e.reason}") from e
         except Exception as e:
+            self.response_diagnostics[url] = {'reason': 'RSS_REQUEST_FAILED', 'exception_type': type(e).__name__}
+            if isinstance(e, HTTPError):
+                self.response_diagnostics[url]['http_status'] = e.code
+                e.close()
             raise RuntimeError(f"RSS fetch failed: {name} ({url}): {type(e).__name__}: {e}") from e
         return items
 
@@ -133,13 +143,30 @@ class NewsFetcher:
         # RSS requests use independent urllib connections. Untimestamped category
         # page headings are not live flashes and cannot establish freshness.
         def fetch_checked(feed):
+            url = feed['url']
+            previous = self._feed_backoff.get(url, {})
+            now = time.monotonic()
+            if previous.get('retry_at', 0) > now:
+                # Keep the outage visible while avoiding a new request every cycle.
+                return [], dict(previous['health'], attempted=False,
+                                retry_after_seconds=round(previous['retry_at'] - now, 1))
             try:
                 items = self.fetch_feed(feed)
-                return items, {"status": "items" if items else "empty_unverified", "items": len(items)}
+                self._feed_backoff.pop(url, None)
+                return items, {'status': 'items' if items else 'empty_unverified', 'items': len(items),
+                               'attempted': True, 'response': self.response_diagnostics.get(url, {})}
             except Exception as exc:
-                logger.warning("%s", exc)
-                return [], {"status": "error", "error": str(exc)}
+                failures = previous.get('failures', 0) + 1
+                delay = min(300, 30 * 2 ** min(failures - 1, 4))
+                logger.warning('%s; retry in %ss', exc, delay)
+                health = {'status': 'error', 'error': str(exc), 'attempted': True,
+                          'consecutive_failures': failures, 'retry_after_seconds': delay,
+                          'response': self.response_diagnostics.get(url, {})}
+                self._feed_backoff[url] = {'failures': failures, 'retry_at': time.monotonic() + delay,
+                                           'health': health}
+                return [], health
         with ThreadPoolExecutor(max_workers=5) as pool:
             results = list(pool.map(fetch_checked, NEWS_FEEDS))
         self.last_health = {feed["url"]: result[1] for feed, result in zip(NEWS_FEEDS, results)}
         return [item for items, _ in results for item in items]
+
