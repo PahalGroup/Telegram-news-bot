@@ -150,3 +150,27 @@ class RSSResponseTests(unittest.TestCase):
             self.assertEqual(len(fetcher.fetch_all_feeds()), 2)
             self.assertEqual(fetcher.last_health[bad['url']]['status'], 'items')
             self.assertNotIn(bad['url'], fetcher._feed_backoff)
+
+    def test_feed_health_explains_items_removed_by_filters(self):
+        fetcher = NewsFetcher()
+        self.addCleanup(fetcher.session.close)
+        body = b"""<rss><channel>
+        <item><title>Company wins contract</title><pubDate>fresh</pubDate></item>
+        <item><title>Old contract</title><pubDate>old</pubDate></item>
+        <item><title>Actor story</title><pubDate>fresh</pubDate></item>
+        <item><pubDate>fresh</pubDate></item>
+        </channel></rss>"""
+        response = MagicMock(status=200, headers={'Content-Type': 'application/xml'})
+        response.read.return_value = body
+        response.geturl.return_value = 'https://example.com/rss'
+        with patch('sources.news_fetcher.urllib.request.urlopen') as request, \
+             patch('sources.news_fetcher.fresh_rss_date', side_effect=lambda value, _: value == 'fresh'):
+            request.return_value.__enter__.return_value = response
+            items = fetcher.fetch_feed({'source': 'Example', 'url': 'https://example.com/rss'})
+        self.assertEqual(len(items), 1)
+        details = fetcher.response_diagnostics['https://example.com/rss']
+        self.assertEqual({k: details[k] for k in ('raw_items', 'missing_titles', 'noise_filtered',
+                         'rejected_dates', 'accepted_items')},
+                         {'raw_items': 4, 'missing_titles': 1, 'noise_filtered': 1,
+                          'rejected_dates': 1, 'accepted_items': 1})
+        response.read.assert_called_once_with(MAX_FEED_BYTES + 1)

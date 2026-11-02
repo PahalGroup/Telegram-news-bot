@@ -77,7 +77,11 @@ class NewsFetcher:
                 data = resp.read(MAX_FEED_BYTES + 1)
                 root, details = parse_rss(data, resp.headers.get('Content-Type', ''), resp.status, resp.geturl())
                 self.response_diagnostics[url] = details
-                for it in root.findall(".//item"):
+                entries = root.findall(".//item")
+                details.update(raw_items=len(entries), missing_titles=0, noise_filtered=0,
+                               rejected_dates=0, accepted_items=0,
+                               sample_dates=[entry.findtext("pubDate", "")[:100] for entry in entries[:3]])
+                for it in entries:
                     title_el = it.find("title")
                     desc_el = it.find("description")
                     pub_el = it.find("pubDate")
@@ -91,11 +95,17 @@ class NewsFetcher:
                     title = self._clean_text(title)
                     desc = self._clean_text(desc)
                     
-                    if not title or self.is_noise(f"{title} {desc}"):
+                    if not title:
+                        details['missing_titles'] += 1
+                        continue
+                    if self.is_noise(f"{title} {desc}"):
+                        details['noise_filtered'] += 1
                         continue
 
                     if not fresh_rss_date(pub, 2700):
+                        details['rejected_dates'] += 1
                         continue
+                    details['accepted_items'] += 1
 
                     items.append({
                         "source": name,
