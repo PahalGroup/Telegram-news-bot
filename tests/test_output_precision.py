@@ -80,3 +80,36 @@ class IPORecoveryTests(unittest.TestCase):
         ]:
             with self.subTest(blocks=blocks):
                 self.assertEqual(self.recover(blocks), [])
+
+
+class LateOutputTests(unittest.TestCase):
+    def test_unfinished_articles_and_multiyear_growth_are_withheld(self):
+        for text in [
+            'Revenue from Operations is ₹159.11 Crores in H1 FY27 compared to ₹81.55 Crores in H1 FY26, a',
+            'Robust revenue growth of 10.1% p.a. during FY 2021-2026 with increasing',
+            'Revenue grew 10.1% during FY 2021-2026.',
+        ]:
+            with self.subTest(text=text):
+                self.assertEqual(select_result_points('Financial results', text)[0], [])
+
+    def rating(self, title, description):
+        return FilterEngine(config_path='/nonexistent/rules.json').evaluate_stage_2({
+            'company': 'Example', 'category': 'CREDIT_RATING', 'source': 'BSE',
+            'title': title, 'description': description})
+
+    def test_rating_disclosure_label_is_not_a_rating_event(self):
+        self.assertFalse(self.rating(
+            'Reg 23(5)(d): Disclosure of details of any credit rating obtained by the InvIT and any change in such rating', '')['publish'])
+
+    def test_prose_rating_requires_agency_grade_and_action(self):
+        good = 'ICRA has reaffirmed the long-term credit rating at AA- with a Stable outlook.'
+        self.assertEqual(self.rating('Credit rating', good)['summary_points'], [good])
+        for text in ['ICRA has reaffirmed the credit rating.',
+                     'The long-term credit rating was reaffirmed at AA-.',
+                     'ICRA may upgrade the credit rating to AA-.']:
+            with self.subTest(text=text):
+                self.assertFalse(self.rating('Credit rating', text)['publish'])
+
+    def test_adjacent_fiscal_year_comparison_is_still_eligible(self):
+        text = 'Consolidated revenue grew 10% in FY 2025-2026.'
+        self.assertEqual(select_result_points('Financial results', text)[0], [text])

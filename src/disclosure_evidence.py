@@ -55,3 +55,19 @@ def rating(company, title, description):
     if not any(re.search(r'(?:Long|Short|Shirt) Term Rating:', p, re.I) for p in facts):
         return None  # Existing prose path handles non-tabular rating notices.
     return response('CREDIT_RATING', company, 'CREDIT RATING UPDATE', facts[:3], '')
+
+
+def prose_rating(company, title, description):
+    agency = re.compile(r'\b(?:ICRA|CRISIL|CARE|India Ratings|IND|Brickwork)\b', re.I)
+    grade = re.compile(r'(?<![A-Za-z])(?:AAA|AA[+-]?|A[123][+-]?|A[+-]?|BBB[+-]?|BB[+-]?|B[+-]?|C|D)(?![A-Za-z0-9])')
+    action = re.compile(r'\b(?:assigned|reaffirmed|upgraded|downgraded|revised|withdrawn|placed|retained)\b', re.I)
+    points = []
+    for line in description.splitlines() + [title]:
+        for p in sentences(line):
+            if (agency.search(p) and grade.search(p) and action.search(p)
+                    and not re.search(r'\b(?:may|might|if|not|whether)\b', p, re.I)
+                    and 25 <= len(p) <= 700
+                    and p.casefold() not in {v.casefold() for v in points}):
+                points.append(p)
+    return response('CREDIT_RATING', company, 'CREDIT RATING UPDATE', points[:3],
+                    'RATING_REQUIRES_AGENCY_GRADE_AND_ACTION')

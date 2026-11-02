@@ -651,24 +651,8 @@ class FilterEngine:
             explicit = rating(norm_company, title, desc)
             if explicit is not None:
                 return explicit
-            agency = "CRISIL" if "crisil" in combined.lower() else (
-                "ICRA" if "icra" in combined.lower() else (
-                    "CARE" if "care" in combined.lower() else "RATING AGENCY"
-                )
-            )
-            action = "UPGRADE" if "upgrade" in combined.lower() else (
-                "DOWNGRADE" if "downgrade" in combined.lower() else "UPDATE"
-            )
-            return {
-                "publish": True,
-                "materiality_score": 86,
-                "category": category,
-                "rejection_reason": "",
-                "headline": f"{norm_company} – {agency} RATING {action}",
-                "key_metrics": [],
-                "summary_points": [self._truncate_clean(title, 140), self._truncate_clean(desc, 150) if desc else ""],
-                "what_it_means": ""
-            }
+            from src.disclosure_evidence import prose_rating
+            return prose_rating(norm_company, title, desc)
 
         # 8. General Corporate Filing Update (Only from official exchanges)
         generic_reject_names = ["VOLUME", "STOCK", "STOCKS", "PRICE", "MARKET", "NIFTY", "SENSEX", "TAKING STOCK", "TRADE", "SHARES"]

@@ -57,9 +57,14 @@ def metric_has_value(point):
 
 
 def unsafe_result_context(point):
+    if re.search(r'\b(?:a|an|increasing|decreasing)\s*[.,;:]?$', point, re.I):
+        return 'incomplete_fragment'
     # Historical multi-year slides are not the current period's result.
     years = [int(y) + (2000 if len(y) == 2 else 0)
              for y in re.findall(r'\bFY\s*(\d{2,4})\b', point, re.I)]
+    year_range = re.search(r'\bFY\s*(\d{4})\s*[-–]\s*(\d{4})\b', point, re.I)
+    if year_range:
+        years.extend([int(year_range[1]), int(year_range[2])])
     span = re.search(r'\bFY\s*(\d{2})\s+to\s+(?:FY\s*)?(\d{2})\b', point, re.I)
     if span:
         years.extend([2000 + int(span[1]), 2000 + int(span[2])])
