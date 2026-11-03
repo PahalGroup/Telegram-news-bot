@@ -21,3 +21,9 @@ Replay 4 = current code (in progress).
 - Read replay4 metrics; 15 samples; 20-post manual number check; final report.
 - REPORT.md written; all units done.
 - Scheduler moved to GitHub Actions (market-wire.yml, 3 chained shifts, 15 s polling, cache-persisted state); worker.py removed.
+
+## 2026-11-03 follow-ups (PR #5, not merged)
+- PR: https://github.com/PahalGroup/Telegram-news-bot/pull/5 (branch fix/smoke-and-mgmt)
+- Smoke check exit 1 with 0 errors: blocked PDFs (terminal, held for review) were counted in pending_pdf_backlog, so status=incomplete. Fix: open_backlog() excludes _pdf_blocked keys. On PR #5 the smoke is still red, but now for a real reason: errors=2 / degraded, at the same time probes show an RBI RSS TimeoutError.
+- ION Exchange 22:11 IST Change in Management (re-designation of Mr. Rajesh Sharma): its PDF mentions "postal ballot", so FilterEngine.should_drop marked it BLACK_LISTED_BOILERPLATE. Also, "change in designation" wasn't an ACTION/MANAGEMENT_ACTION term. Fix: exempt re-designation from the drop, and add the terms. Dry replay now produces "Ion Exchange India Ltd – MANAGEMENT CHANGE". 330 tests pass.
+- Live run 41677351580: failed at 23:00 IST with "hosted runner lost communication" during Run shift. State was not saved. Only 2 posts (5932, 5933 at 22:15 IST).
