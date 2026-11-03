@@ -1,0 +1,29 @@
+name: Read-only Source Connectivity
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'sources/**'
+      - 'scripts/probe_sources.py'
+      - '.github/workflows/source-probe.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Probe sources without Telegram credentials
+        run: python scripts/probe_sources.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-connectivity
+          path: source-probe.json
+          retention-days: 7

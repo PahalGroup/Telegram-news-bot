@@ -1,0 +1,126 @@
+"""Bounded end-to-end smoke run. Telegram is replaced with a rejecting stub."""
+import argparse
+import contextlib
+import json
+import sys
+import time
+from pathlib import Path
+from unittest.mock import patch
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from src.daemon import RealtimeDaemon
+from src.pipeline_observer import PipelineObserver
+
+class NoDelivery:
+    is_live = False
+    attempts = 0
+    def send_message(self, *args, **kwargs):
+        self.attempts += 1
+        raise AssertionError("Shadow run attempted Telegram delivery")
+
+def run_status(failure, errors, pending_sources, pending_pdfs, pending_backlog=0):
+    if failure:
+        return "failed"
+    if pending_sources or pending_pdfs or pending_backlog:
+        return "incomplete"
+    return "degraded" if errors else "completed"
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--duration', type=int, default=90)
+    parser.add_argument('--output-dir', default='.')
+    args = parser.parse_args()
+    if not 1 <= args.duration <= 18000:
+        parser.error('duration must be between 1 and 18000 seconds')
+    output_dir = Path(args.output_dir)
+    observer = PipelineObserver(output_dir)
+    dispatcher = NoDelivery()
+    records = []
+    with patch("src.daemon.TelegramDispatcher", return_value=dispatcher):
+        daemon = RealtimeDaemon(dry_run=True, shift_seconds=args.duration)
+    daemon.observer = observer
+    failure = None
+    try:
+        with (output_dir / "shadow-posts.txt").open("w", encoding="utf-8") as output, contextlib.redirect_stdout(output):
+            started = time.monotonic()
+            while time.monotonic() - started < args.duration:
+                cycle_started = time.monotonic()
+                count = daemon.process_cycle()
+                records.append({
+                    "cycle": daemon.cycle_count, "ready_posts": count,
+                    "processing_seconds": round(time.monotonic() - cycle_started, 3),
+                    "pending_sources": len(getattr(daemon, "_source_pending", {})),
+                    "pending_pdfs": len(getattr(daemon, "_pdf_pending", {})),
+                    "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {})),
+                    "errors": daemon.total_errors,
+                })
+                time.sleep(min(12, max(0, args.duration - (time.monotonic() - started))))
+            # Collect already-submitted sources without starting another poll.
+            from concurrent.futures import wait
+            pending_sources = getattr(daemon, "_source_pending", {})
+            if pending_sources:
+                wait(list(pending_sources.values()), timeout=20)
+            final_items = daemon.poll_all_sources(submit_sources=False)
+            with patch.object(daemon, "poll_all_sources", return_value=final_items):
+                count = daemon.process_cycle()
+                records.append({"cycle": daemon.cycle_count, "ready_posts": count, "source_drain": True})
+            # Collect completions and refill from retained work within one budget.
+            # Backoff items remain visible rather than being called complete.
+            from concurrent.futures import FIRST_COMPLETED
+            deadline = time.monotonic() + 60
+            with patch.object(daemon, "poll_all_sources", return_value=[]):
+                while True:
+                    count = daemon.process_cycle()
+                    records.append({"cycle": daemon.cycle_count, "ready_posts": count,
+                                    "drain": True,
+                                    "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {}))})
+                    pending = [f for _, f in getattr(daemon, "_pdf_pending", {}).values()]
+                    remaining = deadline - time.monotonic()
+                    if not pending or remaining <= 0:
+                        break
+                    wait(pending, timeout=remaining, return_when=FIRST_COMPLETED)
+    except BaseException as exc:
+        failure = type(exc).__name__
+        raise
+    finally:
+        report = {
+            "status": run_status(failure, daemon.total_errors,
+                                 len(getattr(daemon, "_source_pending", {})),
+                                 len(getattr(daemon, "_pdf_pending", {})),
+                                 len(getattr(daemon, "_pdf_backlog", {}))),
+            "fatal_error_type": failure,
+            "telegram_attempts": dispatcher.attempts,
+            "ready_posts": daemon.total_dispatched,
+            "errors": daemon.total_errors,
+            "pdf_outcomes": getattr(daemon, "_pdf_outcomes", {}),
+            "pending_pdfs": len(getattr(daemon, "_pdf_pending", {})),
+            "pending_sources": len(getattr(daemon, "_source_pending", {})),
+            "pending_pdf_backlog": len(getattr(daemon, "_pdf_backlog", {})),
+            "pdf_retry_waiting": sum(1 for key in getattr(daemon, "_pdf_backlog", {})
+                                     if getattr(daemon, "_pdf_retry", {}).get(key, 0) > time.time()),
+            "blocked_pdfs": len(getattr(daemon, "_pdf_blocked", {})),
+            "journal_pending_items": len(getattr(daemon.state, "pending_items", {})),
+            "cycles": records,
+            "requested_seconds": args.duration,
+            "note": "Bounded observation plus up to 20 seconds source and 60 seconds PDF drain. Ready is not accuracy, coverage, or delivery proof.",
+        }
+        summary = observer.finish(**report)
+        (output_dir / "shadow-report.json").write_text(json.dumps(report, indent=2))
+        print(json.dumps(summary, indent=2))
+        # Public prepared output is review evidence, not a Telegram delivery.
+        for row in observer.items.values():
+            if row.get("formatted_post"):
+                print("SHADOW_POST_REVIEW " + json.dumps(
+                    {"id": row["id"], "post": row["formatted_post"]}, ensure_ascii=False))
+        for attr in ("_source_pool", "_pdf_pool"):
+            pool = getattr(daemon, attr, None)
+            if pool:
+                pool.shutdown(wait=True, cancel_futures=True)
+        daemon._dry_state_dir.cleanup()
+    return int(bool(dispatcher.attempts or report["status"] != "completed"))
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+
+

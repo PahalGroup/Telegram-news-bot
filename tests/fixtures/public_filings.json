@@ -1,0 +1,90 @@
+[
+  {
+    "id": "powerica_loi",
+    "company": "Powerica Limited",
+    "title": "Receipt of Letter of Intent for Wind Power Project",
+    "url": "https://nsearchives.nseindia.com/corporate/PowericaNSE_21102026180104_Intimation_SE.pdf",
+    "category": "ORDER_WIN",
+    "facts": [
+      "50 MW",
+      "GUVNL",
+      "3.51/kWh",
+      "25 years"
+    ],
+    "sha256": "2e8033386df20c5c5e9d29b49085e53920be3d11c8c2968a85b3622fb9a274a1",
+    "source": "NSE"
+  },
+  {
+    "id": "sical_financing",
+    "company": "Sical Logistics Limited",
+    "title": "Availing of Lease Facility and Working Capital Demand Loan Facility",
+    "url": "https://nsearchives.nseindia.com/corporate/SICALLOG_27102026175347_SUBMISSION.pdf",
+    "category": "FINANCING",
+    "facts": [
+      "81,00,00,000",
+      "10,00,00,000",
+      "Tata Capital"
+    ],
+    "sha256": "b23f815197d37cc3e4ee64090561ad9dd401d020cb5762c9791f786d2dd33f22",
+    "source": "NSE"
+  },
+  {
+    "id": "juniper_commissioning",
+    "company": "Juniper Green Energy Limited",
+    "title": "Update on commissioning of additional capacity",
+    "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e67637bf-2fbd-46e2-aaa0-84eda95e3e19.pdf",
+    "category": "CAPACITY_UPDATE",
+    "facts": [
+      "150 MW",
+      "5 MW",
+      "Gujarat Urja Vikas Nigam"
+    ],
+    "sha256": "5f820375f1a8a46b98a05e85444b0f407215f300b7ccffd4562e24cceca0a74e",
+    "source": "BSE",
+    "fallback_urls": [
+      "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e67637bf-2fbd-46e2-aaa0-84eda95e3e19.pdf"
+    ]
+  },
+  {
+    "id": "grp_results",
+    "company": "GRP Limited",
+    "title": "Investor Presentation Q2 FY27",
+    "url": "https://nsearchives.nseindia.com/corporate/GRPLTD_28102026230851_Investors_Presentation_Q2FY27_Signed.pdf",
+    "category": "FINANCIAL_RESULTS",
+    "facts": [
+      "1,727",
+      "30%",
+      "3,300"
+    ],
+    "sha256": "d7d3f15c1bd6dbbbabc3c8bfb8f5d6880bfe471e7a3a68a954e64cf1587d24eb",
+    "source": "NSE"
+  },
+  {
+    "id": "hcl_management_charge",
+    "company": "Hindustan Copper Limited",
+    "title": "Change in Senior Management",
+    "source": "COMPANY",
+    "url": "https://hindustancopper.com//Content/PDF/Shri%20Nagesh%20Shenoy,%20Unit%20Head-%20MCP%20took%20over%20the%20charge%20as%20ED%20%20(Mining-Production,%20Safety%20&%20ISO%20Chief,CO%20_12.10.2026.pdf",
+    "category": "MANAGEMENT_CHANGE",
+    "facts": [
+      "Nagesh Shenoy",
+      "Executive Director",
+      "12.10.2026"
+    ],
+    "sha256": "5eca2fb5f631d5936be2fa335550f5c50657758e3dca02e33b058d79e09b983d"
+  },
+  {
+    "id": "hcl_director_appointment",
+    "company": "Hindustan Copper Limited",
+    "title": "Appointment of Independent Director",
+    "source": "COMPANY",
+    "url": "https://hindustancopper.com//Content/PDF/appointment-of%20smt.-madhumita-daolagupu-as-independent-director-15.08.2026.pdf",
+    "category": "MANAGEMENT_CHANGE",
+    "facts": [
+      "Madhumita Daolagupu",
+      "14.08.2026",
+      "Annual General Meeting"
+    ],
+    "sha256": "d6819f57dd9a41b44203e09245b41f49b363052da4cd4093dddfffa993548f9e"
+  }
+]

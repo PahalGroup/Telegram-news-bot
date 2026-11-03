@@ -1,31 +1,46 @@
-name: Indian Market Wire Cron Job
+name: Tests and source probes
 
+# Posting runs in market-wire.yml (chained Actions shifts). This workflow
+# only runs tests and read-only source probes.
 on:
+  push:
+  pull_request:
   schedule:
-    # Runs every 5 minutes, but only on weekdays (Monday-Friday)
-    - cron: '*/5 * * * 1-5'
-  workflow_dispatch: # Allows you to run it manually from the Actions tab
+    - cron: '17 1-17 * * 1-5'   # hourly 06:47–22:47 IST on weekdays: probes only
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run Market Wire Bot
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
+  probes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Probe every source (read-only; no Telegram secrets are exposed to this job)
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python main.py
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: python scripts/probe_sources.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-probe-${{ github.run_id }}
+          path: source-probe.json
+          retention-days: 7

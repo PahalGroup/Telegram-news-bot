@@ -1,5 +1,5 @@
 curl_cffi>=0.7.0
-pymupdf>=1.24.0
+pymupdf==1.26.6  # Table extraction is regression-tested against this version.
 requests>=2.31.0
 python-dotenv>=1.0.0
 beautifulsoup4>=4.12.0
@@ -7,3 +7,4 @@ lxml>=5.1.0
 google-generativeai>=0.8.0
 tzdata>=2024.1
 pdfplumber>=0.10.0
+

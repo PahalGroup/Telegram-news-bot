@@ -9,6 +9,10 @@ from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID, LOG_PATH
 
 logger = logging.getLogger(__name__)
 
+class DeliveryUncertain(RuntimeError):
+    """The request may have reached Telegram; do not automatically resend."""
+
+
 class TelegramDispatcher:
     def __init__(self, bot_token: str = TELEGRAM_BOT_TOKEN, channel_id: str = TELEGRAM_CHANNEL_ID):
         self.bot_token = bot_token
@@ -53,7 +57,7 @@ class TelegramDispatcher:
         if not self.is_live:
             # Standalone / Dry Run mode: Print directly to console in clear wire format
             print(f"\n[WIRE DISPATCH] >>>\n{formatted_text}\n{'='*50}")
-            return True
+            return False
 
         # Send via Telegram Bot API
         url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
@@ -72,7 +76,9 @@ class TelegramDispatcher:
                 if res.get("ok"):
                     msg_id = res.get("result", {}).get("message_id")
                     logger.info(f"Dispatched to Telegram [ID {msg_id}]: {formatted_text[:60]}...")
-                    return msg_id or True
+                    if not msg_id:
+                        raise DeliveryUncertain("Telegram acknowledgement missing message ID")
+                    return msg_id
                 else:
                     logger.error(f"Telegram API Error: {res}")
                     if res.get("error_code") == 400 and "parse" in res.get("description", "").lower():
@@ -84,15 +90,19 @@ class TelegramDispatcher:
                         plain_res = r_plain.json()
                         if plain_res.get("ok"):
                             msg_id = plain_res.get("result", {}).get("message_id")
-                            return msg_id or True
+                            if not msg_id:
+                                raise DeliveryUncertain("Telegram acknowledgement missing message ID")
+                            return msg_id
                     if res.get("error_code") == 429: # Rate limit
                         retry_after = res.get("parameters", {}).get("retry_after", 3)
+                        if not isinstance(retry_after, (int, float)) or not 0 <= retry_after <= 30:
+                            return False
                         time.sleep(retry_after)
                         continue
                     break
             except Exception as e:
-                logger.error(f"Dispatch Exception (attempt {attempt+1}): {e}")
-                time.sleep(2)
+                logger.error("Telegram delivery is uncertain; automatic resend stopped")
+                raise DeliveryUncertain("Telegram delivery is uncertain; reconcile before retry") from e
 
         return False
 

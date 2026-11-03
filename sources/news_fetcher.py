@@ -1,10 +1,14 @@
+from concurrent.futures import ThreadPoolExecutor
 import urllib.request
-import xml.etree.ElementTree as ET
 import ssl
+import time
+from urllib.error import HTTPError
+from sources.rss_response import parse_rss, FeedResponseError, MAX_FEED_BYTES
 from typing import List, Dict, Any
 from html import unescape
 import re
 import logging
+from sources.feed_utils import fresh_rss_date
 from curl_cffi import requests
 
 logger = logging.getLogger(__name__)
@@ -12,14 +16,19 @@ logger = logging.getLogger(__name__)
 NEWS_FEEDS = [
     {"source": "Economic Times", "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"},
     {"source": "Economic Times", "url": "https://economictimes.indiatimes.com/markets/stocks/news/rssfeeds/2146842.cms"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/latestnews.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/MCtopnews.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/business.xml"},
-    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/marketreports.xml"},
     {"source": "Mint", "url": "https://www.livemint.com/rss/markets"},
     {"source": "Mint", "url": "https://www.livemint.com/rss/companies"},
     {"source": "BusinessLine", "url": "https://www.thehindubusinessline.com/markets/feeder/default.rss"},
     {"source": "BusinessLine", "url": "https://www.thehindubusinessline.com/companies/feeder/default.rss"},
+]
+
+# Removed from active polling after the 2026-11-02 runner probe returned only
+# stale entries (2016/2024). Keep the gap explicit; no replacement is implied.
+DISABLED_NEWS_FEEDS = [
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/latestnews.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/MCtopnews.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/business.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
+    {"source": "Moneycontrol", "url": "https://www.moneycontrol.com/rss/marketreports.xml", "reason": "ONLY_STALE_ITEMS_OBSERVED_2026_11_02"},
 ]
 
 LIVE_WEB_PAGES = [
@@ -41,8 +50,9 @@ DISCARD_PATTERNS = [
 class NewsFetcher:
     def __init__(self):
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
+        self.last_health = {}
+        self.response_diagnostics = {}
+        self._feed_backoff = {}
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
@@ -69,9 +79,14 @@ class NewsFetcher:
         try:
             req = urllib.request.Request(url, headers=self.headers)
             with urllib.request.urlopen(req, context=self.ctx, timeout=10) as resp:
-                data = resp.read()
-                root = ET.fromstring(data)
-                for it in root.findall(".//item"):
+                data = resp.read(MAX_FEED_BYTES + 1)
+                root, details = parse_rss(data, resp.headers.get('Content-Type', ''), resp.status, resp.geturl())
+                self.response_diagnostics[url] = details
+                entries = root.findall(".//item")
+                details.update(raw_items=len(entries), missing_titles=0, noise_filtered=0,
+                               rejected_dates=0, accepted_items=0,
+                               sample_dates=[entry.findtext("pubDate", "")[:100] for entry in entries[:3]])
+                for it in entries:
                     title_el = it.find("title")
                     desc_el = it.find("description")
                     pub_el = it.find("pubDate")
@@ -85,20 +100,17 @@ class NewsFetcher:
                     title = self._clean_text(title)
                     desc = self._clean_text(desc)
                     
-                    if not title or self.is_noise(f"{title} {desc}"):
+                    if not title:
+                        details['missing_titles'] += 1
+                        continue
+                    if self.is_noise(f"{title} {desc}"):
+                        details['noise_filtered'] += 1
                         continue
 
-                    if pub:
-                        try:
-                            import email.utils
-                            from datetime import datetime, timezone
-                            dt = email.utils.parsedate_to_datetime(pub)
-                            now_utc = datetime.now(timezone.utc)
-                            # Freshness window: 45 minutes
-                            if (now_utc - dt).total_seconds() > 2700:
-                                continue
-                        except Exception:
-                            pass
+                    if not fresh_rss_date(pub, 2700):
+                        details['rejected_dates'] += 1
+                        continue
+                    details['accepted_items'] += 1
 
                     items.append({
                         "source": name,
@@ -107,8 +119,15 @@ class NewsFetcher:
                         "pub_date": pub,
                         "link": link
                     })
+        except FeedResponseError as e:
+            self.response_diagnostics[url] = dict(e.diagnostics, reason=e.reason)
+            raise RuntimeError(f"RSS fetch failed: {name} ({url}): {e.reason}") from e
         except Exception as e:
-            logger.debug(f"Feed fetch error ({name} - {url}): {e}")
+            self.response_diagnostics[url] = {'reason': 'RSS_REQUEST_FAILED', 'exception_type': type(e).__name__}
+            if isinstance(e, HTTPError):
+                self.response_diagnostics[url]['http_status'] = e.code
+                e.close()
+            raise RuntimeError(f"RSS fetch failed: {name} ({url}): {type(e).__name__}: {e}") from e
         return items
 
     def fetch_live_web_wires(self) -> List[Dict[str, Any]]:
@@ -136,13 +155,33 @@ class NewsFetcher:
         return items
 
     def fetch_all_feeds(self) -> List[Dict[str, Any]]:
-        all_items = []
-        for f in NEWS_FEEDS:
-            feed_items = self.fetch_feed(f)
-            all_items.extend(feed_items)
-        
-        # Include fast live web wires
-        live_items = self.fetch_live_web_wires()
-        all_items.extend(live_items)
-        
-        return all_items
+        # RSS requests use independent urllib connections. Untimestamped category
+        # page headings are not live flashes and cannot establish freshness.
+        def fetch_checked(feed):
+            url = feed['url']
+            previous = self._feed_backoff.get(url, {})
+            now = time.monotonic()
+            if previous.get('retry_at', 0) > now:
+                # Keep the outage visible while avoiding a new request every cycle.
+                return [], dict(previous['health'], attempted=False,
+                                retry_after_seconds=round(previous['retry_at'] - now, 1))
+            try:
+                items = self.fetch_feed(feed)
+                self._feed_backoff.pop(url, None)
+                return items, {'status': 'items' if items else 'empty_unverified', 'items': len(items),
+                               'attempted': True, 'response': self.response_diagnostics.get(url, {})}
+            except Exception as exc:
+                failures = previous.get('failures', 0) + 1
+                delay = min(300, 30 * 2 ** min(failures - 1, 4))
+                logger.warning('%s; retry in %ss', exc, delay)
+                health = {'status': 'error', 'error': str(exc), 'attempted': True,
+                          'consecutive_failures': failures, 'retry_after_seconds': delay,
+                          'response': self.response_diagnostics.get(url, {})}
+                self._feed_backoff[url] = {'failures': failures, 'retry_at': time.monotonic() + delay,
+                                           'health': health}
+                return [], health
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            results = list(pool.map(fetch_checked, NEWS_FEEDS))
+        self.last_health = {feed["url"]: result[1] for feed, result in zip(NEWS_FEEDS, results)}
+        return [item for items, _ in results for item in items]
+

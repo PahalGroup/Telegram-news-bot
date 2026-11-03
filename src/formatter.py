@@ -2,7 +2,7 @@
 Pixel-Accurate Telegram Formatting Engine (src/formatter.py)
 Replicates Reference Channel (stock_aaj_or_kal) visual layout:
 - Tight single-line spacing (zero excessive blank lines)
-- Bold uppercase header: <b>COMPANY – ACTION</b>
+- Bold header: <b>{Company} Ltd – {EVENT}</b>; only the event label is in caps, never truncated
 - Institutional Brokerage format:
     💡 <b>HOUSE ON STOCK</b>
     Rating: BUY | Target: ₹XXXX
@@ -17,6 +17,8 @@ import re
 import html
 import time
 import logging
+from urllib.parse import urlparse
+from src.quality import clean, substantive, PLACEHOLDER
 from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger("Formatter")
@@ -32,7 +34,36 @@ class Formatter:
         return html.escape(str(text), quote=False)
 
     @classmethod
-    def format_post(cls, eval_data: Dict[str, Any], raw_item: Optional[Dict[str, Any]] = None) -> str:
+    def format_post(cls, eval_data, raw_item=None):
+        data = dict(eval_data)
+        points, seen = [], {clean(data.get("headline", "")).casefold().rstrip(".")}
+        for point in data.get("summary_points", []):
+            value = clean(point).lstrip("•-▪►* \ufe0f")
+            key = value.casefold().rstrip(".")
+            if not value or key in seen or PLACEHOLDER.search(value):
+                continue
+            if re.search(r"^(?:that |of |from |and |or |/|t &|re-)", value, re.I):
+                continue
+            if re.search(r"\b(?:and|or|with|from|for|to|of|the|its|their|other)[.,;: ]*$", value, re.I):
+                continue
+            seen.add(key)
+            points.append(value)
+        if not points and data.get("category") not in ("POLICY_MACRO", "RESEARCH_REPORT"):
+            return ""
+        data["summary_points"] = points
+        post = cls._format_post(data, raw_item)
+        # Validate the body before appending a source; a link cannot rescue an empty post.
+        if not cls.validate_completeness(post):
+            return ""
+        raw = raw_item or {}
+        url = raw.get("source_url") or raw.get("pdf_url") or ""
+        parsed = urlparse(url)
+        if parsed.scheme == "https" and parsed.hostname:
+            post += '\n<a href="' + html.escape(url, quote=True) + '">Source</a>'
+        return post if len(post.encode("utf-16-le")) // 2 <= cls.MAX_TELEGRAM_LEN else ""
+
+    @classmethod
+    def _format_post(cls, eval_data: Dict[str, Any], raw_item: Optional[Dict[str, Any]] = None) -> str:
         """
         Produce a pixel-accurate Telegram HTML formatted post matching Reference Channel.
         """
@@ -70,7 +101,7 @@ class Formatter:
 
         # 2. Policy & Macro / Breaking News
         if category == "POLICY_MACRO":
-            clean_hl = cls.sanitize(headline.upper())
+            clean_hl = cls.sanitize(headline)
             lines = [f"<b>{clean_hl}</b>"]
             for pt in summary_points:
                 clean_pt = cls.sanitize(pt.strip())
@@ -80,7 +111,7 @@ class Formatter:
 
         # 3. Financial Results Scorecard (Exact Match with Reference Channel)
         if category == "FINANCIAL_RESULTS" and any(pt.startswith(("Net Profit:", "Revenue:", "EBITDA:")) for pt in summary_points):
-            clean_hl = cls.sanitize(headline.upper())
+            clean_hl = cls.sanitize(headline)
             lines = [f"<b>{clean_hl}</b>\n"]
             for pt in summary_points:
                 clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
@@ -89,7 +120,7 @@ class Formatter:
             return "\n\n".join([lines[0].strip()] + lines[1:]).strip()
 
         # 4. Standard Corporate Filings & Results
-        clean_hl = cls.sanitize(headline.upper())
+        clean_hl = cls.sanitize(headline)
         lines = [f"<b>{clean_hl}</b>"]
         for pt in summary_points:
             clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
@@ -188,7 +219,7 @@ class Formatter:
         
         # 4. Must have at least a headline AND substantive body content (No single-line headline dumps)
         if len(lines) < 2:
-            return False
+            return len(body_text) <= 350 and substantive(body_text)
 
         # 5. Reject generic paperwork boilerplate placeholders
         boilerplate_patterns = [
@@ -203,6 +234,8 @@ class Formatter:
         ]
         substantive_lines = []
         for l in lines[1:]: # skip headline
+            if l == "Source" or PLACEHOLDER.search(l):
+                continue
             if not any(re.search(pat, l, re.IGNORECASE) for pat in boilerplate_patterns):
                 substantive_lines.append(l)
         if not substantive_lines:
@@ -225,3 +258,4 @@ class Formatter:
                 else:
                     raise
         raise RuntimeError(f"Exceeded max retries ({max_retries}) for Telegram dispatch.")
+
