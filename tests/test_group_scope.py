@@ -35,3 +35,11 @@ class GroupScopeTests(unittest.TestCase):
     def test_valid_margin_decline_survives(self):
         point = 'EBITDA margin declined to 12.7% (-120 bps YoY).'
         self.assertEqual(select_result_points('', point)[0], [point])
+
+    def test_flattened_scorecard_does_not_borrow_last_metric_value(self):
+        point = 'Q2 FY27 Financial Performance Snapshot Revenue EBITDA Profit Before Tax Profit After Tax ₹ 332 Cr. ₹ 134 Cr. ₹ 111 Cr. ₹ 77 Cr.'
+        self.assertEqual(select_result_points('', point)[0], [])
+
+    def test_explicit_multi_metric_prose_survives(self):
+        point = 'During the quarter, we reported consolidated revenue of ₹332.0 crore, EBITDA of ₹134 crore, and Profit After Tax of ₹77 crore.'
+        self.assertEqual(select_result_points('', point)[0], [point])

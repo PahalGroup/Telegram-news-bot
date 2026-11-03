@@ -57,6 +57,8 @@ def metric_has_value(point):
 
 
 def unsafe_result_context(point):
+    if re.search(r'\bRevenue\s+EBITDA\s+Profit Before Tax\s+Profit After Tax\b', point, re.I):
+        return 'flattened_multi_metric_scorecard'
     if re.search(r'\bunbilled revenue\b|\brevenue recogni[sz]ed under Ind AS', point, re.I):
         return 'accounting_balance_note'
     if re.search(r'\b(?:subscription-based|lifecycle-led)\s*[.,;:]?$', point, re.I):
