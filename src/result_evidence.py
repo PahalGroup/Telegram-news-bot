@@ -57,6 +57,12 @@ def metric_has_value(point):
 
 
 def unsafe_result_context(point):
+    if re.search(r'\bunbilled revenue\b|\brevenue recogni[sz]ed under Ind AS', point, re.I):
+        return 'accounting_balance_note'
+    if re.search(r'\b(?:subscription-based|lifecycle-led)\s*[.,;:]?$', point, re.I):
+        return 'incomplete_fragment'
+    if re.search(r'\bmargin\s+(?:expanded|increased|improved)\b.*\(-\d+(?:\.\d+)?\s*bps', point, re.I):
+        return 'contradictory_margin_direction'
     if re.search(r'\b(?:a|an|increasing|decreasing)\s*[.,;:]?$', point, re.I):
         return 'incomplete_fragment'
     # Recognition/refund notes explicitly assigned to a previous period are not
@@ -127,8 +133,26 @@ def select_result_points(title, description):
         else:
             points.append(point)
     from src.result_identity import unique_result_facts
+    # Same explicit period and scope, different margin values: missing panel
+    # context must not be guessed. Other periods and labelled scopes stay distinct.
+    margin_pattern = re.compile(r'^(?:(consolidated|standalone)\s+)?Achieved an EBITDA margin of\s*'
+                                r'(\d+(?:\.\d+)?)\s*%\s+in\s+([QH][1-4])\s*FY\s*(\d{2,4})\.?$', re.I)
+    matches = [margin_pattern.fullmatch(p) for p in points]
+    values = {}
+    for m in matches:
+        if m:
+            key = ((m[1] or '').lower(), m[3].upper(), m[4])
+            values.setdefault(key, set()).add(float(m[2]))
+    kept = []
+    for p, m in zip(points, matches):
+        if m and len(values[((m[1] or '').lower(), m[3].upper(), m[4])]) > 1:
+            rejected['conflicting_unresolved_margin'] += 1
+        else:
+            kept.append(p)
+    points = kept
     unique = unique_result_facts(points)
     if len(unique) < len(points):
         rejected['repeated_explicit_result_fact'] += len(points) - len(unique)
     return unique[:5], dict(rejected)
+
 

@@ -2,6 +2,7 @@
 Ambiguous numeric tables and image-only pages are withheld, never guessed.
 """
 import logging
+import re
 from urllib.parse import urlparse
 import pymupdf
 from src.quality import clean, substantive, sentences, paragraph_sentences
@@ -25,6 +26,14 @@ class AnnexureParser:
         evidence = []
         seen = set()
         with pymupdf.open(stream=pdf_bytes, filetype="pdf") as doc:
+            opening = '\n'.join(doc[i].get_text() for i in range(min(4, len(doc))))
+            # A portfolio presentation filed by several listed companies cannot
+            # inherit the filing company's identity after page context is flattened.
+            entities = set(re.findall(r'^\s*([A-Z][^\n]{1,90}\b(?:Limited|Ltd\.?))\s*$',
+                                      opening, re.M))
+            if re.search(r'group\s+financial\s+scorecard', opening, re.I) and len(entities) >= 3:
+                logger.warning('Multi-entity group presentation requires page/entity association')
+                return []
             for index in range(min(len(doc), cls.MAX_PAGES)):
                 # Numerical extraction is enabled only for unambiguous explicit headers.
                 from sources.financial_tables import table_evidence, resolve_merged_headers

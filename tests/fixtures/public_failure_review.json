@@ -25,7 +25,7 @@
     "facts": [
       "Ushahkal Abhinav",
       "5.82%",
-      "₹15 Crore"
+      "\u20b915 Crore"
     ],
     "absent": [
       "Objects and effects",
@@ -44,7 +44,7 @@
     "facts": [
       "Sarvottam",
       "51.00%",
-      "₹79.50 Crore",
+      "\u20b979.50 Crore",
       "Shares will be transferred"
     ],
     "absent": [
@@ -146,9 +146,9 @@
       "5,527"
     ],
     "absent": [
-      "₹ 218 Crores",
-      "₹ 11 Crores",
-      "₹ 906 Crores",
+      "\u20b9 218 Crores",
+      "\u20b9 11 Crores",
+      "\u20b9 906 Crores",
       "Rs. 144 crores",
       "Rs.160 crores"
     ]
@@ -212,6 +212,19 @@
     "absent": [
       "previous quarter",
       "previous year"
+    ]
+  },
+  {
+    "id": "raymond_multi_issuer",
+    "company": "RAYMOND LIFESTYLE LIMITED",
+    "title": "Raymond Group Q2 and H1 FY2027 financial results update",
+    "url": "https://nsearchives.nseindia.com/corporate/RLL_02112026235951_RLLGroupintimationsigned.pdf",
+    "sha256": "12067bac250565c32eec743f77e527e6f1593350c1e159fd66c42ffd67198f26",
+    "publish": false,
+    "facts": [],
+    "absent": [
+      "Garmenting",
+      "portfolio EBITDA"
     ]
   }
 ]
