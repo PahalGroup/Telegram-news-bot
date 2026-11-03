@@ -1,0 +1,234 @@
+{
+ "bajaj_0ce3.pdf": {
+  "company": "Bajaj Finserv Ltd",
+  "scope": "CONSOLIDATED",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 43415.65,
+    "qoq": 42036.9,
+    "yoy": 37214.56
+   },
+   "pat": {
+    "cur": 5952.01,
+    "qoq": 6296.67,
+    "yoy": 4746.47
+   }
+  }
+ },
+ "indokem_0fcd.pdf": {
+  "company": "Indokem Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 42.39,
+    "qoq": 42.52,
+    "yoy": 34.91
+   },
+   "pat": {
+    "cur": 0.75,
+    "qoq": 0.86,
+    "yoy": 0.66
+   }
+  }
+ },
+ "cravatex_38a0.pdf": {
+  "company": "Cravatex Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 1.4691,
+    "qoq": 1.4449,
+    "yoy": 2.5258
+   },
+   "ebitda": {
+    "cur": -0.6493,
+    "qoq": -0.6077,
+    "yoy": -0.5911
+   },
+   "pat": {
+    "cur": 0.4509,
+    "qoq": 0.4108,
+    "yoy": 0.3302
+   }
+  }
+ },
+ "gujarat_587d.pdf": {
+  "company": "Gujarat Narmada Valley Fertilizers & Chemicals Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 2773.0,
+    "qoq": 2238.0,
+    "yoy": 1968.0
+   },
+   "pat": {
+    "cur": 185.0,
+    "qoq": 310.0,
+    "yoy": 177.0
+   }
+  }
+ },
+ "eureka_6ab1.pdf": {
+  "company": "Eureka Forbes Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 889.5913,
+    "qoq": 700.7674,
+    "yoy": 773.4493
+   },
+   "ebitda": {
+    "cur": 114.0429,
+    "qoq": 67.3435,
+    "yoy": 95.8603
+   },
+   "pat": {
+    "cur": 73.3389,
+    "qoq": 55.4363,
+    "yoy": 61.5886
+   }
+  }
+ },
+ "raw_89f8.pdf": {
+  "company": "Raw Edge Industrial Solutions Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 10.235,
+    "qoq": 10.8326,
+    "yoy": 8.403
+   },
+   "pat": {
+    "cur": -0.0307,
+    "qoq": 0.2531,
+    "yoy": -0.2421
+   }
+  }
+ },
+ "arfin_aa53.pdf": {
+  "company": "Arfin India Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 285.5881,
+    "qoq": 207.9601,
+    "yoy": 128.037
+   },
+   "ebitda": {
+    "cur": 12.7619,
+    "qoq": 9.3185,
+    "yoy": 8.8158
+   },
+   "pat": {
+    "cur": 5.6222,
+    "qoq": 3.533,
+    "yoy": 2.0542
+   }
+  }
+ },
+ "asahi_c66a.pdf": {
+  "company": "Asahi India Glass Ltd",
+  "scope": "CONSOLIDATED",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 1585.8,
+    "qoq": 1413.39,
+    "yoy": 1151.22
+   },
+   "ebitda": {
+    "cur": 346.23,
+    "qoq": 324.78,
+    "yoy": 188.26
+   },
+   "pat": {
+    "cur": 167.28,
+    "qoq": 149.08,
+    "yoy": 58.19
+   }
+  }
+ },
+ "chambal_ccd9.pdf": {
+  "company": "Chambal Fertilisers & Chemicals Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 6999.46,
+    "qoq": 5027.02,
+    "yoy": 6412.76
+   },
+   "pat": {
+    "cur": 634.95,
+    "qoq": 703.49,
+    "yoy": 601.77
+   }
+  }
+ },
+ "kamat_dfb5.pdf": {
+  "company": "Kamat Hotels (India) Ltd",
+  "scope": "STANDALONE",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 53.3934,
+    "qoq": 58.5273,
+    "yoy": 50.8504
+   },
+   "ebitda": {
+    "cur": 11.321,
+    "qoq": 15.208,
+    "yoy": 2.7159
+   },
+   "pat": {
+    "cur": 7.1109,
+    "qoq": 10.6291,
+    "yoy": 3.8501
+   }
+  }
+ },
+ "filtra_e328.pdf": {
+  "company": "Filtra Consultants and Engineers Ltd",
+  "scope": "STANDALONE",
+  "period": "H1 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 50.0433,
+    "yoy": 47.4252
+   },
+   "pat": {
+    "cur": 0.8917,
+    "yoy": 2.1017
+   }
+  }
+ },
+ "wockhardt_f1f3.pdf": {
+  "company": "Wockhardt Ltd",
+  "scope": "CONSOLIDATED",
+  "period": "Q2 FY27",
+  "metrics": {
+   "revenue": {
+    "cur": 969.0,
+    "qoq": 929.0,
+    "yoy": 782.0
+   },
+   "ebitda": {
+    "cur": 173.0,
+    "qoq": 192.0,
+    "yoy": 178.0
+   },
+   "pat": {
+    "cur": 73.0,
+    "qoq": 107.0,
+    "yoy": 82.0
+   }
+  }
+ }
+}
