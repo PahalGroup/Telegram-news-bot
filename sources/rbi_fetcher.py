@@ -14,6 +14,7 @@ class RBIFetcher:
     def __init__(self):
         self.last_health = {}
         self.url = "https://rbi.org.in/pressreleases_rss.xml"
+        self.speeches_url = "https://rbi.org.in/speeches_rss.xml"
         self.ctx = ssl.create_default_context()
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -30,10 +31,17 @@ class RBIFetcher:
         clean = re.sub(r'\s+', ' ', clean).strip()
         return clean
 
-    def fetch_press_releases(self) -> List[Dict[str, Any]]:
+    def fetch_speeches(self) -> List[Dict[str, Any]]:
+        """Speeches by the Governor and Deputy Governors (same RSS shape)."""
+        items = self.fetch_press_releases(url=self.speeches_url)
+        for it in items:
+            it["kind"] = "speech"
+        return items
+
+    def fetch_press_releases(self, url=None) -> List[Dict[str, Any]]:
         """Fetch latest RBI press releases, dropping routine operational auction notices."""
         try:
-            req = urllib.request.Request(self.url, headers=self.headers)
+            req = urllib.request.Request(url or self.url, headers=self.headers)
             with urllib.request.urlopen(req, context=self.ctx, timeout=12) as resp:
                 data = resp.read()
                 root = ET.fromstring(data)

@@ -317,5 +317,97 @@
     ]
   },
   "min_character_length": 50,
-  "max_character_length": 350
+  "max_character_length": 350,
+  "editorial": {
+    "always_drop": [
+      "^\\s*board meeting\\s*$|board meeting (?:intimation|to be held|rescheduled|scheduled)|intimation of board meeting|prior intimation",
+      "analyst\\s*/\\s*investor meet(?!.*transcript)|schedule of (?:analyst|investor)|earnings call (?:schedule|intimation|invite)|conference call (?:schedule|invite)",
+      "newspaper (?:publication|advertisement|clipping)",
+      "trading window",
+      "\\bagm\\b|\\begm\\b|postal ballot|e-?voting|voting results?|scrutini[sz]er|court convened meeting|annual general meeting|extraordinary general meeting",
+      "allotment of esop|esop|esps|employee stock option",
+      "reg(?:ulation)?\\.?\\s*74\\s*\\(\\s*5\\s*\\)|reg(?:ulation)?\\.?\\s*39\\s*\\(\\s*3\\s*\\)|certificate under|reg\\.\\s*57\\s*\\(1\\)|reg\\.\\s*54|loss of share certificate|duplicate share certificate",
+      "investor complaints?|investor grievance",
+      "statement of deviation|monitoring agency report|record date|reg\\.?\\s*34\\s*\\(1\\)\\s*annual report|code of conduct under sebi|change in registered office|disclosures under reg\\.\\s*(?:29|31|10)|repayment of commercial paper|asset cover|amendments to memorandum",
+      "(?:appointment|resignation) of company secretary|compliance officer|statutory auditor|secretarial auditor|internal auditor|cost auditor",
+      "investor presentation|monthly business updates|list of creditors|interest rates updates|clarification",
+      "shareholders?'? meeting|daily buy ?back"
+    ],
+    "events": {
+      "EARNINGS CALL": {
+        "match": "earnings call transcript|transcript of (?:the )?(?:earnings|conference|analyst)",
+        "rule": "transcript"
+      },
+      "RESULTS": {
+        "match": "financial results|^result\\b",
+        "rule": "result"
+      },
+      "ORDER WIN": {
+        "match": "award of order|receipt of order|bags? .*order|secures? .*order|wins? .*order|letter of (?:award|intent)|\\bLoA\\b|\\bLoI\\b",
+        "rule": "needs_number"
+      },
+      "CREDIT RATING": {
+        "match": "credit rating|rating (?:upgrade|downgrade|reaffirm)",
+        "rule": "needs_number_or_decision"
+      },
+      "MANAGEMENT CHANGE": {
+        "match": "change in management|change in directorate|resignation of (?:director|chief|ceo|cfo|md|managing)|appointment of (?:director|chief|ceo|cfo|md|managing|whole)|cessation|retirement|demise|change in management control",
+        "rule": "needs_decision"
+      },
+      "ACQUISITION": {
+        "match": "acquisition|acquire|open offer|scheme of arrangement|amalgamation|merger|diversification|disinvestment|sale of shares|offer for sale",
+        "rule": "needs_number_or_decision"
+      },
+      "FUND RAISING": {
+        "match": "raising of funds|fund rais|preferential issue|issue of securities|\\bqip\\b|allotment of warrants|allotment of equity shares|rights issue|bonds|ncds?\\b|right issue",
+        "rule": "needs_number"
+      },
+      "DIVIDEND": {
+        "match": "dividend",
+        "rule": "needs_number"
+      },
+      "BONUS / SPLIT": {
+        "match": "bonus|sub-division|stock split",
+        "rule": "needs_number"
+      },
+      "BUYBACK": {
+        "match": "buy ?back",
+        "rule": "needs_number"
+      },
+      "AGREEMENT": {
+        "match": "memorandum of understanding|agreements?|\\bmou\\b|joint venture|partnership",
+        "rule": "needs_number_or_decision"
+      },
+      "STRIKE / DISRUPTION": {
+        "match": "\\b(?:strikes?|lockouts?|disturbances?|fire|accident)\\b",
+        "rule": "needs_decision"
+      },
+      "DEFAULT": {
+        "match": "defaults? on payment",
+        "rule": "needs_number"
+      },
+      "NEW LISTING": {
+        "match": "new listing",
+        "rule": "needs_number"
+      }
+    },
+    "tax_demand_match": "tax demand|demand order|show cause notice|penalty|assessment order|gst (?:demand|order)|income tax (?:demand|order)",
+    "tax_demand_min_cr": 10.0,
+    "tax_demand_min_revenue_pct": 1.0,
+    "global": {
+      "is_global": "\\b(?:US|U\\.S\\.|America|Wall Street|Fed|FOMC|Powell|Nasdaq|S&P 500|Dow|Treasury|China|Beijing|Europe|ECB|Lagarde|Japan|BoJ|Bank of England|BoE|UK|Germany|Trump|crude|brent|OPEC|tariffs?|Asian markets|global)\\b",
+      "india_focus": "\\b(?:India|Indian|Nifty|Sensex|RBI|Rupee|SEBI|NSE|BSE|Dalal)\\b",
+      "trade_india": "tariff|trade deal|trump",
+      "drop_officials": "\\b(?:BoE|Bank of England|BoJ|Bank of Japan|PBoC|People's Bank|SNB|RBA|RBNZ|Bank of Canada|Riksbank|Norges)\\b.*\\b(?:official|governor|says|said|member|speech|comments?)\\b|\\b(?:Bailey|Ueda|Pan Gongsheng|Macklem|Bullock)\\b",
+      "whitelist": {
+        "fed": "\\b(?:Fed|FOMC|Federal Reserve|Powell)\\b.*\\b(?:rate|decision|holds?|cuts?|hikes?|minutes|policy)\\b|\\b(?:rate|decision)\\b.*\\b(?:Fed|FOMC)\\b",
+        "us_data": "\\bUS\\b.*\\b(?:CPI|inflation|jobs|payrolls|nonfarm|non-farm|unemployment|PCE|GDP)\\b|\\b(?:CPI|payrolls|nonfarm|non-farm)\\b",
+        "tariffs_india": "tariffs?.*\\bIndia|India.*tariffs?",
+        "crude": "\\b(?:crude|brent|WTI|oil prices?)\\b",
+        "trump_india": "Trump.*\\b(?:India|Modi|trade|tariffs?)\\b"
+      },
+      "crude_move_pct": 2.0,
+      "daily_cap": 10
+    }
+  }
 }

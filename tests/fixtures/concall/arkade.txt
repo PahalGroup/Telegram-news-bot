@@ -1,0 +1,610 @@
+ 
+Ref No.: ADL/SE/26-27/59 
+ 
+Date: November 2, 2026 
+ 
+To, 
+The Manager 
+Corporate Relationship Department 
+BSE Limited 
+Floor 25, Phiroze Jeejeebhoy Towers, 
+Dalal Street, 
+Mumbai - 400 001 
+BSE Scrip Code -544261 
+To,  
+The Manager 
+Listing Department 
+National Stock Exchange of India Limited 
+Exchange Plaza, Bandra Kurla Complex 
+Bandra (East), 
+Mumbai - 400 051 
+NSE Symbol :ARKADE 
+ 
+Dear Sir/Madam, 
+ 
+Sub-: Transcript of earnings conference call held with Investors to discuss the Financial 
+Performance of the Company for the quarter ended September 30, 2026. 
+ 
+Ref: Our Intimation Letter dated October 23, 2026 
+ 
+Pursuant to Regulation 30 and 46 of the SEBI (Listing Obligation and Disclosure requirements) 
+Regulation 2015 as amended from time to time, enclosed herewith the transcript of the Earning 
+Conference Call with the Investors and Analysts group meet held on October 29, 2026 at 4.00 p.m. 
+to discuss financial performance for the quarter ended September 30, 2026 
+ 
+The transcript of the Earning Conference Call is also available on the website of the company at 
+https://arkade.in/earning-call-transcript/ 
+ 
+You are requested to take the above information on your records. 
+ 
+Thanking You, 
+ 
+For Arkade Developers Limited 
+ 
+                                                         
+                                                     
+Sheetal Solani 
+Company Secretary and Compliance officer 
+Mem No.: A45964 
+SHEETAL 
+HARESH SOLANI
+Digitally signed by SHEETAL HARESH 
+SOLANI 
+DN: c=IN, o=Personal, title=3974, 
+2.5.4.20=64c2ad2934188b41591e238a
+92df3ce85ff66b42a9e3571327dc8e42e
+4f768c5, postalCode=400066, 
+st=Maharashtra, 
+serialNumber=d0d8f722dc970244a78f
+6557cae0e6b3d121cabca9941711637c
+6ad9fdc8c98d, cn=SHEETAL HARESH 
+SOLANI 
+Date: 2026.11.02 17:33:43 +05'30'
+
+ 
+Page 1 of 13 
+ Arkade Developers Limited 
+Q2 FY 2027 Earnings Conference Call  
+October 29, 2026 
+ 
+ 
+Moderator: 
+Ladies and gentlemen, good day and welcome to the Arkade Developers Limited Q2-H1-FY27 
+earnings call, hosted by Valorem Advisors. 
+As a reminder, all participant lines will be in the listen-only mode and there will be an 
+opportunity for you to ask questions after the presentation concludes. Should you need 
+assistance during this conference call, please signal an operator by pressing “*”, then “0” on 
+your touchtone phone. 
+I now hand the conference over to Ms. Purvangi Jain from Valorem Advisors. Thank you and 
+over to you. 
+Purvangi Jain: 
+Thank you. Good evening, everyone and a very warm welcome to you all. My name is Purvangi 
+Jain from Valorem Advisors. We represent the investor relations of Arkade Developers Limited. 
+On behalf of the company, I would like to thank you all for participating in the company's 
+earnings call for the 2nd Quarter and first half of the financial year 2027. Before we begin, a 
+quick cautionary statement. 
+Some of the statements made in today's earnings conference call may be forward-looking in 
+nature. Such forward-looking statements are subject to risk and uncertainties, which could 
+cause actual results to differ from those anticipated. Such statements are based on 
+management's belief as well as assumptions made by and information currently available to 
+the management. Audiences are cautioned not to place any undue reliance on these forward-
+looking statements in making any investment decision. The purpose of today's conference call 
+is purely to educate and bring awareness about the company's fundamental business and 
+financial performance for the period under review. 
+Now, I would like to introduce you to the management participating with us in today's earnings 
+call and hand it over to them for their opening remarks. 
+We have with us Mr. Arpit Jain – Whole Time Director, Mr. Samshet Shetye – Chief Financial 
+Officer and Ms. Deepti Nair, Head of Marketing. 
+Without any further delay, I request Mr. Arpit Jain to give his opening remarks. Thank you and 
+over to you, sir. 
+
+ 
+Page 2 of 13 
+Arpit Jain: 
+Good evening, everyone and thank you for joining us for Arkade Developers Q2 Financial Year 
+2027 Earnings Conference Call. 
+Mumbai's residential real estate market continues to offer meaningful long-term growth 
+opportunities and at Arkade, our focus remains on building a scalable business backed by 
+quality development, disciplined capital allocation and consistent execution. During the 
+quarter, we maintained our operational momentum with collections registering healthy 
+growth while continuing to strengthen our development pipeline and prepare for the next 
+phase of expansion. 
+In terms of numbers, our collections grew by 22% year-on-year to Rs. 183 crore in Q2 Financial 
+Year 2027, taking first-half collections to Rs. 347 crore, an 8% increase over the corresponding 
+period last year. 
+Pre-sales for the quarter stood at Rs. 151 crore, with first-half pre-sales at Rs. 306 crore. 
+While pre-sales remained moderate amid evolving market dynamics, we continue to prioritize 
+timely project delivery, customer confidence and operational efficiency as key drivers of 
+sustainable business growth. On the business development front, we further strengthened our 
+presence across western Mumbai with the addition of four redevelopment projects across 
+Malad, Kandivali and Borivali. These projects collectively span approximately 11 acres, with an 
+estimated saleable carpet area of 15 lakh square feet and a combined GDV potential of 
+approximately Rs. 5000 crore. These additions reinforce our redevelopment-led growth story 
+and expand our presence across established residential micro-markets. 
+Execution continues to remain one of our core strengths. During the phase, we achieved an 
+important milestone at Arkade Eden in Malad West, where we handed over our flats to our 
+buyers, and Arkade Pearl Phase 1, where we received the occupation certificate ahead of the 
+committed RERA timeline. This reflects our emphasis on construction efficiency, quality 
+development and timely delivery, which remains central to building long-term customer trust. 
+Looking ahead, our development portfolio provides strong visibility for the coming years. We 
+have a robust pipeline with an estimated GDV of approximately Rs. 19,000 crore, across 5.7 
+million square feet of saleable carpet area. We are targeting the launch of two projects with a 
+combined GDV of approximately Rs. 2,850 crore in Q3 FY27. These launches, alongside our 
+continued focus on strategic land acquisitions across key micro-markets in the MMR, will 
+strengthen our portfolio and support our long-term growth ambitions. 
+As we move into the second half of FY27, we remain focused on converting our development 
+pipeline into execution-led growth, expanding our presence in attractive micro-markets and 
+delivering lasting value to our customers and shareholders. We believe that a combination of 
+a strong project pipeline, financial discipline and a continued commitment to quality will 
+
+ 
+Page 3 of 13 
+position Arkade well for its next phase of growth. With that, I would now like to invite Ms. 
+Deepti Nair to share her perspective on the marketing initiatives and strategy at Arkade. 
+Deepti Nair: 
+Thank you, Mr. Jain. At Arkade, our marketing approach is centered on building a strong and 
+recognizable brand, understanding buyer preferences, creating meaningful engagement with 
+prospective customers. Our positioning is built around premium residential development, 
+quality construction and design excellence and our track record of timely product delivery. 
+We aim to further strengthen our brand presence across Mumbai through consistent brand 
+communication, targeted marketing initiatives and increase visibility across relevant customer 
+touchpoints with the objective of enhancing the brand's recall. Looking ahead with two project 
+launches targeted in Q3 of FY27, having a combined GDV of Rs. 2,850 crore, our focus will be 
+on aligning marketing and customer outreach with the upcoming launch plan. 
+We aim to communicate the value proposition of each of the product's effectiveness based on 
+its location, product offering and target customer segment, while supporting customer 
+inquiries and sales conversion through consistent and personalized engagement. In parallel, 
+we intend to strengthen customer loyalty by nurturing long-term relationships with existing 
+customers, enhancing personal engagement and creating positive customer experiences that 
+encourage repeat purchases and referrals. We believe that stratified customers and word-of-
+mouth recommendations can play an important role in expanding our customer base, 
+generating quality lead sales and strengthening brand credibility. 
+By combining targeted marketing, enhancing brand visibility, customer centric engagement 
+and continued commitment to quality and timely delivery, we will aim to improve the top-of-
+the-mind brand recall via customer loyalty and referral-led sales, and support our case's long-
+term growth. 
+With that, I would now like to hand over the call to our Chief Financial Officer, Mr. Samshet 
+Shetye, who will take you through the company's financial performance. 
+Samshet Shetye: 
+Thank you Deepti, Good Evening everyone. Let me take you through our financial 
+performance for the 2nd Quarter and half-year ended September 30, 2026. 
+Coming to our financial performance for the quarter: 
+Revenues from operations stood at Rs. 145 crores, operating EBITDA was Rs. 35 crores, 
+translating into EBITDA margin of 24%. Gross margin improved to 35% during the quarter 
+compared to the previous quarter, reflecting the strength of our project economics and our 
+continued focus on maintaining healthy project-level profitability. 
+Profit after tax stood at Rs. 25 crores, with a PAT margin of 17.14%. The year-on-year decline 
+in revenue was partially attributed to a higher base in the corresponding quarter last year, 
+when four projects commenced revenue recognition after crossing the 25% construction 
+
+ 
+Page 4 of 13 
+threshold. During the current quarter, we did not have a similar contribution from crossing this 
+milestone. As a result, revenue recognition was relatively lower. 
+However, our strong development pipeline and ongoing project execution provide visibility for 
+revenue recognition in the coming period. For the first half of FY27, revenues from operations 
+stood at Rs. 292 crores, operating EBITDA was Rs. 62 crores, with EBITDA margin of 21.4%. 
+Gross margin stood at 32%, while profit after tax was Rs. 44 crores, translating into PAT margin 
+of 15.1%. From a business perspective, collections grew by 22% year-on-year to Rs. 183 crores 
+during the quarter, taking H1 FY27 collections to Rs. 347 crores, up 8%. Pre-sales stood at Rs. 
+151 crores from the quarter and Rs. 306 crores for the first half. While pre-sales remained 
+moderate amid evolving market dynamics, we continued to focus on customer engagement, 
+execution and strengthening our sales momentum. Our balance sheet remains robust. 
+As of September 30, 2026, we had a liquid cash balance of Rs. 119 crores against gross debt of 
+Rs. 56 crores, resulting in a net liquid cash position of Rs. 63 crores. This provides us with the 
+financial flexibility to pursue attractive growth opportunities while maintaining prudent capital 
+allocation. Looking ahead, we remain confident in our long-term growth process, supported by 
+our strong project pipeline, planned launches, healthy collections and disciplined financial 
+management. 
+We will continue to focus on timely project execution, operational efficiency and sustainable 
+growth to create long-term value for all stakeholders. 
+With that, we conclude our opening remarks and will now be happy to take your questions. 
+Thank you. 
+Moderator: 
+Thank you very much Sir, We will now begin the question and answer session. Anyone who 
+wishes to ask a question can press “*” and “1” on their touchtone telephone. If you wish to 
+remove yourself from the question queue press you may “*” and “2”. Participants are 
+requested to use handsups while asking a question. We will wait for a moment while the 
+question queue assembles. The first question is from the line of Sahil Patani from Stokes 
+Capital. Please go ahead. 
+Sahil Patani: 
+Hi, thanks for the opportunity. In the presentation, I can see you mentioned that the demand 
+is a bit moderated in the first half. If you could just elaborate on that and how are you seeing 
+the demand now in Q3 and Q4 coming up? 
+Arpit Jain: 
+It was specific to our company where the pre-sales remained moderate considering the new 
+launches have not yet come up. We are expecting to launch two projects in the upcoming 
+quarter. Existing pre-sales which we checked from the last quarter and quarter-on-quarter 
+growth is more or less the same. Existing projects have a healthy demand. 
+Sahil Patani: 
+Thank you. 
+
+ 
+Page 5 of 13 
+Moderator: 
+Next question is from the line of Rohan Joshi from individual Investor. Please go ahead.  
+Rohan Joshi: 
+Hi, sir. Thanks for the opportunity. I just wanted to ask you that in the Q3, our launch pipeline 
+includes two projects, right? Which is Total GDV of Rs. 2800 crores. What sales contribution do 
+we expect from these launches? How will the new launches be executed in the upcoming 
+quarter? 
+Samshet Shetye: 
+Can you repeat the question? 
+Rohan Joshi: 
+Yes, sure. I was asking that in the Q3, we have two new launches that we are going to do. 
+Approx. GDV of around Rs. 600 crores. What sales contribution do we expect from this? How 
+will the launches look forward going into the quarter? 
+Arpit Jain: 
+So, we plan the project sales according to the construction milestone in the timeline. So, overall 
+the timeline of these two projects are 4-5 years. And the sales will be evenly distributed across 
+those four years. Currently, the market has received us very well. We have good interactions 
+with the channel partners and good amount of inquiries have already come up. So, as soon as 
+we launch, we will be able to release the numbers also. 
+Rohan Joshi: 
+Okay, okay. We got it. One more thing that Arkade Rare has reportedly faced a delay of nearly 
+one year against the expected timeline. What are some of the reasons behind that? 
+Arpit Jain: 
+I think you have some wrong data point. We have pre-poned the RERA date in fact in Arkade 
+Rare. If you see the RERA certificate or RERA registration, it was December 28. And now we 
+have pre-poned it to December 27. So, it is well before time I guess. 
+Rohan Joshi: 
+I was talking about Arkade Rare project that we have. 
+Arpit Jain: 
+Yes, Arkade Rare project only I am talking about. We have pre-poned the RERA date of handing 
+over to the client. So, it is well before target right now. 
+Rohan Joshi: 
+Thank you. Thank you. 
+Moderator: 
+Thank you. The next question is from the line of Sampriti, an individual investor. Please go 
+ahead.  
+Sampriti: 
+Hi, good evening. So, my question is that is there anything specifically the company is planning 
+to strengthen their brand positioning and customer engagement in order to improve their sales 
+conversion across its micro-markets, key micro-markets? 
+Deepti Nair: 
+Yes. Hi, good evening. So, I guess a lot of initiatives lined up. We have got a very strong 
+customer base of nearly 5,800 residents. And we would want to leverage them and Fair 
+Connect in creating a baseline, you know, getting a better start point in both our projects. So, 
+and we have also ensured that in key markets, we create a long-term brand presence. 
+
+ 
+Page 6 of 13 
+So, having a top-of-the-mind recall is one of our key agendas and objectives, which I think 
+through our initiatives which you have seen in Bandra and in Goregaon West where we have 
+extreme strong presence for our projects ongoing as well as upcoming. We have got the metro 
+branding. So, we will continue to do more such initiatives that will help in top-of-the-mind recall 
+for customers. 
+Sampriti: 
+Understood, ma'am. And my second question would be, are there any specific challenges that 
+the company is facing when it comes to executing multiple redevelopment projects 
+simultaneously? 
+Arpit Jain: 
+No. So, as of now, there are no major challenges that we have faced. And everything is going 
+as per plan and estimates that we have. 
+Sampriti: 
+So, anything specific that you all are doing to ensure consistency in the construction quality 
+and your delivery timelines? 
+Arpit Jain: 
+So, we have inhouse quality department, quality assurance, quality check. And we have all the 
+SOPs in place which have given us ISO certification as well. And we are adhering to these 
+compliances. And I do not see any or foresee any quality issues coming up in our project right 
+now. 
+Sampriti: 
+Okay, sir. Understood. That is all from me. Thank you. 
+Moderator: 
+Thank you. Next question is from the line of Sahil Patani from Stokes Capital. Please go ahead. 
+Sahil Patani: 
+Yes. So, I wanted to understand. So, Filmistan is going to be like a big project. I think about Rs. 
+4000 crore GDV, right? And previously, historically, we have done projects in the range of Rs. 
+500-2000 crore GDV. So, what is going to be different in your execution framework? Because 
+we are obviously, this is going to be a big project. So, how do you look at handling this kind of 
+scale? 
+Arpit Jain: 
+So, if you have been monitoring the company over the past one year or so, we have equipped 
+ourselves a lot in terms of manpower and we have consultants on-boarding. We have got good 
+consultants who have experience in such bigger developments as well. Be it an architect 
+consultant or an MEP consultant or landscape consultant or execution contracts. So, we have 
+them on-board, which will help us to manage the project at such scale. 
+Sahil Patani: 
+Okay. Yes. Okay. And you are obviously sitting on cash, about Rs. 60-63 crores, right? And your 
+balance sheet is also debt-free. So, are you looking at more land acquisitions over the next, let 
+us say, 12-18 months, something? 
+Arpit Jain: 
+Yes. We have entered into an MOU as well in the Bhandup market, Woollen Mills. That 
+transaction is expected to get complete over the next coming few months. And we are also 
+
+ 
+Page 7 of 13 
+looking at a couple of opportunities which are there in the market, which would materialize in 
+the next 12 months or so. You will be updated about that as well. 
+Sahil Patani: 
+Okay. And at this point, we are solely focused on the MMR region, right? Like, not moving to 
+Pune or anything like that? 
+Arpit Jain: 
+No. As of now, the developments that are happening in the MMR market is quite fascinating 
+and interesting. So, we are focused on this market only, right now. 
+Sahil Patani: 
+Okay. Okay. And on the Thane Greenfield project, the 2000 Cr GDV, the Q4-27, what is the 
+approval status and is that timeline confirmed, like Q4-27? 
+Arpit Jain: 
+Yes. So, we have got the first initial approval that is there, that is called as LOI in the Thane 
+market. And we are awaiting our CC as well. And we have readied all the documents and things 
+required for our RERA application. As soon as we get the CC, we will put up for the RERA 
+approval as well. We have got the MOE of Thane Greenfield as well for that land parcel.  
+Sahil Patani: 
+So, Q4-27 is realistic? 
+Arpit Jain: 
+Yes. Absolutely.  
+Sahil Patani:   
+Okay. All right. Okay. That is it for me. 
+Moderator: 
+Next question is from the line of Sahil Vaidya from Sackman Capital. Please go ahead. 
+Sahil Vaidya: 
+Good afternoon, sir. My question is on the Thane project. So, this Thane project, is it going to 
+be a phase-wise launch or the whole Rs. 2000 crore will be launched in one launch only? 
+Arpit Jain: 
+Sorry, can you repeat the question? It is not quite audible. 
+Sahil Vaidya: 
+Yes. So, my question is, so the Thane project, so are you going to launch in phase-wise manner 
+or the whole Rs. 2000 crore at once? 
+Arpit Jain: 
+So, it will be a phase-wise launch. We have currently planned five towers in six acres and we 
+are planning to launch it tower-wise. And accordingly, those launches will come in the market 
+over the next two years. 
+Sahil Vaidya: 
+And my second question is regarding the Yogi Nagar. So, what is the progress over there? Has 
+the DA has been done or is it in progress? 
+Arpit Jain: 
+So, DA has been finalized between our lawyers and their lawyers and now the respective 
+societies will take it up under their respective SGBM meetings and then we will proceed for 
+registration of the DA. 
+
+ 
+Page 8 of 13 
+Sahil Vaidya: 
+Okay, that is it from my side. Thank you. 
+Moderator: 
+Thank you. Next question is from the line of Trishla, from Trishla Tools. Please go ahead. 
+Trishla: 
+Good evening. So, I would like to ask, since your pre sales declined by 20% year-on-year in the 
+last quarter, so what were the key factors behind the moderation and how does the 
+management expect sales momentum to improve in the next quarter? 
+Arpit Jain: 
+So, as we discussed earlier in the call as well, the new launches are shifted a couple of quarters. 
+So, two new launches are expected and the existing project is getting healthy demand as well. 
+So, if you compare it with the last quarter of this financial year with this quarter, the sales have 
+remained steady. 
+Trishla: 
+And your revenue from the operations declined 45.1% partly due to higher base in the previous 
+year. So, when do you expect the revenue recognition to improve and which projects are likely 
+to drive the recovery? 
+Arpit Jain: 
+So, say from this January to October, we have launched two projects, Arkade Evoke in Bangur 
+Nagar and Arkade Sapphire in Santacruz. So, these projects are expected to fall in the revenue 
+recognition bracket over the next Q4 or the Q1 of the next financial year. So, this should help 
+us increase in the revenue part. At the same time, all the ongoing projects are progressing at 
+healthy stages and healthy construction progress. So, these also should drive the revenue 
+recognition in the next financial year. 
+Trishla: 
+Okay. And lastly, the gross margin improved to 35% in this quarter while operating EBITDA 
+margin remained broadly stable. So, what drove the improvement in the gross margin and what 
+is the sustainable margin outlook for the coming quarters? And also, if you could reflect and 
+throw some light on construction expense, that would also be a great thing. 
+Arpit Jain: 
+So, overall, our realization has been better on the higher side on the existing projects and that 
+has driven the EBITDA margin on the higher side or gross profit margin on the higher side. We 
+have completed two developments as well in Malad, Arkade Eden and in Vile Parle, Arkade 
+Pearl where we have received OC. So, once you received OC, there is certain natural 
+appreciation as well in the product. And apart from that also, our realization in other ongoing 
+projects has improved a bit and that is the reason the margins are a bit higher. 
+Trishla: 
+Okay. And could you please just throw some light on the expense side, construction expense 
+or anything? 
+Arpit Jain: 
+In terms of any specific question that you have, we can address that. 
+Trishla: 
+No, the margins that I have stated regarding that only, if you could. 
+
+ 
+Page 9 of 13 
+Arpit Jain: 
+So, construction, when we incur expenses for the ongoing projects, it goes in the inventory and 
+as and when you recognize the revenue, so it reflects in the margins. So, once the percentage 
+of exhibition is completed, so the increase in the cost is distributed over the period of 2-3 years. 
+So, immediately impact will not be seen. 
+Trishla: 
+Okay. 
+Arpit Jain: 
+We recover in the margins as well in the realization value. 
+Trishla: 
+Okay. That is it. That was it from my side. 
+Moderator: 
+Thank you very much. 
+Moderator: 
+Next question is from the line of Pranav Nayak, an individual investor. Please go ahead. 
+Pranav Nayak: 
+Yes, yes. So, basically my question comes to this GDV of Filmistan. So, there was an increase in 
+the GDV, right? So, what exactly led to this increase? 
+Arpit Jain: 
+So, as and when you acquire the project and as and when you launch, there is a certain timeline 
+that has passed and now we are quite optimistic about the rate realization that are yet in the 
+project. And the product that we are developing, we are quite bullish on that and hence that 
+has increased the GDV. 
+Pranav Nayak: 
+Okay. So, we would expect that the margin would also increase when the GDV has increased 
+of the project, right? 
+Arpit Jain: 
+Yes, not entirely. Obviously, we will improve certain products as well, certain construction cost 
+will also go up. But yes, the margin should be better. 
+Pranav Nayak: 
+Right, right. And also, on the side that we had like Rs. 1000 crores of pre-sales, so are we on 
+track with that thing as you know, we were expecting that 70% of it will come in the second 
+half. So, how do we exactly, like I want to know from the more granular level that how exactly 
+is going to be contributed by which project and how? 
+Arpit Jain: 
+So, as we already spoke about there are two launches that are expected in this financial year 
+now. So, those will predominantly drive the pre-sales now upwards to the target that we have 
+set for this year. And all the ongoing projects are already at a LV rate and pace as you can see 
+Rs. 150 and Rs. 150 around Rs. 306 crores over the six months and combining with these two 
+new launches that should help us achieve our target. 
+Pranav Nayak: 
+Okay. So, it might also go beyond Rs. 1000 crores or it will stay somewhere near that? 
+Arpit Jain: 
+So, we can stay positive for that, yes. 
+
+ 
+Page 10 of 13 
+Pranav Nayak: 
+Thank you. Thank you, sir. 
+Moderator: 
+Next question is from the line of Sahil Vaidya from Sackman Capital. Please go ahead. 
+Sahil Vaidya: 
+So, my question is on the South Bombay redevelopment projects. What is the progress over 
+there? When are we announcing it and if you can throw some light on the project details if you 
+can. 
+Arpit Jain: 
+So, we are in discussions. We have been finalizing the top two developers, top three developers 
+in fact. And they are now going to proceed for their formality for voting in 79A. We are positive 
+that we will come out on top. And as and when we get information from the society, we shall 
+inform the exchanges and maybe then you will get an idea of the same. As far as the product 
+is concerned, it is at a nascent stage to reveal any details about it. 
+Sahil Vaidya: 
+Okay. Thank you so much. 
+Moderator: 
+Thank you. Next question is from the line of Sarthak, an individual investor. Please go ahead. 
+Sarthak, your line is unmuted. Please proceed. 
+Sarthak: 
+So, my question is, how do you expect the Mumbai redevelopment model to be from a 
+competition perspective? You see, right now redevelopment is the theme in Mumbai and there 
+are quite a few players who are pushing for more and more redevelopment projects actively 
+and aggressively doing their business development. So, how do you see the competitive nature 
+of this and how do you plan to differentiate and how do you plan to be a winning company 
+here? 
+Arpit Jain: 
+So, as you rightly mentioned over the past 2-3 years, redevelopment has gathered a lot of 
+interest from a lot of developers in Mumbai and even outside Mumbai. But as you can see, we 
+have like experience of say nearly 4 decades, we are into this business and over the last 15-20 
+years, we have done around 15 redevelopment projects completed and handed over. So, 
+around 5-6 redevelopment projects are already ongoing right now. And we have obviously, you 
+can see the portfolio as well, we have good amount of redevelopment in the pipeline as well. 
+So, in terms of our bidding, we have been very selective in choosing the projects in which we 
+have to bid. And we have a lot of criteria in terms of location size, in terms of development 
+potential, in terms of revenue of the project, GDV. And once we choose a project, we try to go 
+all out in the tendering process and in the bidding process to get the project in our city. 
+Sarthak: 
+Sure sir, I got it. But just wanted to understand, how do you feel on competition? Is there an 
+increasing competition trend going on in the last 12-24 months in the Mumbai region for 
+redevelopment projects particularly? 
+Arpit Jain: 
+Yes, there has been fair share of participation now. It has increased drastically in the last 12-18 
+months. 
+
+ 
+Page 11 of 13 
+Sarthak: 
+Sure sir. And next, do you plan or do you have any plans to go into the Navi Mumbai market as 
+well considering the whole new airport and the lots of new development that is coming with 
+the NAINA project as well? So, do you plan to foray into that particular market? 
+Arpit Jain: 
+So, currently we are evaluating all the possible micro-markets in and around Mumbai. So, even 
+Navi Mumbai falls in that criteria. We have evaluated in the past also a couple of projects but 
+that did not fall through. But currently also we are evaluating a few more proposals. 
+Sarthak: 
+Alright sir. And last question from my side sir. You have recently acquired or launched a project 
+as a cluster redevelopment, right? So, could you throw some more light into that? 
+Arpit Jain: 
+The redevelopment project that we acquired in Malad, Kandivali and Borivali. So, one is in 
+Kandivali West, one is in Borivali West and one is in Malad West. 
+So, predominantly all are in the western market of the western suburbs. And these are society 
+redevelopments. So, cumulatively they fall across 11 acres and with a potential GDV of around 
+Rs. 5000 crores. 
+Sarthak: 
+Alright sir. Any timeline in terms of the launch and the completion for these three projects? 
+Arpit Jain: 
+So, as of now we have been appointed as the preferred developer. And now we are proceeding 
+towards the DA part of these societies. One of the earlier questions was of Yogi Nagar as well. 
+So, it falls under these four developments as well. And we are proceeding towards completion 
+of DA and after that we will probably be able to give a timeline. 
+Sarthak: 
+Alright sir. I might have missed the earlier question. I just joined it. That is fine sir. Alright. Thank 
+you for your time and thank you for answering our questions. 
+Moderator: 
+Thank you. Thank you. Next question is from the line of Jay Jain, an individual investor. Please 
+go ahead. Yes. 
+Jay Jain: 
+Hi sir, Thank you for the opportunity. My first question is on that how much net cash flow are 
+we expecting? Because we have roughly around Rs. 1250 Cr. Of Cash flow potential from our 
+on going projects  How much net cash flow are we expecting? 
+Samshet Shetye: 
+So, I think you are talking about the ongoing projects and balance what is required. So, you 
+know these projects are almost 60-70% completed and cost has already been incurred. So, you 
+can say 30% of the cash is yet to be incurred, the cost is yet to be incurred for this. And balance 
+what will be generated as cash inflow for us. 
+Jay Jain: 
+The second question that I had was that how much approval related cost have we paid for 
+already for this recently acquired project? 
+
+ 
+Page 12 of 13 
+Samshet Shetye: 
+So, for this recently acquired projects means we are planning for the upcoming projects, you 
+know. Like Satya Shripal, then Nutan Ayojan which is Ascend. So, for all these projects till date 
+we have incurred about Rs. 70 crores towards the approval cost. 
+Jay Jain: 
+This will be booked in upcoming quarter or has it already been incurred? 
+Samshet Shetye: 
+No, this cost has been incurred towards approval, you know, for the upcoming projects. Yes, 
+this is lying in the inventory. 
+Moderator: 
+Thank you. Next question is from the line of Suhag Patel, an individual investor. Please go 
+ahead. 
+Suhag Patel: 
+My question is regarding what is our long term pre-sale target, let us just say till FY28-29. 
+Arpit Jain: 
+I am sorry, what target did you ask? 
+Suhag Patel: 
+Pre-sale target for FY28-29. 
+Arpit Jain: 
+So, if you see the upcoming GDV potential that we have around Rs. 19,000 crores. And we plan 
+to launch this over the next 4-5 years. Couple of projects may go even further. 
+Suhag Patel: 
+And one more question, like what is the quantum of BD pipeline in a greenfield project as of 
+now? 
+Arpit Jain: 
+Sorry, can you repeat the question? 
+Suhag Patel: 
+Quantum of BD pipeline in a greenfield project.  
+Arpit Jain: 
+So, if you can see our upcoming project portfolio, right now one we have acquired in Thane, 
+which we are planning to launch in the next quarter. One is in Filmistan, the studio which we 
+are planning to launch in the next financial year. And one MOU that we have entered with 
+Woollen Mills in Bhandup. And apart from that we are evaluating two other proposals as well. 
+Arpit Jain: 
+As and when the details are materialized, you all will get to know from the exchanges, the 
+notices that we upload. 
+Suhag Patel: 
+Okay, and last question from that side. Is there any micro-market that we are exploring other 
+than that, you know, already shown in the investor presentation or something? 
+Suhag Patel: 
+Like any new market we are trying to enter? 
+Arpit Jain: 
+So, we are evaluating a couple of proposals in South Mumbai and as well as in North Mumbai. 
+So, these two markets that we are exploring right now. 
+Suhag Patel: 
+Okay, that is it from our side. Thank you. 
+
+ 
+Page 13 of 13 
+Arpit Jain: 
+Thank you. 
+Moderator: 
+Thank you. As there are no further questions from the participants, I now hand the conference 
+back to management for closing comments. 
+Arpit Jain: 
+Okay, thank you. Thank you for participating in this running conference. I hope you were able 
+to answer your questions satisfactorily and at the same time offer insights into our business. If 
+you have any further questions or would like to know more about the company, please reach 
+out to our investor relations manager at Valorem Advisers. Thank you. 
+Moderator: 
+Thank you very much. On behalf of Arkade Developers Limited, that concludes this conference. 
+Thank you all for joining us today and you may now disconnect your lines. 
