@@ -34,3 +34,21 @@ class PDFFailureTests(unittest.TestCase):
         self.assertIn("event", daemon._pdf_retry)
         daemon.state.mark_seen.assert_not_called()
 
+
+
+class OversizedPdfDoesNotFailShift(unittest.TestCase):
+    def test_policy_rejection_is_withheld_not_an_error(self):
+        daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        exc = PDFExtractionError("PDF extraction failed: x: PDF_SIZE_LIMIT_EXCEEDED; attempts=1")
+        exc.reason, exc.retryable = "PDF_SIZE_LIMIT_EXCEEDED", False
+        future = Future()
+        future.set_exception(exc)
+        daemon._pdf_pending = {"big": ({"id": "big"}, future)}
+        daemon._pdf_retry = {}
+        daemon._pdf_pool = None
+        daemon.total_errors = 0
+        daemon.state = MagicMock()
+        daemon.prepare_items([])
+        self.assertEqual(daemon.total_errors, 0)
+        self.assertEqual(daemon._pdf_outcomes["errors"], 0)
+        self.assertEqual(daemon._pdf_outcomes["unsupported"], 1)

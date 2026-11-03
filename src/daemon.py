@@ -38,6 +38,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
+PERMANENT_PDF_REJECTIONS = frozenset({"PDF_SIZE_LIMIT_EXCEEDED", "PDF_INVALID_CONTENT", "PDF_URL_NOT_HTTPS"})
 logger = logging.getLogger("RealtimeDaemon")
 
 # Imports with graceful fallback
@@ -386,14 +387,23 @@ class RealtimeDaemon:
             try:
                 lead, bullets = future.result()
             except Exception as exc:
-                logger.exception("PDF worker failed: %s", key)
-                self.total_errors += 1
-                self._pdf_outcomes["errors"] += 1
-                self._trace("pdf_error", item, "EXTRACTION_ERROR")
                 failed = True
                 bullets = []
+                reason = getattr(exc, "reason", "")
+                if reason in PERMANENT_PDF_REJECTIONS:
+                    # The exchange published a file we refuse by policy (oversized, not a
+                    # PDF, not https). That is a property of the filing, not a fault in the
+                    # shift: withhold it for review without failing the run.
+                    logger.warning("Withheld %s: %s", key, reason)
+                    self._pdf_outcomes["unsupported"] += 1
+                    self._trace("pdf_blocked", item, reason)
+                else:
+                    logger.exception("PDF worker failed: %s", key)
+                    self.total_errors += 1
+                    self._pdf_outcomes["errors"] += 1
+                    self._trace("pdf_error", item, "EXTRACTION_ERROR")
                 if getattr(exc, "retryable", True) is False:
-                    blocked_reason = getattr(exc, "reason", "PDF_REQUIRES_REVIEW")
+                    blocked_reason = reason or "PDF_REQUIRES_REVIEW"
             if isinstance(lead, dict) and bullets:
                 item["_prebuilt"] = lead
             if bullets:
