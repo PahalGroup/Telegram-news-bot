@@ -19,3 +19,4 @@ Replay 4 = current code (in progress).
 
 ## Remaining
 - Read replay4 metrics; 15 samples; 20-post manual number check; final report.
+- REPORT.md written; all units done.
