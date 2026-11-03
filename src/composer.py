@@ -26,17 +26,22 @@ def _link(url) -> str:
     return ""
 
 
-BOILERPLATE = re.compile(r"limited review report|taken on record|annexure\s*[-–]?\s*[a-z]\\b|"
+BOILERPLATE = re.compile(r"limited review report|taken on record|annexure\s*[-–]?\s*[a-z]\b|"
                          r"\bfinancial highlights\b(?=\s+\w)", re.I)
-# Glyph damage from PDF fonts: the rupee sign often extracts as "X" or "`" before an amount,
-# and "ti" ligatures as "^".
-RUPEE_GLYPH = re.compile(r"(?<![A-Za-z])[X`](?=\s?\d[\d,.]*\s*(?:crore|cr\\b|lakh|mn|million|bn|billion))", re.I)
+# Glyph damage from PDF fonts. The rupee sign often extracts as "X", "`", "%" or a stray
+# "z"/"t" glued to the amount; "ti" ligatures as "^" or "Ɵ"; "Q2" as "02" before FY.
+_AMOUNT = r"(?=\s?\d[\d,]*(?:\.\d+)?\s*(?:crore|crs?\b|lakh|mn\b|million|bn\b|billion))"
+RUPEE_GLYPH = re.compile(r"(?<![A-Za-z0-9])[X`%]" + _AMOUNT + r"|(?<=\bto)t\s?" + _AMOUNT[3:-1].join(("(?=", ")"))
+                         + r"|(?<=\s)z\s?" + _AMOUNT[3:-1].join(("(?=", ")")))
+GLYPHS = ((re.compile(r"(?<=[a-z])[\^Ɵ](?=[a-z])"), "ti"), (re.compile(r"\b0([1-4])(?=\s?FY\s?\d)"), r"Q\1"),
+          (re.compile(r"[\u0336\u0335]"), ""), (re.compile(r"^(?:&quot;|\")\s*"), ""))
 
 
 def _clean(point: str) -> str:
     point = editorial.strip_junk(str(point or "")).replace("\n", " ")
-    point = RUPEE_GLYPH.sub("₹", point)
-    point = re.sub(r"(?<=[a-z])\^(?=[a-z])", "ti", point)
+    point = RUPEE_GLYPH.sub(lambda m: " ₹" if m.group(0)[0] == "t" else "₹", point)
+    for pattern, repl in GLYPHS:
+        point = pattern.sub(repl, point)
     point = re.sub(r"\s*\((?:DIN|PAN)\s*:?\s*\)", "", point)
     point = re.sub(r"\s+", " ", point).strip().lstrip("•-▪►* \ufe0f").rstrip(" ,;:-")
     return point

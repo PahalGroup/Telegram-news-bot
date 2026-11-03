@@ -275,3 +275,13 @@ class BulletHygieneTests(unittest.TestCase):
         self.assertEqual(_period_label("₹277 Cr in Q2 FY27 vs ₹210 Cr in Q2 FY26; H1 FY27 ₹657 Cr", "FINANCIAL RESULTS"), "Q2 FY27 RESULTS")
         self.assertEqual(_period_label("PAT ₹8,943 crore in H1 FY27", "FINANCIAL RESULTS"), "H1 FY27 RESULTS")
         self.assertEqual(_period_label("PAT up 20%", "FINANCIAL RESULTS"), "FINANCIAL RESULTS")
+
+
+class GlyphTests(unittest.TestCase):
+    def test_rupee_and_quarter_glyph_damage(self):
+        from src.composer import _clean
+        self.assertEqual(_clean("PAT increased by 62% tot 3,436 crore in 02 FY27 v/s z 2,122 crore in 02 FY26."),
+                         "PAT increased by 62% to ₹3,436 crore in Q2 FY27 v/s ₹2,122 crore in Q2 FY26.")
+        self.assertEqual(_clean("EBITDA to X31.5 crore (Q2 FY26:%23.7 crore)"), "EBITDA to ₹31.5 crore (Q2 FY26:₹23.7 crore)")
+        self.assertEqual(_clean("OperaƟonal EBITDA up 43.8%"), "Operational EBITDA up 43.8%")
+        self.assertEqual(_clean("Revenue grew 3.9x to 25 crore"), "Revenue grew 3.9x to 25 crore")
