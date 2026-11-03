@@ -79,3 +79,13 @@ class DaemonFlow(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScheduledPacing(unittest.TestCase):
+    def test_scheduled_posts_respect_gap_and_quiet_hours(self):
+        d, clock = make(datetime(2026, 11, 3, 10, 0, tzinfo=IST))
+        now = clock["now"]
+        self.assertTrue(d._paced_send("<b>A Ltd – IPO LISTING</b>\n• x", "IPO_A", now))
+        self.assertFalse(d._paced_send("<b>B Ltd – IPO LISTING</b>\n• y", "IPO_B", now + timedelta(seconds=5)))
+        self.assertTrue(d._paced_send("<b>B Ltd – IPO LISTING</b>\n• y", "IPO_B", now + timedelta(seconds=21)))
+        self.assertFalse(d._paced_send("late", "L", datetime(2026, 11, 3, 23, 40, tzinfo=IST)))

@@ -740,11 +740,27 @@ class RealtimeDaemon:
             return
         from sources.market_cues import fetch_cues
         cues = fetch_cues() if any(s != "stocks_in_focus" for s in slots) else {}
-        for slot in slots:
-            self.morning_done[slot] = now.date().isoformat()
+        for slot in slots[:1]:                       # one scheduled post per cycle, paced like the outbox
             text = morning_pack.build(slot, now, cues, self.state.published_records)
-            if text and self._send(text, f"MORNING_{slot}_{now.date()}"):
+            if not text:
+                self.morning_done[slot] = now.date().isoformat()
+                continue
+            if self._paced_send(text, f"MORNING_{slot}_{now.date()}", now):
+                self.morning_done[slot] = now.date().isoformat()
                 self.state.record_published(f"MORNING_{slot}_{now.date()}", slot, "MORNING_PACK", ts=now.isoformat())
+
+    def _paced_send(self, text, key, now):
+        """Scheduled posts share the outbox's 20 s gap and never go out in quiet hours."""
+        from src.scheduler import in_active_window
+        if not in_active_window(now):
+            return False
+        last = self.outbox.last_sent
+        if last and (now - last).total_seconds() < self.outbox.min_gap:
+            return False
+        ok = self._send(text, key)
+        if ok:
+            self.outbox.last_sent = now
+        return ok
 
     def check_ipo_listings(self, now):
         """Listing-day post once the opening price prints (10:00–10:45 IST, weekdays)."""
@@ -769,8 +785,11 @@ class RealtimeDaemon:
             except Exception:
                 continue
             price = listing_open(chart, issue["listing_date"])
-            if price and self._send(listing_post(issue, price), f"IPO_{issue['symbol']}"):
+            if price and self._paced_send(listing_post(issue, price), f"IPO_{issue['symbol']}", now):
                 self.ipo_done.add(issue["symbol"])
+            elif price:
+                self._ipo_checked = 0                    # held by the pacing gap: retry next cycle
+                return
 
     def run_daemon(self):
         """Run one shift. The workflow persists state before dispatching its successor."""
