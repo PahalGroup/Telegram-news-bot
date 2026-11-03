@@ -2,6 +2,7 @@
 import time as _time
 from collections import OrderedDict
 from dataclasses import dataclass, field
+import re
 from datetime import datetime, time, timedelta, timezone
 from typing import Callable, List, Optional
 
@@ -17,6 +18,18 @@ MERGE_WINDOW = timedelta(minutes=30)
 
 def ist(dt: datetime) -> datetime:
     return (dt if dt.tzinfo else dt.replace(tzinfo=IST)).astimezone(IST)
+
+
+def _bnorm(text) -> str:
+    """Bullet identity across exchanges: BSE and NSE copies of one filing differ in quotes,
+    spacing, escaping and truncation."""
+    import html as _h
+    return re.sub(r"[^a-z0-9.\-]+", " ", _h.unescape(str(text)).casefold()).strip()
+
+
+def _known(bullet, sent_norms) -> bool:
+    n = _bnorm(bullet)
+    return any(n == s or (min(len(n), len(s)) >= 40 and (n in s or s in n)) for s in sent_norms)
 
 
 def in_active_window(now: datetime) -> bool:
@@ -84,7 +97,7 @@ class Outbox:
             return "MERGED_QUEUED"
         sent = self.recent.get(k)
         if sent and p.discovered - sent[0] <= MERGE_WINDOW:
-            new = [b for b in p.bullets if b.casefold() not in sent[1]]
+            new = [b for b in p.bullets if not _known(b, sent[1])]
             if not new:
                 return "MERGED_ALREADY_SENT"
             # Same event within the window: only the new facts, once.
@@ -104,7 +117,7 @@ class Outbox:
         k, p = next(iter(self.queue.items()))
         del self.queue[k]
         self.last_sent = now
-        self.recent[k] = (now, {b.casefold() for b in p.bullets})
+        self.recent[k] = (now, {_bnorm(b) for b in p.bullets})
         return p
 
     def drop_overnight(self, now: datetime) -> List[Pending]:
