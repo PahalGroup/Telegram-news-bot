@@ -88,7 +88,7 @@ class FilterEngine:
         for pat in cls._compiled_drop_patterns:
             if pat.search(t_low):
                 # Don't drop if accompanied by major corporate actions
-                if any(k in t_low for k in ["merger", "acquisition", "bonus", "dividend", "pat rises", "order win"]):
+                if any(k in t_low for k in ["merger", "acquisition", "bonus", "dividend", "pat rises", "order win", "change in designation", "re-designat", "redesignat"]):
                     continue
                 return True
         return False

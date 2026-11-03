@@ -17,6 +17,12 @@ class NoDelivery:
         self.attempts += 1
         raise AssertionError("Shadow run attempted Telegram delivery")
 
+def open_backlog(daemon):
+    """PDF items still waiting for a retry; blocked ones are already decided."""
+    blocked = getattr(daemon, "_pdf_blocked", {})
+    return sum(1 for key in getattr(daemon, "_pdf_backlog", {}) if key not in blocked)
+
+
 def run_status(failure, errors, pending_sources, pending_pdfs, pending_backlog=0):
     if failure:
         return "failed"
@@ -84,10 +90,11 @@ def main():
         raise
     finally:
         report = {
+            # Blocked PDFs are a terminal outcome (held for human review), not unfinished work.
             "status": run_status(failure, daemon.total_errors,
                                  len(getattr(daemon, "_source_pending", {})),
                                  len(getattr(daemon, "_pdf_pending", {})),
-                                 len(getattr(daemon, "_pdf_backlog", {}))),
+                                 open_backlog(daemon)),
             "fatal_error_type": failure,
             "telegram_attempts": dispatcher.attempts,
             "ready_posts": daemon.total_dispatched,
