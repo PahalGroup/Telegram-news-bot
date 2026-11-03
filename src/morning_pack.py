@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+import re
 from datetime import datetime, time, timedelta
 
 from src.scheduler import IST
@@ -57,6 +58,11 @@ def evening_window(now: datetime) -> tuple[datetime, datetime]:
     return datetime.combine(prev, time(15, 30), IST), now
 
 
+def _event_case(event: str) -> str:
+    """'Q2 FY27 RESULTS' -> 'Q2 FY27 Results'; period tokens stay upper-case."""
+    return " ".join(w.upper() if re.fullmatch(r"[QH]\d|FY\d+", w, re.I) else w.capitalize() for w in event.split())
+
+
 def stocks_in_focus(records: list[dict], now: datetime, limit: int = 12) -> str | None:
     start, end = evening_window(now)
     seen, rows = set(), []
@@ -69,7 +75,7 @@ def stocks_in_focus(records: list[dict], now: datetime, limit: int = 12) -> str 
             continue
         seen.add(company)
         lead = f" – {html.escape(html.unescape(r['lead']))}" if r.get("lead") else ""
-        rows.append(f"• <b>{html.escape(company)}</b>: {html.escape(r.get('event', '').title())}{lead}")
+        rows.append(f"• <b>{html.escape(company)}</b>: {html.escape(_event_case(r.get('event', '')))}{lead}")
     if not rows:
         return None
     return "\n".join([f"<b>Stocks in Focus – {now.astimezone(IST):%d %b %Y}</b>", "", *rows[:limit]])

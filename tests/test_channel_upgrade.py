@@ -314,3 +314,20 @@ class MorningAndMacroGuards(unittest.TestCase):
         item = {"id": "S1", "_prebuilt": {"template": "MACRO", "label": "RBI SPEECH", "title": "Leading Today -",
                                           "bullets": ["It is a pleasure to be here with the leadership team"]}}
         self.assertEqual(compose_prebuilt(item, datetime(2026, 11, 3, 16, 0, tzinfo=IST))[0], None)
+
+
+class RegressionsFromReplay(unittest.TestCase):
+    def test_sentence_initial_A_is_not_a_rating(self):
+        self.assertIsNone(editorial.NUMBER.search("A bank's strategy is shaped by leadership"))
+        self.assertIsNotNone(editorial.NUMBER.search("CARE reaffirmed A- (Stable)"))
+
+    def test_block_trade_not_repeated_as_bulk(self):
+        from sources.nse_fetcher import large_deals
+        row = {"symbol": "GALLANTT", "name": "Gallantt Ispat Limited", "clientName": "X Pvt Ltd", "buySell": "BUY",
+               "qty": "5000000", "watp": "501", "date": "03-Nov-2026"}
+        deals = large_deals({"BLOCK_DEALS_DATA": [row], "BULK_DEALS_DATA": [row]})
+        self.assertEqual([d["kind"] for d in deals], ["BLOCK DEAL"])
+
+    def test_focus_event_case(self):
+        from src.morning_pack import _event_case
+        self.assertEqual(_event_case("Q2 FY27 RESULTS"), "Q2 FY27 Results")

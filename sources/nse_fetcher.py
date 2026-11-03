@@ -87,6 +87,11 @@ def large_deals(snapshot, min_cr=DEAL_MIN_CR):
                                    "date": row.get("date"), "qty": 0.0, "value": 0.0})
             d["qty"] += qty
             d["value"] += qty * price
+    # NSE lists a block-window trade in both tables; report it once, as the block deal.
+    for (kind, sym, client, side), d in list(out.items()):
+        twin = out.get(("BLOCK DEAL", sym, client, side))
+        if kind == "BULK DEAL" and twin and abs(twin["qty"] - d["qty"]) < 1:
+            del out[(kind, sym, client, side)]
     deals = []
     for d in out.values():
         d["value_cr"] = d["value"] / 1e7
