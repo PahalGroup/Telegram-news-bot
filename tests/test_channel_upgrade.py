@@ -103,7 +103,8 @@ class SchedulerTests(unittest.TestCase):
     def test_quiet_hours(self):
         self.assertFalse(in_active_window(at(23, 31)))
         self.assertFalse(in_active_window(at(6, 29)))
-        self.assertFalse(in_active_window(at(23, 0) + timedelta(seconds=1)))
+        self.assertFalse(in_active_window(at(23, 30)))
+        self.assertTrue(in_active_window(at(23, 29)))
         self.assertTrue(in_active_window(at(7, 0)))
         self.assertTrue(in_active_window(at(22, 59)))
 

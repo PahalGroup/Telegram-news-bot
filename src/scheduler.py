@@ -7,7 +7,7 @@ from typing import Callable, List, Optional
 
 IST = timezone(timedelta(hours=5, minutes=30))
 ACTIVE_START = time(7, 0)
-ACTIVE_END = time(23, 0)
+ACTIVE_END = time(23, 30)
 MAX_AGE = timedelta(minutes=30)
 MAX_AGE_SLOW = timedelta(hours=3)        # results and concall transcripts
 SLOW_EVENTS = {"RESULTS", "EARNINGS CALL"}

@@ -60,7 +60,11 @@ from src.composer import compose_filing, compose_prebuilt
 from src.scheduler import IST, Outbox, fresh_enough, in_active_window, parse_time
 
 # Seconds between polls for slower sources (exchange feeds poll every cycle).
-SOURCE_INTERVALS = {"deals": 60, "pib": 120, "x": 120, "rbi_speeches": 300}
+# Exchange filings poll every cycle (10 s); slower or rate-limited feeds less often.
+SOURCE_INTERVALS = {"nse": 15, "rbi": 60, "news": 60, "liveblog": 60, "deals": 60, "pib": 120, "x": 120,
+                    "rbi_speeches": 300}
+BACKLOG_AGE = timedelta(minutes=20)      # on a fresh start, older items are marked seen, never posted
+FRESH_START_GAP = timedelta(minutes=60)  # no completed cycle for this long = fresh start
 
 
 # RBI housekeeping notices: survey launches, auction calendars without amounts, office notices.
@@ -110,7 +114,7 @@ class RealtimeDaemon:
         self.news = NewsFetcher()
         self.liveblog = LiveBlogFetcher()
 
-        self.poll_interval = int(os.getenv("POLL_INTERVAL", "15"))  # seconds between cycles
+        self.poll_interval = int(os.getenv("POLL_INTERVAL", "10"))  # seconds between cycles
         self.fii_posted_today = False
         self.cycle_count = 0
         self.total_dispatched = 0
@@ -570,9 +574,15 @@ class RealtimeDaemon:
             self._trace("discovered", it)
         items = list(items) + prebuilt
 
+        cutoff = self._backlog_cutoff(now)
         for it in items:
             item_id = it.get("id")
             if not item_id or self.state.is_seen(item_id) or self.outbox.has(item_id):
+                continue
+            published = parse_time(it.get("published_at"))
+            if cutoff and published and published < cutoff:
+                self._trace("rejected", it, "BACKLOG_ON_FRESH_START")
+                self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
                 continue
             try:
                 self._compose(it, now)
@@ -588,8 +598,20 @@ class RealtimeDaemon:
         self.check_fii_dii_routine()
         dispatched_count = self.release_due(now)
         self.total_dispatched += dispatched_count
+        self.state.last_cycle_at = now.isoformat()
         self.state.save_state(sync_git=False)
         return dispatched_count
+
+    def _backlog_cutoff(self, now):
+        """On a fresh start (no saved cycle within FRESH_START_GAP) everything published
+        before start - BACKLOG_AGE is backlog for the whole run: mark it seen, never post it."""
+        if not hasattr(self, "_cutoff"):
+            last = parse_time(getattr(self.state, "last_cycle_at", None))
+            fresh = last is None or now - last > FRESH_START_GAP
+            self._cutoff = now - BACKLOG_AGE if fresh else None
+            if fresh:
+                logger.info("Fresh start: items published before %s IST are treated as backlog", self._cutoff.strftime("%H:%M"))
+        return self._cutoff
 
     def _compose(self, it, now):
         item_id = it["id"]

@@ -1,7 +1,7 @@
 name: Market wire (posting shifts)
 
 # Posting runs only on GitHub Actions: three chained shifts of about 6 h cover
-# 07:00–23:00 IST (01:30, 07:30, 13:30 UTC). Each polls every 15 s. data/ and state/
+# 07:00–23:30 IST (01:30, 07:30, 13:30 UTC). BSE every 10 s, NSE every 15 s. data/ and state/
 # are restored from and saved to the Actions cache so nothing is reposted across runs.
 on:
   schedule:
@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 358
     env:
       TZ: Asia/Kolkata
-      POLL_INTERVAL: '15'
+      POLL_INTERVAL: '10'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
