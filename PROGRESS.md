@@ -20,3 +20,4 @@ Replay 4 = current code (in progress).
 ## Remaining
 - Read replay4 metrics; 15 samples; 20-post manual number check; final report.
 - REPORT.md written; all units done.
+- Scheduler moved to GitHub Actions (market-wire.yml, 3 chained shifts, 15 s polling, cache-persisted state); worker.py removed.

@@ -1,7 +1,7 @@
 name: Tests and source probes
 
-# GitHub Actions never runs the posting worker. The always-on worker
-# (scripts/worker.py, polling every 12 s) runs on dedicated hosting.
+# Posting runs in market-wire.yml (chained Actions shifts). This workflow
+# only runs tests and read-only source probes.
 on:
   push:
   pull_request:

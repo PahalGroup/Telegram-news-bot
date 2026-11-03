@@ -109,7 +109,7 @@ class RealtimeDaemon:
         self.news = NewsFetcher()
         self.liveblog = LiveBlogFetcher()
 
-        self.poll_interval = 12  # Sub-15-second continuous polling
+        self.poll_interval = int(os.getenv("POLL_INTERVAL", "15"))  # seconds between cycles
         self.fii_posted_today = False
         self.cycle_count = 0
         self.total_dispatched = 0
