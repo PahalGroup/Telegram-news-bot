@@ -285,3 +285,32 @@ class GlyphTests(unittest.TestCase):
         self.assertEqual(_clean("EBITDA to X31.5 crore (Q2 FY26:%23.7 crore)"), "EBITDA to ₹31.5 crore (Q2 FY26:₹23.7 crore)")
         self.assertEqual(_clean("OperaƟonal EBITDA up 43.8%"), "Operational EBITDA up 43.8%")
         self.assertEqual(_clean("Revenue grew 3.9x to 25 crore"), "Revenue grew 3.9x to 25 crore")
+
+
+class MorningAndMacroGuards(unittest.TestCase):
+    def test_preopen_skips_yesterdays_close(self):
+        from datetime import datetime
+        from src.scheduler import IST
+        now = datetime(2026, 11, 4, 9, 5, tzinfo=IST)
+        stale = {"last": 23810.85, "pct": 1.58, "status": "CLOSE", "time": "03-Nov-2026 15:30"}
+        live = {"last": 23900.0, "pct": 0.4, "status": "Pre-Open", "time": "04-Nov-2026 09:08"}
+        gift = {"last": 23860.0, "change": 100.0, "pct": 0.42}
+        self.assertNotIn("indicative", morning_pack.preopen({"GIFT Nifty": gift, "Nifty indicative": stale}, now))
+        self.assertIn("indicative", morning_pack.preopen({"GIFT Nifty": gift, "Nifty indicative": live}, now))
+
+    def test_stocks_in_focus_no_double_escape(self):
+        from datetime import datetime
+        from src.scheduler import IST
+        rec = [{"ts": "2026-11-03T18:00:00+05:30", "company": "Brigade Hotel Ventures Ltd", "event": "EARNINGS CALL",
+                "lead": "Room and F&amp;B revenue rose 10% in Q2"}]
+        text = morning_pack.stocks_in_focus(rec, datetime(2026, 11, 4, 8, 45, tzinfo=IST))
+        self.assertIn("F&amp;B", text)
+        self.assertNotIn("&amp;amp;", text)
+
+    def test_macro_without_fact_is_dropped(self):
+        from datetime import datetime
+        from src.composer import compose_prebuilt
+        from src.scheduler import IST
+        item = {"id": "S1", "_prebuilt": {"template": "MACRO", "label": "RBI SPEECH", "title": "Leading Today -",
+                                          "bullets": ["It is a pleasure to be here with the leadership team"]}}
+        self.assertEqual(compose_prebuilt(item, datetime(2026, 11, 3, 16, 0, tzinfo=IST))[0], None)

@@ -68,11 +68,21 @@ def stocks_in_focus(records: list[dict], now: datetime, limit: int = 12) -> str 
         if not (start <= t <= end) or company in seen:
             continue
         seen.add(company)
-        lead = f" – {html.escape(r['lead'])}" if r.get("lead") else ""
+        lead = f" – {html.escape(html.unescape(r['lead']))}" if r.get("lead") else ""
         rows.append(f"• <b>{html.escape(company)}</b>: {html.escape(r.get('event', '').title())}{lead}")
     if not rows:
         return None
     return "\n".join([f"<b>Stocks in Focus – {now.astimezone(IST):%d %b %Y}</b>", "", *rows[:limit]])
+
+
+def _is_todays_preopen(ind: dict, now: datetime) -> bool:
+    """NSE keeps yesterday's close in this field until the 09:00 pre-open prints; never show that as pre-open."""
+    try:
+        t = datetime.strptime(str(ind.get("time")), "%d-%b-%Y %H:%M").replace(tzinfo=IST)
+    except ValueError:
+        return False
+    return t.date() == now.astimezone(IST).date() and t.hour == 9 and t.minute < 15 \
+        and str(ind.get("status", "")).upper() != "CLOSE"
 
 
 def preopen(cues: dict, now: datetime) -> str | None:
@@ -80,7 +90,7 @@ def preopen(cues: dict, now: datetime) -> str | None:
     if not gift and not ind:
         return None
     lines = [f"<b>Pre-open – Nifty & GIFT Nifty ({now.astimezone(IST):%H:%M} IST)</b>", ""]
-    if ind:
+    if ind and _is_todays_preopen(ind, now):
         lines.append(cue_line("Nifty 50 indicative", ind))
     if gift:
         lines.append(cue_line("GIFT Nifty", gift))

@@ -138,8 +138,11 @@ def compose_prebuilt(item, now: datetime, published=None) -> tuple[Optional[Pend
         return Pending(item["id"], item.get("company", ""), pre["deal"]["kind"] + "|" + pre["deal"]["client"],
                        lines[0], [l[2:] for l in lines[1:]], now, published, ""), "OK"
     if t == "MACRO":
-        bullets = [html.escape(_clean(b)) for b in pre.get("bullets", []) if _clean(b)]
-        hdr = f"<b>{html.escape(pre['label'])} – {html.escape(pre['title'])}</b>"
+        bullets = [html.escape(b) for b in filing_bullets(pre.get("bullets", []))]
+        title = re.sub(r"[\s\-–]+$", "", re.sub(r"\s+", " ", pre["title"])).strip()
+        if not bullets and not editorial.NUMBER.search(title):
+            return None, "NO_FACTUAL_MACRO_BULLET"   # speeches and notices without a figure or decision
+        hdr = f"<b>{html.escape(pre['label'])} – {html.escape(title)}</b>"
         return Pending(item["id"], pre["label"], pre["title"].casefold(), hdr, bullets[:6], now, published, tail), "OK"
     if t == "RAW":       # IPO listing/allotment posts already in final HTML
         lines = pre["text"].split("\n")

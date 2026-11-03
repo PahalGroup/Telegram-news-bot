@@ -13,6 +13,7 @@ Concurrent polling loop (not a latency guarantee):
 """
 
 import os
+import html
 import re
 import sys
 import time
@@ -47,7 +48,7 @@ from telegram_dispatcher import TelegramDispatcher
 
 # Source fetchers
 from sources.bse_fetcher import BSEFetcher
-from sources.nse_fetcher import NSEFetcher
+from sources.nse_fetcher import NSEFetcher, _side_session
 from sources.rbi_fetcher import RBIFetcher
 from sources.news_fetcher import NewsFetcher
 from sources.liveblog_fetcher import LiveBlogFetcher
@@ -710,7 +711,9 @@ class RealtimeDaemon:
                 return 0
         else:
             self._send(text, primary)
-        lead = re.sub(r"<[^>]+>", "", p.bullets[0]) if p.bullets else None
+        # Stocks in Focus quotes one line per company: keep its shortest complete bullet, as plain text.
+        plain = [html.unescape(re.sub(r"<[^>]+>", "", b)) for b in p.bullets]
+        lead = min((b for b in plain if len(b) >= 25), key=len, default=plain[0] if plain else None)
         for iid in p.ids:
             m = p.meta.get(iid, {})
             src = m.get("source", "UNKNOWN")
@@ -760,7 +763,7 @@ class RealtimeDaemon:
             if issue["symbol"] in self.ipo_done:
                 continue
             try:
-                chart = self.nse._side.get(
+                chart = _side_session(self.nse).get(
                     f"https://query1.finance.yahoo.com/v8/finance/chart/{issue['symbol']}.NS?range=5d&interval=1d",
                     timeout=15).json()
             except Exception:

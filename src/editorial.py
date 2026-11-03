@@ -72,7 +72,8 @@ class Event:
 AMOUNT = re.compile(r"(?:₹|rs\.?|inr|usd|us\$|\$|eur|€)\s*[\d,]+(?:\.\d+)?\s*(?:crores?|cr\.?|lakhs?|lacs?|mn|million|bn|billion)?"
                     r"|[\d,]+(?:\.\d+)?\s*(?:crores?|cr\b|lakhs?|lacs?|million|billion|bn\b|mn\b)", re.I)
 NUMBER = re.compile(AMOUNT.pattern + r"|\b\d+(?:\.\d+)?\s*%|\b\d[\d,]*(?:\.\d+)?\s*(?:mw|gw|mtpa|tpa|units|shares|acres|sq\.?\s*ft)\b"
-                    r"|\b(?:AAA|AA|A|BBB|BB|B|C|D)[+-]?\b\s*(?:\(\w+\))?|\b(?:CRISIL|ICRA|CARE|IND|ACUITE)\s*(?:A|AA|AAA|BBB|BB)[+-]?", re.I)
+                    # Rating grades are upper-case only; case-insensitive "a"/"b"/"d" would make any sentence look factual.
+                    r"|(?-i:\b(?:AAA|AA|A|BBB|BB|B|C|D)[+-]?\b\s*(?:\(\w+\))?|\b(?:CRISIL|ICRA|CARE|IND|ACUITE)\s*(?:A|AA|AAA|BBB|BB)[+-]?)", re.I)
 DECISION = re.compile(r"\b(?:approved|appointed|re-?appointed|resigned|resignation|ceased?|elevated|designated|"
                       r"upgraded|downgraded|reaffirmed|assigned|revised|withdrawn|placed\s+on\s+(?:watch|credit\s+watch)|"
                       r"acquired?|acquisition|signed|entered\s+into|completed|allotted|raised|declared|recommended|"
