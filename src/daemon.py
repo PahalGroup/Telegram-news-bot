@@ -61,6 +61,10 @@ from src.scheduler import IST, Outbox, fresh_enough, in_active_window, parse_tim
 SOURCE_INTERVALS = {"deals": 60, "pib": 120, "x": 120, "rbi_speeches": 300}
 
 
+# RBI housekeeping notices: survey launches, auction calendars without amounts, office notices.
+MACRO_PROCEDURAL = re.compile(r"\blaunches\b.*\bsurvey\b|\bround of\b.*\bsurvey\b|\bholiday\b|\brecruitment\b", re.I)
+
+
 class RealtimeDaemon:
     # Upgrade state is created on first use so partially constructed daemons
     # (tests build them with __new__) behave like fully initialised ones.
@@ -587,6 +591,8 @@ class RealtimeDaemon:
             label = event.label if event else ""
         if published and not fresh_enough(published, now, label):
             return self._reject(it, "STALE")
+        if it.get("source") == "RBI" and MACRO_PROCEDURAL.search(it.get("title", "")):
+            return self._reject(it, "PROCEDURAL")
 
         result_event = market_quote_event = None
         category, norm_company, event_fp, headline = label, it.get("company", ""), None, ""

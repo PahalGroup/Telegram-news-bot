@@ -257,3 +257,21 @@ class IPOTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BulletHygieneTests(unittest.TestCase):
+    def test_glyphs_duplicates_and_boilerplate(self):
+        from src.composer import filing_bullets
+        out = filing_bullets(["Net Profit increased by 36.06% Q2-on-Q2",
+                              "FINANCIAL HIGHLIGHTS Net Profit increased by 36.06% Q2-on-Q2 in 2026",
+                              "Revenue increased by 30.73% to X274.23 crore.",
+                              "Appointed Mr. A Bhartia (DIN: ) as Director from 02 Nov 2026 at the Mee^ng",
+                              "Results along with the Limited Review Report approved on 2 Nov 2026"])
+        self.assertEqual(out, ["Net Profit increased by 36.06% Q2-on-Q2", "Revenue increased by 30.73% to ₹274.23 crore.",
+                               "Appointed Mr. A Bhartia as Director from 02 Nov 2026 at the Meeting"])
+
+    def test_results_label_names_latest_quarter(self):
+        from src.composer import _period_label
+        self.assertEqual(_period_label("₹277 Cr in Q2 FY27 vs ₹210 Cr in Q2 FY26; H1 FY27 ₹657 Cr", "FINANCIAL RESULTS"), "Q2 FY27 RESULTS")
+        self.assertEqual(_period_label("PAT ₹8,943 crore in H1 FY27", "FINANCIAL RESULTS"), "H1 FY27 RESULTS")
+        self.assertEqual(_period_label("PAT up 20%", "FINANCIAL RESULTS"), "FINANCIAL RESULTS")

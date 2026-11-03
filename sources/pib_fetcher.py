@@ -47,9 +47,12 @@ class PIBFetcher:
 
 
 OG_DESC = re.compile(r'<meta property="og:description" content="([^"]*)"')
-MARKET_TITLE = re.compile(r"\bcabinet\b|approv|\bGST\b|tariff|\brepo\b|inflation|\bCPI\b|\bWPI\b|\bGDP\b|\bIIP\b|"
-                          r"exports?|imports?|disinvest|\bPLI\b|fiscal|borrowing|tax|duty|\bFDI\b|policy|"
-                          r"crore|lakh|%|\bMoU\b|agreement|scheme|auction|tender", re.I)
+# Market-moving: macro data, tax/tariff/policy decisions and Cabinet approvals. Generic
+# "crore"/"MoU"/"export" titles (a state event, a trial shipment, a pre-bid meeting) are not.
+MARKET_TITLE = re.compile(r"\bcabinet\b|\bGST\b|tariff|\brepo\b|inflation|\bCPI\b|\bWPI\b|\bGDP\b|\bIIP\b|"
+                          r"merchandise (?:trade|exports?)|trade data|disinvest|\bPLI\b|fiscal|borrowing|"
+                          r"(?:income|customs|excise|windfall) (?:tax|duty)|\bFDI\b|core (?:sector|industries)|"
+                          r"collections?|\bPMI\b|monetary policy|\bSEBI\b|\bIPO\b|capital outlay", re.I)
 
 
 def detail_summary(page: str) -> str:
@@ -60,4 +63,4 @@ def detail_summary(page: str) -> str:
 
 def is_market_release(title: str) -> bool:
     return bool(MARKET_TITLE.search(title or "")) and not re.search(
-        r"english rendering|text of|address at|greets|condoles|pays tributes?|subhashitam|yoga|swachh", title or "", re.I)
+        r"english rendering|text of|address at|greets|condoles|pays tributes?|subhashitam|yoga|swachh|pre-bid|trial export|facilitates", title or "", re.I)

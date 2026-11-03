@@ -26,10 +26,24 @@ def _link(url) -> str:
     return ""
 
 
+BOILERPLATE = re.compile(r"limited review report|taken on record|annexure\s*[-–]?\s*[a-z]\\b|"
+                         r"\bfinancial highlights\b(?=\s+\w)", re.I)
+# Glyph damage from PDF fonts: the rupee sign often extracts as "X" or "`" before an amount,
+# and "ti" ligatures as "^".
+RUPEE_GLYPH = re.compile(r"(?<![A-Za-z])[X`](?=\s?\d[\d,.]*\s*(?:crore|cr\\b|lakh|mn|million|bn|billion))", re.I)
+
+
 def _clean(point: str) -> str:
     point = editorial.strip_junk(str(point or "")).replace("\n", " ")
+    point = RUPEE_GLYPH.sub("₹", point)
+    point = re.sub(r"(?<=[a-z])\^(?=[a-z])", "ti", point)
+    point = re.sub(r"\s*\((?:DIN|PAN)\s*:?\s*\)", "", point)
     point = re.sub(r"\s+", " ", point).strip().lstrip("•-▪►* \ufe0f").rstrip(" ,;:-")
     return point
+
+
+def _norm(p):
+    return re.sub(r"[^a-z0-9%.]+", " ", p.casefold()).strip()
 
 
 def factual(point: str) -> bool:
@@ -40,9 +54,12 @@ def filing_bullets(points, limit=6):
     out, seen = [], set()
     for raw in points:
         p = _clean(raw)
-        if len(p) < 12 or p.casefold() in seen or editorial.JUNK_IN_POST.search(p) or not factual(p):
+        n = _norm(p)
+        if len(p) < 12 or editorial.JUNK_IN_POST.search(p) or BOILERPLATE.search(p) or not factual(p):
             continue
-        seen.add(p.casefold())
+        if any(n in o or o in n for o in seen):       # near-duplicate of a bullet already kept
+            continue
+        seen.add(n)
         out.append(p)
     return out[:limit]
 
@@ -68,11 +85,22 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
         key_company, key_event = company or item.get("source", "MACRO"), title.casefold()
     else:
         label = event.label if event.label != "UPDATE" else _event_from_headline(eval_data.get("headline", ""))
+        if label in ("FINANCIAL RESULTS", "RESULTS"):
+            label = _period_label(" ".join(bullets), label)
         hdr = editorial.header(company, label)
         key_company, key_event = company, label
     return Pending(key=item["id"], company=key_company, event=key_event, header=hdr,
                    bullets=[html.escape(b) for b in bullets], discovered=now, published=published,
                    tail=_link(item.get("source_url") or item.get("pdf_url"))), "OK"
+
+
+def _period_label(text, default):
+    """'Q2 FY27 RESULTS' / 'H1 FY27 RESULTS' when the bullets name one period."""
+    found = {(m.group(1).upper(), m.group(2)[-2:]) for m in
+             re.finditer(r"\b([QH][1-4])\s?FY\s?'?((?:20)?\d{2})\b", text, re.I)}
+    q = sorted((f for f in found if f[0].startswith("Q")), key=lambda f: (f[1], f[0]))
+    pick = q[-1] if q else (next(iter(found)) if len(found) == 1 else None)
+    return f"{pick[0]} FY{pick[1]} RESULTS" if pick else default
 
 
 def _event_from_headline(headline: str) -> str:

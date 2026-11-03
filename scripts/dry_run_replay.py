@@ -6,7 +6,7 @@ daemon on a simulated clock. Dry run only: nothing is sent to Telegram.
 The clock advances 12 s per cycle, the production poll interval. A PDF job finishes
 after its measured parse time plus a download allowance, so latency includes extraction.
 """
-import argparse, json, os, statistics, sys, time as _time
+import argparse, json, os, re, statistics, sys, time as _time
 from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -200,7 +200,9 @@ def main():
     d.rbi.fetch_press_releases = lambda: visible(snaps.get("rbi", []), sim, "pub_date")
     d.rbi.fetch_speeches = lambda: visible(snaps.get("rbi_speeches", []), sim, "pub_date")
     pib_from = datetime.fromisoformat(snaps.get("pib_visible_from", "2100-01-01T00:00")).replace(tzinfo=IST)
-    d._fetch_pib = lambda: snaps.get("pib", []) if sim.now >= pib_from else []
+    from sources.pib_fetcher import is_market_release
+    pib = [r for r in snaps.get("pib", []) if is_market_release(r["title"])]
+    d._fetch_pib = lambda: pib if sim.now >= pib_from else []
     cues = snaps.get("cues")
     import sources.market_cues as mc
     mc.fetch_cues = lambda: cues or {}
@@ -240,7 +242,7 @@ def main():
         "median_filing_to_post_s": statistics.median(lat) if lat else None,
         "p90_filing_to_post_s": sorted(lat)[int(len(lat) * 0.9)] if lat else None,
         "procedural_posts": sum(bool(editorial.PROCEDURAL_POST.search(p["text"])) for p in posts),
-        "junk_posts": sum(bool(editorial.JUNK_IN_POST.search(p["text"])) for p in posts),
+        "junk_posts": sum(bool(editorial.JUNK_IN_POST.search(re.sub(r"<[^>]+>", "", p["text"]))) for p in posts),
         "posts_23_00_to_07_00": len(quiet),
         "posts_23_30_to_06_30": sum(1 for p in quiet if not (datetime.fromisoformat(p["at"]).hour == 23 and datetime.fromisoformat(p["at"]).minute < 30) and not (datetime.fromisoformat(p["at"]).hour == 6 and datetime.fromisoformat(p["at"]).minute >= 30)),
         "min_gap_s": gaps[0] if gaps else None,
