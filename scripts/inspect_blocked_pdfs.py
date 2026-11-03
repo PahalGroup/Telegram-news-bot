@@ -40,6 +40,24 @@ def main():
                         "image_count": len(page.get_images()),
                         "headings": headings[:12],
                         "sample": text[:1400] if i < 3 else ""})
+            if name == "oversized_results":
+                from sources.annexure_parser import AnnexureParser
+                from src.filter_engine import FilterEngine
+                from src.formatter import Formatter
+                class ReviewParser(AnnexureParser):
+                    MAX_PAGES = 60
+                evidence = ReviewParser.extract_evidence(data)
+                item = {"id": name, "source": "NSE", "company": "HAPPIEST MINDS TECHNOLOGIES LIMITED",
+                        "title": "Financial results for Q2 FY27", "pdf_url": url,
+                        "description": "\n".join(e["text"] for e in evidence)}
+                engine = FilterEngine()
+                passed, reason, candidate = engine.evaluate_stage_1(item)
+                evaluation = engine.evaluate_stage_2(candidate) if passed else {}
+                row["review_candidate"] = {
+                    "evidence_count": len(evidence),
+                    "post": Formatter.format_post(evaluation, item) if evaluation.get("publish") else "",
+                    "reason": reason or evaluation.get("rejection_reason"),
+                    "evidence": [e for e in evidence if e["page"] >= 45]}
             row["status"] = "inspected"
         except Exception as exc:
             row.update(status="error", error=str(exc))
