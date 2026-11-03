@@ -331,3 +331,36 @@ class RegressionsFromReplay(unittest.TestCase):
     def test_focus_event_case(self):
         from src.morning_pack import _event_case
         self.assertEqual(_event_case("Q2 FY27 RESULTS"), "Q2 FY27 Results")
+
+
+class OpenIssueFixes(unittest.TestCase):
+    def test_rating_table_cell_bleed_removed(self):
+        from src.composer import _clean
+        self.assertEqual(_clean("Issuer Rating - [ICRA]A(Stable); Rating Assigned - $"),
+                         "Issuer Rating - [ICRA]A(Stable); Rating Assigned")
+        self.assertFalse(_clean("Fund based working capital 170.45 [ICRA]A(Stable); Rating Assigned RBI").endswith("RBI"))
+
+    def test_letter_spaced_heading_collapsed(self):
+        from src.composer import _clean
+        out = _clean("P R E S S R E L E A S E MICL GROUP SECURES TWO EPC WORK ORDERS WORTH ₹583 CRORE")
+        self.assertEqual(out, "MICL GROUP SECURES TWO EPC WORK ORDERS WORTH ₹583 CRORE")
+
+    def test_subsidiary_foreign_currency_results_dropped(self):
+        from datetime import datetime
+        from src import composer, editorial
+        ev = editorial.Event("FINANCIAL RESULTS", "test")
+        pts = ["EBITDA: EUR 40.7 million (EUR -38 million in Q3/25)",
+               "Group revenue rose by 57.0% year over year to EUR 351.1 million (compared with EUR 223.6 million).",
+               "EBITDA amounted to EUR 40.7 million in the third quarter of 2026; the margin improved to 11.6%."]
+        p, why = composer.compose_filing({"id": "x", "company": "Bajaj Auto Ltd", "source": "BSE"},
+                                         {"summary_points": pts}, ev, datetime(2026, 11, 3, 12))
+        self.assertIsNone(p)
+        self.assertEqual(why, "TOO_FEW_FACTUAL_BULLETS")
+
+    def test_press_release_results_get_period_label(self):
+        from datetime import datetime
+        from src import composer
+        self.assertEqual(composer._period_label("Volume led growth of 17.6% in Q2’FY27", "FINANCIAL RESULTS"), "Q2 FY27 RESULTS")
+        self.assertEqual(composer._period_label("profit for 2Q FY 2026-27", "FINANCIAL RESULTS"), "Q2 FY27 RESULTS")
+        self.assertEqual(composer._period_label("Revenue up 19% YoY", "FINANCIAL RESULTS", datetime(2026, 11, 3)), "Q2 FY27 RESULTS")
+        self.assertEqual(composer._period_label("Revenue up 19% YoY", "FINANCIAL RESULTS", datetime(2026, 5, 20)), "Q4 FY26 RESULTS")

@@ -37,8 +37,19 @@ GLYPHS = ((re.compile(r"(?<=[a-z])[\^Ɵ](?=[a-z])"), "ti"), (re.compile(r"\b0([1
           (re.compile(r"[\u0336\u0335]"), ""), (re.compile(r"^(?:&quot;|\")\s*"), ""))
 
 
+SPACED_CAPS = re.compile(r"\b(?:[A-Z] ){2,}[A-Z]\b")
+RATING_ACTION = re.compile(r"(\bRating (?:Assigned|Reaffirmed|Upgraded|Downgraded|Withdrawn|Revised))\b[^.;]*$", re.I)
+FOREIGN_AMOUNT = re.compile(r"(?:\b(?:EUR|USD|GBP|JPY)\s?-?\d|[$€£]\s?-?\d)")
+INR_AMOUNT = re.compile(r"(?:₹|\bINR|\bRs\.?)\s?-?\d|\d\s?(?:crore|cr\b|lakh)", re.I)
+
+
 def _clean(point: str) -> str:
     point = editorial.strip_junk(str(point or "")).replace("\n", " ")
+    # Letter-spaced headings ("P R E S S  R E L E A S E") extract one glyph per word.
+    point = SPACED_CAPS.sub(lambda m: m.group(0).replace(" ", ""), point)
+    point = re.sub(r"^\s*PRESS\s?RELEASE\b[\s:–-]*", "", point, flags=re.I)
+    # Rating tables bleed the next cell ("Rating Assigned - $", "Rating Assigned RBI").
+    point = RATING_ACTION.sub(r"\1", point)
     point = RUPEE_GLYPH.sub(lambda m: " ₹" if m.group(0)[0] == "t" else "₹", point)
     for pattern, repl in GLYPHS:
         point = pattern.sub(repl, point)
@@ -72,6 +83,10 @@ def filing_bullets(points, limit=6):
 def compose_filing(item, eval_data, event: editorial.Event, now: datetime, published=None) -> tuple[Optional[Pending], str]:
     company = item.get("company") or eval_data.get("company") or ""
     bullets = filing_bullets(eval_data.get("summary_points") or [])
+    if event.label in ("FINANCIAL RESULTS", "RESULTS") and item.get("source") not in ("RBI", "PIB", "X"):
+        # A results post for an Indian listed company reports rupee figures; EUR/USD-only
+        # bullets come from a foreign subsidiary's release attached to the filing.
+        bullets = [b for b in bullets if not (FOREIGN_AMOUNT.search(b) and not INR_AMOUNT.search(b))]
     macro = not company or item.get("source") in ("RBI", "NEWS", "LIVEBLOG", "PIB", "X")
     need = MIN_BULLETS_MACRO if macro else MIN_BULLETS
     if event.label in ("ORDER WIN", "CREDIT RATING", "MANAGEMENT CHANGE", "DIVIDEND", "BONUS / SPLIT", "BUYBACK",
@@ -91,7 +106,8 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
     else:
         label = event.label if event.label != "UPDATE" else _event_from_headline(eval_data.get("headline", ""))
         if label in ("FINANCIAL RESULTS", "RESULTS"):
-            label = _period_label(" ".join(bullets), label)
+            label = _period_label(" ".join(bullets + [str(eval_data.get("headline") or "")]), label,
+                                  published or now)
         hdr = editorial.header(company, label)
         key_company, key_event = company, label
     return Pending(key=item["id"], company=key_company, event=key_event, header=hdr,
@@ -99,12 +115,23 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
                    tail=_link(item.get("source_url") or item.get("pdf_url"))), "OK"
 
 
-def _period_label(text, default):
-    """'Q2 FY27 RESULTS' / 'H1 FY27 RESULTS' when the bullets name one period."""
-    found = {(m.group(1).upper(), m.group(2)[-2:]) for m in
-             re.finditer(r"\b([QH][1-4])\s?FY\s?'?((?:20)?\d{2})\b", text, re.I)}
+def _period_label(text, default, when=None):
+    """'Q2 FY27 RESULTS' / 'H1 FY27 RESULTS' from the period the bullets name; otherwise the
+    latest quarter that had ended before the filing (results are filed within ~60 days)."""
+    found = set()
+    for m in re.finditer(r"\b(?:([QH][1-4])|([1-4])([QH]))\s?['’]?\s?FY\s?'?((?:20)?\d{2})(?:\s?[-–]\s?(\d{2}))?\b", text, re.I):
+        per = (m.group(1) or (m.group(3) + m.group(2))).upper()
+        yr = m.group(5) or m.group(4)[-2:]
+        found.add((per, yr))
     q = sorted((f for f in found if f[0].startswith("Q")), key=lambda f: (f[1], f[0]))
     pick = q[-1] if q else (next(iter(found)) if len(found) == 1 else None)
+    if not pick and when is not None:
+        y, mth = when.year, when.month
+        qe_month = ((mth - 1) // 3) * 3 or 12          # last calendar quarter end before this month
+        qe_year = y if qe_month != 12 else y - 1
+        fq = {6: 1, 9: 2, 12: 3, 3: 4}[qe_month]
+        fy = qe_year + 1 if qe_month in (6, 9, 12) else qe_year
+        pick = (f"Q{fq}", f"{fy % 100:02d}")
     return f"{pick[0]} FY{pick[1]} RESULTS" if pick else default
 
 
