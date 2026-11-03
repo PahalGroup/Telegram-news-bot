@@ -308,6 +308,10 @@ class RealtimeDaemon:
 
         today_str = ist_now.strftime("%d-%b-%Y").upper()
         fii_key = f"FII_DII_{today_str}"
+        cutoff = getattr(self, "_cutoff", None)
+        if cutoff and not self.state.is_seen(fii_key) and cutoff.astimezone(IST).hour >= 19:
+            # Fresh start after the evening flows were out: they are backlog, not news.
+            self.state.mark_seen(fii_key, "NSE_FLOWS")
         if self.state.is_seen(fii_key):
             self.fii_posted_today = True
             return
@@ -527,6 +531,10 @@ class RealtimeDaemon:
                         continue
                     items.append({"id": f"DEAL_{d['kind']}_{d['symbol']}_{fingerprint(d['client'], d['side'])}_{d['date']}",
                                   "source": "NSE_DEALS", "company": d["company"], "title": d["kind"],
+                                  # NSE publishes the day's deal list after the close; for the
+                                  # fresh-start backlog guard a deal is as old as 17:00 that day.
+                                  "_backlog_at": datetime.strptime(str(d["date"]), "%d-%b-%Y").replace(
+                                      hour=17, tzinfo=IST).isoformat(),
                                   "_prebuilt": {"template": "E", "deal": d}})
                 elif name == "pib":
                     bullets = [it["summary"]] if it.get("summary") and it["summary"].rstrip(". ") not in it["title"] else []
@@ -579,7 +587,7 @@ class RealtimeDaemon:
             item_id = it.get("id")
             if not item_id or self.state.is_seen(item_id) or self.outbox.has(item_id):
                 continue
-            published = parse_time(it.get("published_at"))
+            published = parse_time(it.get("published_at") or it.get("_backlog_at"))
             if cutoff and published and published < cutoff:
                 self._trace("rejected", it, "BACKLOG_ON_FRESH_START")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))

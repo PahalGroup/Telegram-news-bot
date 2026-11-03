@@ -67,3 +67,58 @@ class BsePaging(unittest.TestCase):
             get.reset_mock()
             f.fetch_announcements(skip_pdf=True)
             self.assertEqual(get.call_count, 1)        # page 1 reached known items
+
+
+class BacklogCoversSnapshots(unittest.TestCase):
+    now = datetime(2026, 11, 3, 22, 0, tzinfo=IST)
+
+    def _cycle(self, items):
+        d = daemon_with(None)
+        d.cycle_count = d.total_dispatched = 0
+        d.state.pending_items = None
+        d.state.is_seen.return_value = False
+        d.poll_all_sources = lambda **k: items
+        d.prepare_items = lambda items, **k: items
+        d.clock = lambda: self.now
+        d.outbox = MagicMock(); d.outbox.has.return_value = False
+        d._compose = MagicMock(); d._trace = MagicMock()
+        for f in ("check_morning_pack", "check_ipo_listings", "check_fii_dii_routine"):
+            setattr(d, f, MagicMock())
+        d.release_due = MagicMock(return_value=0)
+        d.process_cycle()
+        return d
+
+    def test_todays_deal_snapshot_is_backlog_on_late_fresh_start(self):
+        deal = {"id": "DEAL_x", "source": "NSE_DEALS", "_backlog_at": "2026-11-03T17:00:00+05:30",
+                "_prebuilt": {"template": "E"}}
+        d = self._cycle([deal])
+        d._compose.assert_not_called()
+        d.state.mark_seen.assert_called_once_with("DEAL_x", "NSE_DEALS")
+
+    def test_fresh_filing_still_posts(self):
+        d = self._cycle([{"id": "BSE_n", "source": "BSE", "published_at": "2026-11-03T21:55:00+05:30"}])
+        d._compose.assert_called_once()
+
+    def test_evening_flows_are_backlog_on_late_fresh_start(self):
+        import datetime as dtmod
+        d = daemon_with(None)
+        d._cutoff = self.now - timedelta(minutes=20)
+        d.state.is_seen.side_effect = lambda k, *a, **kw: d.state.mark_seen.called
+        with patch("src.daemon.datetime") as dt:
+            dt.now.return_value = self.now.astimezone(dtmod.timezone.utc)
+            d.check_fii_dii_routine()
+        d.state.mark_seen.assert_called_once_with("FII_DII_03-NOV-2026", "NSE_FLOWS")
+
+
+class CrossExchangeRepeat(unittest.TestCase):
+    def test_same_filing_from_second_exchange_is_not_reposted(self):
+        from src.scheduler import Outbox, Pending
+        now = datetime(2026, 11, 3, 22, 1, tzinfo=IST)
+        o = Outbox()
+        text = "This is to inform that Ministry of Power has conveyed the appointment of Shri Anupam Kumar as Government Nominee Director"
+        a = Pending(key="BSE_1", company="Power Grid Corporation of India Ltd", event="MANAGEMENT CHANGE",
+                    header="h", bullets=[text.replace("Shri", "Shri ")], discovered=now)
+        o.put(a); o.due(now)
+        b = Pending(key="NSE_1", company="Power Grid Corporation of India Ltd", event="MANAGEMENT CHANGE",
+                    header="h", bullets=[text.replace(" as ", " as &quot;") + " with immediate effect"], discovered=now)
+        self.assertEqual(o.put(b), "MERGED_ALREADY_SENT")
