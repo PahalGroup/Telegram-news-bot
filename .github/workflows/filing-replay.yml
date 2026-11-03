@@ -8,6 +8,7 @@ on:
       - 'tests/fixtures/public_filings.json'
       - 'scripts/replay_public_filings.py'
       - 'scripts/inspect_public_failures.py'
+      - 'scripts/inspect_blocked_pdfs.py'
       - 'tests/fixtures/public_failure_review.json'
       - '.github/workflows/filing-replay.yml'
 permissions:
@@ -26,6 +27,8 @@ jobs:
       - run: python scripts/replay_public_filings.py
       - run: python scripts/inspect_public_failures.py
         if: always()
+      - run: python scripts/inspect_blocked_pdfs.py
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -33,4 +36,5 @@ jobs:
           path: |
             filing-replay.json
             public-failure-review.json
+            blocked-pdf-review.json
           retention-days: 7
