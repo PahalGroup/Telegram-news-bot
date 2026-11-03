@@ -1,7 +1,7 @@
 """One GitHub Actions shift of the market wire.
 
-Three scheduled runs a day (07:00, 13:00, 19:00 IST) chain into one 07:00–23:00 IST
-window. Each shift runs until the next slot starts (and never past 23:00 IST or the
+Three scheduled runs a day (07:00, 13:00, 19:00 IST) chain into one 07:00–23:30 IST
+window. Each shift runs until the next slot starts (and never past 23:30 IST or the
 6 h job limit), polling every POLL_INTERVAL seconds (15). State lives in data/ and
 state/, which the workflow restores from and saves to the Actions cache, so a later
 shift never reposts what an earlier one sent. Quiet hours are enforced here (no shift
@@ -19,19 +19,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 IST = timezone(timedelta(hours=5, minutes=30))
 SLOTS = (7, 13, 19)          # shift starts, IST
-WINDOW_END = 23              # last post time, IST
+WINDOW_END = (23, 30)        # last post time, IST
 MAX_SHIFT = 350 * 60         # GitHub's job limit is 360 min; leave room to save state
 HANDOFF = 120                # end this many seconds before the next shift's slot
 
 
 def shift_seconds(now: datetime) -> int:
-    """Seconds this shift should run, or 0 outside 07:00–23:00 IST."""
+    """Seconds this shift should run, or 0 outside 07:00–23:30 IST."""
     now = now.astimezone(IST)
-    if not (SLOTS[0] <= now.hour < WINDOW_END):
+    close = now.replace(hour=WINDOW_END[0], minute=WINDOW_END[1], second=0, microsecond=0)
+    if not (now.hour >= SLOTS[0] and now < close):
         return 0
-    ends = [now.replace(hour=h, minute=0, second=0, microsecond=0) for h in SLOTS[1:] + (WINDOW_END,)]
+    ends = [now.replace(hour=h, minute=0, second=0, microsecond=0) for h in SLOTS[1:]] + [close]
     end = next(e for e in ends if e > now)
-    if end.hour != WINDOW_END:
+    if end != close:
         end -= timedelta(seconds=HANDOFF)
     return max(0, min(int((end - now).total_seconds()), MAX_SHIFT))
 
@@ -45,7 +46,7 @@ def main():
     if a.max_minutes:
         secs = min(secs, a.max_minutes * 60)
     if secs <= 0:
-        logging.info("Outside 07:00–23:00 IST; nothing to do.")
+        logging.info("Outside 07:00–23:30 IST; nothing to do.")
         return
     from src.daemon import RealtimeDaemon
     logging.info("Shift of %s s, poll %s s, dry_run=%s", secs, os.getenv("POLL_INTERVAL", "15"), a.dry_run)

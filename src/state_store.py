@@ -31,6 +31,7 @@ class StateStore:
         os.makedirs(os.path.dirname(self.json_state_path), exist_ok=True)
         
         self.seen_ids: Set[str] = set()
+        self.last_cycle_at = None          # ISO time of the last completed cycle (backlog guard)
         self.semantic_hashes: Set[str] = set()
         self.published_records: List[Dict[str, Any]] = []
         self.event_cooldowns: Dict[str, float] = {}
@@ -120,6 +121,7 @@ class StateStore:
                         self.event_cooldowns[k] = float(v)
                     self.published_records = data.get("published_records", [])[-200:]
                     self.pending_deliveries = data.get("pending_deliveries", {})
+                    self.last_cycle_at = data.get("last_cycle_at")
                     self.pending_items = {k: v for k, v in data.get("pending_items", {}).items()
                                           if k not in self.seen_ids}
                     logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
@@ -182,6 +184,7 @@ class StateStore:
             "semantic_hashes": sorted(self.semantic_hashes),
             "event_cooldowns": dict(sorted(self.event_cooldowns.items())),
             "published_records": self.published_records[-200:],
+            "last_cycle_at": self.last_cycle_at,
         }
         temp_path = None
         try:

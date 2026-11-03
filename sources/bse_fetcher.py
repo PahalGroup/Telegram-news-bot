@@ -31,7 +31,11 @@ class BSEFetcher:
         seen_ids = set()
         self.last_health = {"pages_ok": [], "page_errors": {}, "rejected_dates": 0}
 
+        prev = getattr(self, "_prev_ids", set())
+        overlap = False
         for page in (1, 2, 3):
+            if page > 1 and overlap:
+                break          # page 1 already reached last poll's items; deeper pages are known
             payload = {
                 "pageno": page,
                 "strCat": "-1",
@@ -61,6 +65,8 @@ class BSEFetcher:
                             news_dt = item.get("NEWS_DT", "").strip()
                             newsid = str(item.get("NEWSID") or item.get("SCRIP_CD") or raw_subj)
 
+                            if newsid in prev:
+                                overlap = True
                             if newsid in seen_ids:
                                 continue
                             seen_ids.add(newsid)
@@ -139,5 +145,7 @@ class BSEFetcher:
 
         if not self.last_health["pages_ok"]:
             raise RuntimeError("All BSE announcement pages failed")
+        if 1 in self.last_health["pages_ok"]:
+            self._prev_ids = seen_ids
         return all_parsed
 

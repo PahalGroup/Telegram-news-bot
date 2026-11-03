@@ -1,4 +1,4 @@
-name: Tests and source probes
+name: Tests and source checks
 
 # Posting runs in market-wire.yml (chained Actions shifts). This workflow
 # only runs tests and read-only source probes.
@@ -6,7 +6,7 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '17 1-17 * * 1-5'   # hourly 06:47–22:47 IST on weekdays: probes only
+    - cron: '17 1-17 * * 1-5'   # hourly 06:47–22:47 IST on weekdays: never posts
   workflow_dispatch:
 
 permissions:
