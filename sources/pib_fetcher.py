@@ -44,3 +44,20 @@ class PIBFetcher:
         if not items and "PRID=" not in r.text:
             raise RuntimeError("PIB page layout changed: no releases found")
         return items
+
+
+OG_DESC = re.compile(r'<meta property="og:description" content="([^"]*)"')
+MARKET_TITLE = re.compile(r"\bcabinet\b|approv|\bGST\b|tariff|\brepo\b|inflation|\bCPI\b|\bWPI\b|\bGDP\b|\bIIP\b|"
+                          r"exports?|imports?|disinvest|\bPLI\b|fiscal|borrowing|tax|duty|\bFDI\b|policy|"
+                          r"crore|lakh|%|\bMoU\b|agreement|scheme|auction|tender", re.I)
+
+
+def detail_summary(page: str) -> str:
+    """The release body is rendered client-side; the og:description carries its lead sentence."""
+    m = OG_DESC.search(page or "")
+    return re.sub(r"\s+", " ", html.unescape(m.group(1))).strip() if m else ""
+
+
+def is_market_release(title: str) -> bool:
+    return bool(MARKET_TITLE.search(title or "")) and not re.search(
+        r"english rendering|text of|address at|greets|condoles|pays tributes?|subhashitam|yoga|swachh", title or "", re.I)

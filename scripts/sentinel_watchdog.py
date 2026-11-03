@@ -19,7 +19,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
-from filter_engine import FilterEngine
+from src.filter_engine import FilterEngine  # noqa: F401  (legacy root module removed)
 from scripts.quality_gatekeeper import QualityGatekeeper
 from telegram_dispatcher import TelegramDispatcher
 from dedup_engine import DedupEngine

@@ -11,6 +11,9 @@ from sources.nse_fetcher import NSEFetcher
 from sources.rbi_fetcher import RBIFetcher
 from sources.news_fetcher import NewsFetcher, DISABLED_NEWS_FEEDS
 from sources.liveblog_fetcher import LiveBlogFetcher
+from sources.pib_fetcher import PIBFetcher
+from sources.x_fetcher import XFetcher
+from sources.market_cues import fetch_cues
 
 def main():
     bse = BSEFetcher()
@@ -22,7 +25,15 @@ def main():
         'rbi': rbi.fetch_press_releases,
         'rss': news.fetch_all_feeds,
         'liveblog': lambda: LiveBlogFetcher().fetch_live_flashes(),
+        'nse_large_deals': lambda: NSEFetcher().fetch_large_deals(),     # may be empty before 09:15 IST
+        'nse_ipo_past_issues': lambda: NSEFetcher().fetch_past_issues(),
+        'pib_releases': lambda: PIBFetcher().fetch_releases(),
+        'rbi_speeches': lambda: RBIFetcher().fetch_speeches(),
+        'market_cues': lambda: list(fetch_cues().items()),               # Yahoo + NSE GIFT Nifty
     }
+    x = XFetcher()
+    if x.enabled:
+        calls['x_official'] = x.fetch_recent
     def probe(pair):
         name, call = pair
         started = time.monotonic()
@@ -33,6 +44,8 @@ def main():
                 result['pages'] = bse.last_health
                 if bse.last_health.get('page_errors'):
                     result['status'] = 'degraded'
+            if name == 'market_cues' and count < 8:
+                result['status'] = 'degraded'
             if name == 'rbi':
                 result['date_diagnostics'] = rbi.last_health
             if name == 'rss':
@@ -46,6 +59,8 @@ def main():
         return name, dict(result, elapsed_seconds=round(time.monotonic()-started, 3))
     with ThreadPoolExecutor(max_workers=5) as pool:
         results = dict(pool.map(probe, calls.items()))
+    if 'x_official' not in calls:
+        results['x_official'] = {'status': 'disabled', 'note': 'X_BEARER_TOKEN not set'}
     report = {'checked_at_utc': datetime.now(timezone.utc).isoformat(), 'sources': results,
               'note': 'Empty is not proof of health. This is connectivity, not coverage or latency validation.'}
     print(json.dumps(report, indent=2))

@@ -503,7 +503,8 @@ class FilterEngine:
                     "rejection_reason": "" if quotes else "MISSING_EXPLICIT_BENCHMARK_PRICE",
                 }
             clean_title = re.sub(r'<[^>]+>', '', title).strip()
-            headline = clean_title.upper() if len(clean_title) < 70 else self._truncate_clean(clean_title, 65).upper()
+            # Headlines keep their source casing and are never truncated.
+            headline = clean(clean_title)
 
             # A bond-rate announcement needs the announced coupon, not just its
             # calculation background or fixed spread. Keep dates and rate verbatim.
@@ -549,7 +550,7 @@ class FilterEngine:
                         points.append(p)
                 return {
                     "publish": bool(points), "materiality_score": 92 if points else 0,
-                    "category": category, "headline": clean_title.upper(),
+                    "category": category, "headline": clean(clean_title),
                     "summary_points": points[:3], "key_metrics": [], "what_it_means": "",
                     "rejection_reason": "" if points else "AUCTION_REQUIRES_EXPLICIT_AMOUNT_AND_UNIT",
                 }

@@ -90,6 +90,7 @@ class ObserverTests(unittest.TestCase):
         from src.daemon import RealtimeDaemon
         from scripts.shadow_smoke import run_status
         daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(daemon)
         for name in ('bse', 'nse', 'rbi', 'news', 'liveblog'):
             setattr(daemon, name, MagicMock())
         daemon.news.last_health = {}

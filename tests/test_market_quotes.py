@@ -73,6 +73,7 @@ class QuoteDeliveryTests(unittest.TestCase):
         self.db = str(Path(self.tmp.name) / 'wire.db')
         self.snapshot = str(Path(self.tmp.name) / 'state.json')
         d = self.daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(self.daemon)
         d.state = StateStore(self.db, self.snapshot)
         d.dry_run = False
         d.cycle_count = d.total_dispatched = d.total_errors = 0

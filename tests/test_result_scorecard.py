@@ -41,7 +41,7 @@ class RealStatements(unittest.TestCase):
     def test_hand_values(self):
         card = parse_document(fitz.open(FIX / "chambal_ccd9.pdf"))
         text = format_scorecard("Chambal Fertilisers & Chemicals Ltd", card)
-        self.assertIn("<b>CHAMBAL FERTILISERS &amp; CHEMICALS Q2 FY27 (STANDALONE) RESULTS</b>", text)
+        self.assertIn("<b>Chambal Fertilisers &amp; Chemicals Ltd – Q2 FY27 RESULTS</b>\n<i>Standalone</i>", text)
         self.assertIn("• Revenue: ₹6,999.46 Cr ↑9.1% YoY | ↑39.2% QoQ", text)
         self.assertIn("• Net Profit: ₹634.95 Cr ↑5.5% YoY | ↓9.7% QoQ", text)
 

@@ -2,7 +2,7 @@
 Pixel-Accurate Telegram Formatting Engine (src/formatter.py)
 Replicates Reference Channel (stock_aaj_or_kal) visual layout:
 - Tight single-line spacing (zero excessive blank lines)
-- Bold uppercase header: <b>COMPANY – ACTION</b>
+- Bold header: <b>{Company} Ltd – {EVENT}</b>; only the event label is in caps, never truncated
 - Institutional Brokerage format:
     💡 <b>HOUSE ON STOCK</b>
     Rating: BUY | Target: ₹XXXX
@@ -101,7 +101,7 @@ class Formatter:
 
         # 2. Policy & Macro / Breaking News
         if category == "POLICY_MACRO":
-            clean_hl = cls.sanitize(headline.upper())
+            clean_hl = cls.sanitize(headline)
             lines = [f"<b>{clean_hl}</b>"]
             for pt in summary_points:
                 clean_pt = cls.sanitize(pt.strip())
@@ -111,7 +111,7 @@ class Formatter:
 
         # 3. Financial Results Scorecard (Exact Match with Reference Channel)
         if category == "FINANCIAL_RESULTS" and any(pt.startswith(("Net Profit:", "Revenue:", "EBITDA:")) for pt in summary_points):
-            clean_hl = cls.sanitize(headline.upper())
+            clean_hl = cls.sanitize(headline)
             lines = [f"<b>{clean_hl}</b>\n"]
             for pt in summary_points:
                 clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
@@ -120,7 +120,7 @@ class Formatter:
             return "\n\n".join([lines[0].strip()] + lines[1:]).strip()
 
         # 4. Standard Corporate Filings & Results
-        clean_hl = cls.sanitize(headline.upper())
+        clean_hl = cls.sanitize(headline)
         lines = [f"<b>{clean_hl}</b>"]
         for pt in summary_points:
             clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))

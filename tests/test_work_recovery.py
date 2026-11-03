@@ -26,6 +26,7 @@ class WorkRecoveryTests(unittest.TestCase):
 
     def daemon(self, state):
         d = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(d)
         d.state = state
         d.dry_run = False
         d.total_errors = d.total_dispatched = d.cycle_count = 0

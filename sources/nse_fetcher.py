@@ -96,14 +96,29 @@ def large_deals(snapshot, min_cr=DEAL_MIN_CR):
     return sorted(deals, key=lambda d: -d["value_cr"])
 
 
+def _side_session(self):
+    """Own session for deals/IPO calls: they run in a different pool thread from announcements."""
+    if getattr(self, "_side", None) is None:
+        self._side = requests.Session(impersonate="chrome120")
+        self._side.get("https://www.nseindia.com", timeout=10)
+    return self._side
+
+
 def _fetch_large_deals(self):
-    if not self._warm:
-        self._warmup()
-    r = self.session.get("https://www.nseindia.com/api/snapshot-capital-market-largedeal",
-                         headers={"Referer": "https://www.nseindia.com/market-data/large-deals"}, timeout=12)
+    r = _side_session(self).get("https://www.nseindia.com/api/snapshot-capital-market-largedeal",
+                                headers={"Referer": "https://www.nseindia.com/market-data/large-deals"}, timeout=12)
     if r.status_code != 200:
         raise RuntimeError(f"NSE large deals HTTP {r.status_code}")
     return large_deals(r.json())
 
 
+def _fetch_past_issues(self):
+    r = _side_session(self).get("https://www.nseindia.com/api/public-past-issues",
+                                headers={"Referer": "https://www.nseindia.com/market-data/all-upcoming-issues-ipo"}, timeout=12)
+    if r.status_code != 200:
+        raise RuntimeError(f"NSE past issues HTTP {r.status_code}")
+    return r.json()
+
+
 NSEFetcher.fetch_large_deals = _fetch_large_deals
+NSEFetcher.fetch_past_issues = _fetch_past_issues

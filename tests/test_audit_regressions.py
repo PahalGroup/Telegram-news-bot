@@ -100,8 +100,8 @@ class AuditTests(unittest.TestCase):
             "title": "RBI to conduct 3-day variable rate repo auction",
             "description": "Notified amount: Rs 200000 crore. Tenor 3 days.",
         })
-        self.assertNotIn("4-DAY", result["headline"])
-        self.assertIn("3-DAY", result["headline"])
+        self.assertNotIn("4-day", result["headline"])
+        self.assertIn("3-day", result["headline"])
 
     def test_placeholder_footer_cannot_make_post_complete(self):
         post = Formatter.format_post({
@@ -170,7 +170,8 @@ class PipelineAuditTests(unittest.TestCase):
         done = Future()
         done.set_result([{"symbol": "ABC", "seq_id": "123", "desc": "Contract awarded"}])
         daemon._source_pool = MagicMock()
-        daemon._source_pending = {name: pending for name in ("bse", "rbi", "news", "liveblog")}
+        daemon._source_pending = {name: pending for name in ("bse", "rbi", "news", "liveblog",
+                                                             "deals", "pib", "rbi_speeches")}
         daemon._source_pending["nse"] = done
         items = RealtimeDaemon.poll_all_sources(daemon)
         self.assertEqual([item["id"] for item in items], ["NSE_ABC_123"])

@@ -129,7 +129,9 @@ class BSEFetcher:
                                 "more": more,
                                 "news_dt": news_dt,
                                 "newsid": newsid,
-                                "pdf_url": pdf_url
+                                "pdf_url": pdf_url,
+                                "subcat": item.get("SUBCATNAME", "") or "",
+                                "category": item.get("CATEGORYNAME", "") or "",
                             })
             except Exception as e:
                 logger.warning(f"BSE primary page {page} failed ({e})")

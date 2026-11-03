@@ -42,6 +42,7 @@ class Pending:
     published: Optional[datetime] = None
     tail: str = ""                      # e.g. source link
     ids: List[str] = field(default_factory=list)
+    meta: dict = field(default_factory=dict)       # delivery bookkeeping per source item
 
     def text(self):
         body = [self.header] + [f"• {b}" for b in self.bullets]
@@ -79,6 +80,7 @@ class Outbox:
                 if b.casefold() not in {x.casefold() for x in q.bullets} and len(q.bullets) < self.max_bullets:
                     q.bullets.append(b)
             q.ids.extend(p.ids)
+            q.meta.update(p.meta)
             return "MERGED_QUEUED"
         sent = self.recent.get(k)
         if sent and p.discovered - sent[0] <= MERGE_WINDOW:
@@ -89,6 +91,9 @@ class Outbox:
             p.bullets = new
         self.queue[k] = p
         return "QUEUED"
+
+    def has(self, item_id) -> bool:
+        return any(item_id in p.ids for p in self.queue.values())
 
     def due(self, now: datetime) -> Optional[Pending]:
         """Pop the oldest post if pacing and the active window allow it."""
@@ -110,3 +115,30 @@ class Outbox:
         for p in stale:
             self.queue.pop(self.merge_key(p.company, p.event), None)
         return stale
+
+
+def parse_time(value) -> Optional[datetime]:
+    """Best-effort parse of the timestamps the sources emit; naive values are IST."""
+    from email.utils import parsedate_to_datetime
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        s = str(value).strip()
+        dt = None
+        try:
+            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except ValueError:
+            for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y %H:%M", "%d %b %Y %H:%M:%S", "%d-%m-%Y %H:%M:%S"):
+                try:
+                    dt = datetime.strptime(s, fmt)
+                    break
+                except ValueError:
+                    pass
+            if dt is None:
+                try:
+                    dt = parsedate_to_datetime(s)
+                except (TypeError, ValueError):
+                    return None
+    return dt.replace(tzinfo=IST) if dt.tzinfo is None else dt.astimezone(IST)

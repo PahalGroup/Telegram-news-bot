@@ -220,7 +220,7 @@ class StateStore:
         # Only public source fields belong in a recovery snapshot, never clients,
         # credentials, futures or arbitrary caller metadata.
         fields = ("id", "source", "company", "title", "description", "pdf_url",
-                  "raw_subject", "source_url", "published_at")
+                  "raw_subject", "source_url", "published_at", "subcat")
         if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not item["id"]:
             raise ValueError("Pending item needs a string ID")
         result = {k: item[k] for k in fields if k in item and item[k] is not None}
@@ -330,13 +330,18 @@ class StateStore:
         except Exception as e:
             self._fail("Cannot persist deduplication ledger; delivery stopped", e)
 
-    def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None, result_event=None):
-        """Log a successfully dispatched Telegram announcement."""
+    def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None, result_event=None,
+                         **extra):
+        """Log a successfully dispatched Telegram announcement.
+
+        `extra` (ts, company, event, lead) feeds the next morning's Stocks in Focus post.
+        """
         rec = {
             "item_id": str(item_id),
             "headline": headline,
             "category": category
         }
+        rec.update({k: v for k, v in extra.items() if v is not None})
         if market_quote_event is not None:
             from src.market_quotes import validate_event
             validate_event(market_quote_event)

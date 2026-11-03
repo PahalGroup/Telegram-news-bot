@@ -60,6 +60,7 @@ class PublicationIdentityTests(unittest.TestCase):
         self.db = str(Path(self.tmp.name) / 'wire.db')
         self.snapshot = str(Path(self.tmp.name) / 'state.json')
         self.daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(self.daemon)
         d = self.daemon
         d.state = StateStore(self.db, self.snapshot)
         d.dry_run = False

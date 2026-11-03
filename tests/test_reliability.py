@@ -22,6 +22,7 @@ class ReliabilityTests(unittest.TestCase):
 
     def daemon(self, delivery=123):
         daemon = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(daemon)
         daemon.dry_run = False
         daemon.state = self.state
         daemon.dispatcher = MagicMock()

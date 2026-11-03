@@ -389,8 +389,8 @@ def format_scorecard(company, card):
     m = card["metrics"]
     if "revenue" not in m or "pat" not in m:
         return ""
-    name = company_name(company)
-    lines = [f"<b>{_h.escape(name)} {card['period']} ({card['scope']}) RESULTS</b>"]
+    from src.editorial import header
+    lines = [header(company, f"{card['period']} RESULTS"), f"<i>{card['scope'].title()}</i>"]
     lines.append(metric_line("Revenue", m["revenue"]))
     if "ebitda" in m:
         lines.append(metric_line("EBITDA", m["ebitda"]))

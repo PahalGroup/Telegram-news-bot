@@ -76,7 +76,8 @@ NUMBER = re.compile(AMOUNT.pattern + r"|\b\d+(?:\.\d+)?\s*%|\b\d[\d,]*(?:\.\d+)?
 DECISION = re.compile(r"\b(?:approved|appointed|re-?appointed|resigned|resignation|ceased?|elevated|designated|"
                       r"upgraded|downgraded|reaffirmed|assigned|revised|withdrawn|placed\s+on\s+(?:watch|credit\s+watch)|"
                       r"acquired?|acquisition|signed|entered\s+into|completed|allotted|raised|declared|recommended|"
-                      r"awarded|received|bagged|secured|won|terminated|cancelled)\b", re.I)
+                      r"awarded|received|bagged|secured|won|terminated|cancelled|"
+                      r"approves?|appoints?|wins?|bags?|secures?|receives?|acquires?|signs?|declares?|raises?|allots?)\b", re.I)
 
 
 def classify(item, rules) -> Event:

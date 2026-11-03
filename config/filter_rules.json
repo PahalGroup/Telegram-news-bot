@@ -343,7 +343,7 @@
         "rule": "result"
       },
       "ORDER WIN": {
-        "match": "award of order|receipt of order|bags? .*order|secures? .*order|wins? .*order|letter of (?:award|intent)|\\bLoA\\b|\\bLoI\\b",
+        "match": "award of (?:order|contract)|receipt of order|bags? .*(?:order|contract)|secures? .*(?:order|contract)|wins? .*(?:order|contract)|contract award|letter of (?:award|intent)|\\bLoA\\b|\\bLoI\\b",
         "rule": "needs_number"
       },
       "CREDIT RATING": {

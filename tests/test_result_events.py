@@ -17,6 +17,7 @@ class ResultEventTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.snapshot = str(Path(self.tmp.name) / 'state.json')
         d = self.d = RealtimeDaemon.__new__(RealtimeDaemon)
+        __import__('tests.support').support.install(self.d)
         d.state = StateStore(str(Path(self.tmp.name) / 'wire.db'), self.snapshot)
         d.dry_run = False
         d.cycle_count = d.total_dispatched = d.total_errors = 0
