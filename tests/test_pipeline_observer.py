@@ -110,3 +110,37 @@ class ObserverTests(unittest.TestCase):
         self.assertEqual(run_status(None, 0, 1, 0), 'incomplete')
         self.assertEqual(run_status(None, 0, 0, 1), 'incomplete')
         self.assertEqual(run_status(None, 0, 0, 0), 'completed')
+
+
+class SmokeBacklogStatus(unittest.TestCase):
+    def test_blocked_pdfs_do_not_make_the_smoke_incomplete(self):
+        from types import SimpleNamespace
+        from scripts.shadow_smoke import open_backlog, run_status
+        d = SimpleNamespace(_pdf_backlog={"a": {}, "b": {}}, _pdf_blocked={"a": "PDF_SIZE_LIMIT_EXCEEDED", "b": "NO_RELIABLE_PDF_EVIDENCE"})
+        self.assertEqual(open_backlog(d), 0)
+        self.assertEqual(run_status(None, 0, 0, 0, open_backlog(d)), "completed")
+        d._pdf_backlog["c"] = {}
+        self.assertEqual(run_status(None, 0, 0, 0, open_backlog(d)), "incomplete")
+
+
+class ManagementRedesignationEvidence(unittest.TestCase):
+    def test_change_in_designation_is_publishable(self):
+        from src.event_evidence import evaluate_event
+        text = ("The Board on Tuesday, November 3, 2026 has, inter- alia, considered and approved the change in designation of "
+                "Mr. Rajesh Sharma (DIN: 00515486) from Executive Chairman to Non- Executive Non-Independent Chairman of the "
+                "Company with effect from January 1, 2027.")
+        result = evaluate_event('MANAGEMENT_CHANGE', 'Ion Exchange', 'Change in Management', text)
+        self.assertTrue(result['publish'], result['rejection_reason'])
+
+    def test_unnamed_designation_change_still_withheld(self):
+        from src.event_evidence import evaluate_event
+        result = evaluate_event('MANAGEMENT_CHANGE', 'X', 'Change in Management',
+                                'The company informed about change in designation of a director.')
+        self.assertFalse(result['publish'])
+
+    def test_postal_ballot_mention_does_not_drop_redesignation(self):
+        from src.filter_engine import FilterEngine
+        text = ("considered and approved the change in designation of Mr. Rajesh Sharma from Executive Chairman. "
+                "The Company will seek shareholders' approval through postal ballot.")
+        self.assertFalse(FilterEngine.should_drop(text))
+        self.assertTrue(FilterEngine.should_drop("Notice of postal ballot for shareholders"))
