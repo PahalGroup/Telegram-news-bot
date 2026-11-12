@@ -467,9 +467,17 @@ class RealtimeDaemon:
                     continue
                 if len(self._pdf_pending) >= 32:
                     if key not in self._pdf_backlog and len(self._pdf_backlog) >= 512:
-                        self.total_errors += 1
-                        self._trace("queue_overflow", item, "PDF_BACKLOG_LIMIT_EXCEEDED")
-                        raise RuntimeError("PDF backlog limit exceeded; unprocessed filings require recovery")
+                        # Evict withheld or oldest deferrals so a stale queue cannot
+                        # abort the shift. Sources will rediscover still-live filings.
+                        for old_key in list(self._pdf_backlog):
+                            if old_key in self._pdf_blocked:
+                                self._pdf_backlog.pop(old_key, None)
+                            if len(self._pdf_backlog) < 512:
+                                break
+                        if len(self._pdf_backlog) >= 512:
+                            self._pdf_backlog.pop(next(iter(self._pdf_backlog)), None)
+                        logger.warning("PDF backlog at capacity; evicted stale deferrals to keep the shift alive")
+                        self._trace("queue_overflow", item, "PDF_BACKLOG_EVICTED")
                     self._pdf_backlog[key] = item
                     self._pdf_outcomes["queue_full_deferrals"] += 1
                     self._trace("queue_deferred", item, "PDF_QUEUE_FULL")
@@ -571,7 +579,17 @@ class RealtimeDaemon:
         now = self.clock()
         prebuilt = [it for it in raw_items if "_prebuilt" in it]
         raw_items = [it for it in raw_items if "_prebuilt" not in it]
+        cutoff = self._backlog_cutoff(now)
         if isinstance(getattr(self.state, "pending_items", None), dict):
+            stale = []
+            for key, entry in list(self.state.pending_items.items()):
+                item = (entry or {}).get("item") or {}
+                published = parse_time(item.get("published_at") or item.get("_backlog_at"))
+                if cutoff and published and published < cutoff:
+                    stale.append(key)
+            dropped = self.state.prune_pending(stale_ids=stale)
+            if dropped:
+                logger.info("Pruned %s stale pending journal items on fresh start", dropped)
             warm_start = {item.get("id"): item.get("_warm_start", False) for item in raw_items}
             self.state.stage_items(raw_items)
             # Work on copies: PDF extraction must not rewrite the recovery source evidence.
@@ -582,7 +600,6 @@ class RealtimeDaemon:
             self._trace("discovered", it)
         items = list(items) + prebuilt
 
-        cutoff = self._backlog_cutoff(now)
         for it in items:
             item_id = it.get("id")
             if not item_id or self.state.is_seen(item_id) or self.outbox.has(item_id):
@@ -854,14 +871,20 @@ class RealtimeDaemon:
                 self._source_pool.shutdown(wait=True, cancel_futures=True)
                 # Completed end-of-shift requests must survive the next runner.
                 # Only checkpoint here; shutdown never starts another delivery.
-                self.state.stage_items(self.poll_all_sources(submit_sources=False))
+                try:
+                    self.state.stage_items(self.poll_all_sources(submit_sources=False))
+                except Exception:
+                    logger.exception("End-of-shift source checkpoint failed; state will still be saved")
             if getattr(self, "_pdf_pool", None):
                 self._pdf_pool.shutdown(wait=True, cancel_futures=True)
             self.state.save_state(sync_git=False)
         logger.info("Daemon finished. Cycles: %s, Dispatched: %s, Errors: %s",
                     self.cycle_count, self.total_dispatched, self.total_errors)
+        # Transient source timeouts must not fail the job after a successful
+        # shift: a red X does not start the next chunk and hid an 8-day outage.
         if self.total_errors:
-            raise RuntimeError("Daemon encountered errors; inspect the run log.")
+            logger.warning("Daemon finished with %s non-fatal errors; inspect the run log.",
+                           self.total_errors)
 
 
 def main():

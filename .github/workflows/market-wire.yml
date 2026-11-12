@@ -1,8 +1,9 @@
 name: Market wire (posting shifts)
 
-# Posting runs only on GitHub Actions: three chained shifts of about 6 h cover
-# 07:00–23:30 IST (01:30, 07:30, 13:30 UTC). BSE every 10 s, NSE every 15 s. data/ and state/
-# are restored from and saved to the Actions cache so nothing is reposted across runs.
+# Posting runs only on GitHub Actions. Cron at 07:00, 13:00 and 19:00 IST plus a
+# 15-minute watchdog start the first chunk; each chunk runs up to 50 minutes, saves
+# state, and chains the next until 23:30 IST. BSE every 10 s, NSE every 15 s. State
+# is restored from and saved to the Actions cache so nothing is reposted across runs.
 on:
   schedule:
     - cron: '30 1 * * *'    # 07:00 IST
@@ -20,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: market-wire          # one shift at a time; the next waits for state to be saved
@@ -28,7 +30,7 @@ concurrency:
 jobs:
   shift:
     runs-on: ubuntu-latest
-    timeout-minutes: 358
+    timeout-minutes: 60
     env:
       TZ: Asia/Kolkata
       POLL_INTERVAL: '10'
@@ -75,3 +77,9 @@ jobs:
             data
             state
           retention-days: 7
+      - name: Chain next chunk
+        if: always() && !cancelled()
+        env:
+          GH_TOKEN: ${{ secrets.BOT_PAT || github.token }}
+          CHAIN_REF: ${{ github.ref_name }}
+        run: python scripts/chain_shift.py

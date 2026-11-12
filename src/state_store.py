@@ -233,16 +233,52 @@ class StateStore:
             raise ValueError("Pending item too large")
         return result
 
+    def prune_pending(self, stale_ids=None):
+        """Free journal slots held by already-decided or abandoned work.
+
+        Terminal withheld PDFs and fresh-start backlog must not sit in the
+        retry journal forever: once it fills, every later shift dies on start.
+        """
+        stale_ids = set(stale_ids or [])
+        dropped = 0
+        for key, entry in list(self.pending_items.items()):
+            reason = (entry or {}).get("blocked_reason") or ""
+            if key in self.seen_ids or key in stale_ids:
+                self.mark_seen(key, (entry or {}).get("item", {}).get("source") or "BACKLOG")
+                dropped += 1
+            elif reason:
+                # Held for review: keep while there is room, evict when stale_ids
+                # asked us to (caller only puts blocked keys here when reclaiming).
+                pass
+        return dropped
+
+    def evict_terminal_pending(self, needed=0):
+        """Drop withheld items until needed slots are free, or none are left."""
+        dropped = 0
+        for key, entry in list(self.pending_items.items()):
+            if len(self.pending_items) + needed <= 1024:
+                break
+            if (entry or {}).get("blocked_reason"):
+                self.mark_seen(key, "PDF_REVIEW")
+                dropped += 1
+        return dropped
+
     def stage_items(self, items):
         """Checkpoint discovery before processing; failed sends stay retryable."""
+        self.prune_pending()
         additions = {}
         for raw in items:
             item = self._work_item(raw)
             key = item["id"]
             if key not in self.seen_ids and key not in self.pending_items:
                 additions[key] = {"item": item, "retry_after": 0, "blocked_reason": ""}
-        if len(self.pending_items) + len(additions) > 1024:
-            raise StateIntegrityError("Pending work journal full; review retained work before continuing")
+        self.evict_terminal_pending(needed=len(additions))
+        room = max(0, 1024 - len(self.pending_items))
+        if len(additions) > room:
+            overflow = list(additions.keys())[room:]
+            logger.warning("Pending journal at capacity; deferring %s new items", len(overflow))
+            for key in overflow:
+                additions.pop(key, None)
         if additions:
             self.pending_items.update(additions)
             self.save_state(sync_git=False)
