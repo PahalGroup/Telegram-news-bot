@@ -21,20 +21,28 @@ IST = timezone(timedelta(hours=5, minutes=30))
 SLOTS = (7, 13, 19)          # shift starts, IST
 WINDOW_END = (23, 30)        # last post time, IST
 MAX_SHIFT = 50 * 60          # short chunks: save state, chain the next, survive runner drops
-HANDOFF = 120                # end this many seconds before the next shift's slot
+
+
+def in_posting_window(now: datetime) -> bool:
+    """True from 07:00 IST inclusive to 23:30 IST exclusive."""
+    now = now.astimezone(IST)
+    start = now.replace(hour=SLOTS[0], minute=0, second=0, microsecond=0)
+    close = now.replace(hour=WINDOW_END[0], minute=WINDOW_END[1], second=0, microsecond=0)
+    return start <= now < close
 
 
 def shift_seconds(now: datetime) -> int:
-    """Seconds this shift should run, or 0 outside 07:00–23:30 IST."""
+    """Seconds this chunk should run, or 0 outside 07:00–23:30 IST.
+
+    Chunks are capped at MAX_SHIFT and may cross the 13:00/19:00 cron slots.
+    The previous handoff (stop 2 minutes before those slots) left a dead zone
+    where chain_shift and a new job both saw 0 seconds and posting stopped.
+    """
     now = now.astimezone(IST)
-    close = now.replace(hour=WINDOW_END[0], minute=WINDOW_END[1], second=0, microsecond=0)
-    if not (now.hour >= SLOTS[0] and now < close):
+    if not in_posting_window(now):
         return 0
-    ends = [now.replace(hour=h, minute=0, second=0, microsecond=0) for h in SLOTS[1:]] + [close]
-    end = next(e for e in ends if e > now)
-    if end != close:
-        end -= timedelta(seconds=HANDOFF)
-    return max(0, min(int((end - now).total_seconds()), MAX_SHIFT))
+    close = now.replace(hour=WINDOW_END[0], minute=WINDOW_END[1], second=0, microsecond=0)
+    return max(0, min(int((close - now).total_seconds()), MAX_SHIFT))
 
 
 def main():

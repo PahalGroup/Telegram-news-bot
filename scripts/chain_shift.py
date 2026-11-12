@@ -9,13 +9,13 @@ import sys
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from scripts.actions_shift import IST, shift_seconds
+from scripts.actions_shift import IST, in_posting_window
 
 WORKFLOW = "market-wire.yml"
 
 
 def main():
-    if shift_seconds(datetime.now(IST)) <= 0:
+    if not in_posting_window(datetime.now(IST)):
         print("outside 07:00-23:30 IST; not chaining")
         return 0
     ref = os.environ.get("CHAIN_REF") or os.environ.get("GITHUB_REF_NAME") or "main"

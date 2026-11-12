@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from scripts.actions_shift import IST, shift_seconds
+from scripts.actions_shift import IST, in_posting_window
 
 WORKFLOW = "market-wire.yml"
 STALE_QUEUED_SECONDS = 15 * 60
@@ -21,7 +21,7 @@ def gh(*args, check=True):
 
 
 def main():
-    if shift_seconds(datetime.now(IST)) <= 0:
+    if not in_posting_window(datetime.now(IST)):
         print("outside 07:00-23:30 IST; watchdog idle")
         return 0
     raw = gh("run", "list", "-w", WORKFLOW, "-L", "20",

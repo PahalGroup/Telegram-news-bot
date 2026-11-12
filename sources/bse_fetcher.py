@@ -23,6 +23,30 @@ class BSEFetcher:
         self.pdf_cache = {}
         self.last_health = {}
 
+    PAGE_TIMEOUT = 20
+    PAGE_ATTEMPTS = 3
+
+    def _get_page(self, payload):
+        """Fetch one BSE announcements page, retrying timeouts and invalid JSON."""
+        last = None
+        page = payload.get("pageno")
+        for attempt in range(1, self.PAGE_ATTEMPTS + 1):
+            try:
+                r = requests.get(self.primary_api, headers=self.headers, params=payload,
+                                 impersonate="chrome", timeout=self.PAGE_TIMEOUT)
+                if r.status_code != 200:
+                    raise RuntimeError(f"BSE HTTP {r.status_code} on page {page}")
+                data = r.json()
+                if not isinstance(data, dict) or not isinstance(data.get("Table"), list):
+                    raise ValueError("BSE response missing announcement Table")
+                return data
+            except Exception as exc:
+                last = exc
+                logger.warning("BSE primary page %s attempt %s failed (%s)", page, attempt, exc)
+                if attempt < self.PAGE_ATTEMPTS:
+                    time.sleep(min(2 ** (attempt - 1), 4))
+        raise last
+
     def fetch_announcements(self, skip_pdf: bool = False) -> List[Dict[str, Any]]:
         """Fetch latest corporate announcements from BSE across recent pages."""
         now_ist = datetime.now(ZoneInfo("Asia/Kolkata"))
@@ -47,98 +71,92 @@ class BSEFetcher:
                 "subcategory": "",
             }
             try:
-                r = requests.get(self.primary_api, headers=self.headers, params=payload, impersonate="chrome", timeout=12)
-                if r.status_code != 200:
-                    raise RuntimeError(f"BSE HTTP {r.status_code} on page {page}")
-                if r.status_code == 200:
-                    data = r.json()
-                    if not isinstance(data, dict) or not isinstance(data.get("Table"), list):
-                        raise ValueError("BSE response missing announcement Table")
-                    items = data["Table"]
-                    self.last_health["pages_ok"].append(page)
-                    if items:
-                        for item in items:
-                            company = item.get("SLONGNAME", "").strip()
-                            raw_subj = item.get("NEWSSUB", "").strip()
-                            headline = item.get("HEADLINE", "").strip()
-                            more = item.get("MORE", "").strip()
-                            news_dt = item.get("NEWS_DT", "").strip()
-                            newsid = str(item.get("NEWSID") or item.get("SCRIP_CD") or raw_subj)
+                data = self._get_page(payload)
+                items = data["Table"]
+                self.last_health["pages_ok"].append(page)
+                if items:
+                    for item in items:
+                        company = item.get("SLONGNAME", "").strip()
+                        raw_subj = item.get("NEWSSUB", "").strip()
+                        headline = item.get("HEADLINE", "").strip()
+                        more = item.get("MORE", "").strip()
+                        news_dt = item.get("NEWS_DT", "").strip()
+                        newsid = str(item.get("NEWSID") or item.get("SCRIP_CD") or raw_subj)
 
-                            if newsid in prev:
-                                overlap = True
-                            if newsid in seen_ids:
+                        if newsid in prev:
+                            overlap = True
+                        if newsid in seen_ids:
+                            continue
+                        seen_ids.add(newsid)
+
+                        # BSE naive timestamps are India time; retain explicit offsets.
+                        try:
+                            f_dt = datetime.fromisoformat(news_dt.replace("Z", "+00:00"))
+                            if f_dt.tzinfo is None:
+                                f_dt = f_dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
+                            age = (now_ist - f_dt).total_seconds()
+                            if not -120 <= age <= 21600:
+                                raise ValueError("stale or future timestamp")
+                        except (ValueError, TypeError):
+                            self.last_health["rejected_dates"] += 1
+                            continue
+
+                        # Extract clean subject from NEWSSUB: "Company - SCRIP - Subject"
+                        if " - " in raw_subj:
+                            parts = raw_subj.split(" - ")
+                            subj = parts[-1].strip()
+                        else:
+                            subj = raw_subj
+
+                        # Pre-drop check: Do not waste time downloading PDFs for blacklisted paperwork
+                        try:
+                            from src.filter_engine import FilterEngine
+                            pre_check = f"{company} {subj} {raw_subj} {headline}"
+                            if FilterEngine.should_drop(pre_check):
                                 continue
-                            seen_ids.add(newsid)
+                        except Exception:
+                            pass
 
-                            # BSE naive timestamps are India time; retain explicit offsets.
-                            try:
-                                f_dt = datetime.fromisoformat(news_dt.replace("Z", "+00:00"))
-                                if f_dt.tzinfo is None:
-                                    f_dt = f_dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
-                                age = (now_ist - f_dt).total_seconds()
-                                if not -120 <= age <= 21600:
-                                    raise ValueError("stale or future timestamp")
-                            except (ValueError, TypeError):
-                                self.last_health["rejected_dates"] += 1
-                                continue
+                        att_name = item.get("ATTACHMENTNAME", "")
+                        pdf_url = f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/{att_name}" if att_name else None
 
-                            # Extract clean subject from NEWSSUB: "Company - SCRIP - Subject"
-                            if " - " in raw_subj:
-                                parts = raw_subj.split(" - ")
-                                subj = parts[-1].strip()
+                        # Extract structured Regulation 30 bullets directly from PDF attachment
+                        is_target_filing = any(k in f"{subj} {raw_subj} {headline}".lower() for k in [
+                            "order", "contract", "results", "directorate", "board meeting",
+                            "mou", "acquisition", "expansion", "dividend", "qip", "ipo",
+                            "buyback", "financial", "tender", "rating"
+                        ])
+                        if not skip_pdf and is_target_filing and pdf_url and str(pdf_url).lower().endswith(".pdf"):
+                            if att_name in self.pdf_cache:
+                                lead_sum, pdf_bullets = self.pdf_cache[att_name]
                             else:
-                                subj = raw_subj
+                                try:
+                                    from sources.annexure_parser import AnnexureParser
+                                    lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url, self.session)
+                                    self.pdf_cache[att_name] = (lead_sum, pdf_bullets)
+                                except Exception as pe:
+                                    logger.debug(f"BSE PDF parse error for {att_name}: {pe}")
+                                    lead_sum, pdf_bullets = "", []
 
-                            # Pre-drop check: Do not waste time downloading PDFs for blacklisted paperwork
-                            try:
-                                from src.filter_engine import FilterEngine
-                                pre_check = f"{company} {subj} {raw_subj} {headline}"
-                                if FilterEngine.should_drop(pre_check):
-                                    continue
-                            except Exception:
-                                pass
-
-                            att_name = item.get("ATTACHMENTNAME", "")
-                            pdf_url = f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/{att_name}" if att_name else None
-
-                            # Extract structured Regulation 30 bullets directly from PDF attachment
-                            is_target_filing = any(k in f"{subj} {raw_subj} {headline}".lower() for k in [
-                                "order", "contract", "results", "directorate", "board meeting",
-                                "mou", "acquisition", "expansion", "dividend", "qip", "ipo",
-                                "buyback", "financial", "tender", "rating"
-                            ])
-                            if not skip_pdf and is_target_filing and pdf_url and str(pdf_url).lower().endswith(".pdf"):
-                                if att_name in self.pdf_cache:
-                                    lead_sum, pdf_bullets = self.pdf_cache[att_name]
+                            if pdf_bullets:
+                                formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
+                                if lead_sum:
+                                    more = f"{lead_sum}\n" + "\n".join(formatted_b)
                                 else:
-                                    try:
-                                        from sources.annexure_parser import AnnexureParser
-                                        lead_sum, pdf_bullets = AnnexureParser.extract_annexure_bullets(pdf_url, self.session)
-                                        self.pdf_cache[att_name] = (lead_sum, pdf_bullets)
-                                    except Exception as pe:
-                                        logger.debug(f"BSE PDF parse error for {att_name}: {pe}")
-                                        lead_sum, pdf_bullets = "", []
+                                    more = "\n".join(formatted_b)
 
-                                if pdf_bullets:
-                                    formatted_b = [f"• {b}" if not b.startswith(('•', '-', '▪️')) else b for b in pdf_bullets]
-                                    if lead_sum:
-                                        more = f"{lead_sum}\n" + "\n".join(formatted_b)
-                                    else:
-                                        more = "\n".join(formatted_b)
-
-                            all_parsed.append({
-                                "company": company,
-                                "subject": subj,
-                                "raw_subject": raw_subj,
-                                "headline": headline,
-                                "more": more,
-                                "news_dt": news_dt,
-                                "newsid": newsid,
-                                "pdf_url": pdf_url,
-                                "subcat": item.get("SUBCATNAME", "") or "",
-                                "category": item.get("CATEGORYNAME", "") or "",
-                            })
+                        all_parsed.append({
+                            "company": company,
+                            "subject": subj,
+                            "raw_subject": raw_subj,
+                            "headline": headline,
+                            "more": more,
+                            "news_dt": news_dt,
+                            "newsid": newsid,
+                            "pdf_url": pdf_url,
+                            "subcat": item.get("SUBCATNAME", "") or "",
+                            "category": item.get("CATEGORYNAME", "") or "",
+                        })
             except Exception as e:
                 logger.warning(f"BSE primary page {page} failed ({e})")
                 self.last_health["page_errors"][str(page)] = str(e)

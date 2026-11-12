@@ -123,8 +123,14 @@ def _period_label(text, default, when=None):
         per = (m.group(1) or (m.group(3) + m.group(2))).upper()
         yr = m.group(5) or m.group(4)[-2:]
         found.add((per, yr))
-    q = sorted((f for f in found if f[0].startswith("Q")), key=lambda f: (f[1], f[0]))
-    pick = q[-1] if q else (next(iter(found)) if len(found) == 1 else None)
+    # A prior-year quarter used only as a comparison (e.g. "in line with Q2 FY '26")
+    # must not beat a current-year period (e.g. "H1 FY '27") for the title year.
+    pick = None
+    if found:
+        latest = max(int(f[1]) for f in found)
+        at_year = [f for f in found if int(f[1]) == latest]
+        quarters = sorted((f for f in at_year if f[0].startswith("Q")), key=lambda f: f[0])
+        pick = quarters[-1] if quarters else at_year[0]
     if not pick and when is not None:
         y, mth = when.year, when.month
         qe_month = ((mth - 1) // 3) * 3 or 12          # last calendar quarter end before this month
