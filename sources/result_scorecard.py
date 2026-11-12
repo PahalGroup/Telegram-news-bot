@@ -319,12 +319,161 @@ def parse_page(page, doc_has_consolidated=True):
     return out
 
 
+
+def _cell(c):
+    return re.sub(r"\s+", " ", c or "").strip()
+
+
+def _scope_spans(rows):
+    """Column ranges for Standalone / Consolidated groups in a SEBI results grid."""
+    spans = []
+    width = max((len(r) for r in rows), default=0)
+    for row in rows:
+        cells = [_cell(c) for c in row]
+        found = []
+        for i, c in enumerate(cells):
+            if re.fullmatch(r"standalone", c, re.I):
+                found.append(("standalone", i))
+            elif re.fullmatch(r"consolidated", c, re.I):
+                found.append(("consolidated", i))
+        if found:
+            found.sort(key=lambda x: x[1])
+            for n, (scope, start) in enumerate(found):
+                end = found[n + 1][1] if n + 1 < len(found) else width
+                if end - start >= 3:
+                    spans.append((scope, start, end))
+            if spans:
+                return spans
+    return []
+
+
+def _date_row(rows, start, end):
+    best = None
+    for row in rows:
+        cells = [_cell(c) for c in row]
+        dates = [(_last_date(cells[i]) if i < len(cells) else None) for i in range(start, end)]
+        n = sum(d is not None for d in dates)
+        if n >= 3 and (best is None or n > best[0]):
+            best = (n, dates)
+    return best[1] if best else None
+
+
+def _label_and_nums(row, start, end):
+    cells = [_cell(c) for c in row]
+    label = _strip_enum(" ".join(c for c in cells[:start] if c and not NUM.match(c)))
+    nums = {}
+    for i in range(start, min(end, len(cells))):
+        t = cells[i].replace(" ", "")
+        if t and NUM.match(t):
+            nums[i - start] = _value(t)
+    return label, nums
+
+
+def parse_statement_table(page):
+    """Read a results grid, including a side-by-side standalone+consolidated statement.
+
+    Prefers the consolidated column group when both scopes are on the page.
+    """
+    text = page.get_text()
+    unit = statement_unit(text[:3000]) or statement_unit(text) or bare_unit(text)
+    if unit is None:
+        return _fail(3)
+    try:
+        found = page.find_tables()
+        tables = found.tables if found else []
+    except Exception:
+        return None
+    for table in tables:
+        card = _card_from_grid(table.extract(), unit, page.number + 1, text)
+        if card:
+            return card
+    return None
+
+
+def _card_from_grid(rows, unit, page_no, text):
+    if not rows or len(rows) < 6:
+        return None
+    spans = _scope_spans(rows)
+    if not spans:
+        return None
+    spans.sort(key=lambda s: s[0] != "consolidated")
+    scope, start, end = spans[0]
+    dates = _date_row(rows, start, end)
+    if not dates or not dates[0]:
+        return _fail(43)
+    cur = dates[0]
+    idx = {"cur": 0}
+    ytd_start = next((i for i, d in enumerate(dates[1:], 1) if d == cur), None)
+    for i, d in enumerate(dates[1:], 1):
+        if d is None:
+            continue
+        if ytd_start is not None and i >= ytd_start:
+            break
+        gap = _months_between(cur, d)
+        if gap == 3 and "qoq" not in idx:
+            idx["qoq"] = i
+        elif gap == 12 and "yoy" not in idx:
+            idx["yoy"] = i
+    half = not re.search(r"q\s?uarter|three\s+months|3\s*months", text, re.I)
+    if half:
+        idx.pop("qoq", None)
+    period = half_label(cur) if half else quarter_label(cur)
+    if "yoy" not in idx or period is None:
+        return _fail(5)
+    values = {}
+    for row in rows:
+        label, nums = _label_and_nums(row, start, end)
+        if not label or not nums:
+            continue
+        for key, pattern in ROWS.items():
+            if (key in values and key != "pat") or not pattern.search(label):
+                continue
+            if key == "pat" and re.search(r"before|attributable|comprehensive|discontinued|share of|exceptional", label, re.I):
+                continue
+            if key == "revenue" and re.search(r"other", label, re.I):
+                continue
+            if key == "revenue" and re.match(r"total", label, re.I):
+                continue
+            if all(i in nums for i in idx.values()):
+                values[key] = {name: nums[i] for name, i in idx.items()}
+            break
+    if "revenue" not in values or "pat" not in values:
+        return _fail(7)
+    rev = values["revenue"]
+    if "other_income" in values and "total_income" in values:
+        for k in idx:
+            expect = values["revenue"][k] + values["other_income"][k]
+            if abs(expect - values["total_income"][k]) > max(1.0, abs(expect) * 0.002):
+                return _fail(8)
+    if any(rev[k] <= 0 for k in idx):
+        return _fail(9)
+    if "ebitda" not in values and all(k in values for k in ("pbt", "finance", "dep", "other_income")):
+        values["ebitda"] = {k: values["pbt"][k] + values["finance"][k] + values["dep"][k] - values["other_income"][k] for k in idx}
+        values["ebitda_derived"] = True
+    for k in idx:
+        if "ebitda" in values and values["ebitda"][k] > rev[k] * 1.0001:
+            return _fail(10)
+        income = values.get("total_income", rev)[k]
+        if abs(values["pat"][k]) > max(income, rev[k]) * 3:
+            return _fail(11)
+    factor = UNIT_TO_CR[unit]
+    out = {"scope": scope.upper(), "period": period, "period_end": cur.isoformat(),
+           "unit": unit, "page": page_no, "metrics": {}}
+    for key in ("revenue", "ebitda", "pat"):
+        if key in values:
+            out["metrics"][key] = {k: round(v * factor, 4) for k, v in values[key].items()}
+    out["ebitda_derived"] = bool(values.get("ebitda_derived"))
+    return out
+
+
 def parse_document(doc, max_pages=12):
     """Prefer a consolidated statement; fall back to standalone."""
     found = []
     has_cons = any(re.search(r"consolidat", doc[i].get_text(), re.I) for i in range(min(len(doc), max_pages)))
     for i in range(min(len(doc), max_pages)):
         card = parse_page(doc[i], has_cons)
+        if not card:
+            card = parse_statement_table(doc[i])
         if card:
             found.append(card)
     if not found:
