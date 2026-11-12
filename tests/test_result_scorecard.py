@@ -66,3 +66,30 @@ class Wording(unittest.TestCase):
     def test_company_name(self):
         self.assertEqual(company_name("Zydus Wellness Ltd-$"), "ZYDUS WELLNESS")
         self.assertEqual(company_name("Moil Limited"), "MOIL")
+
+
+# Figures below were read from the 12 Nov 2026 exchange PDFs (ACE p.2 table;
+# MSTC p.11 and Oswal p.9 rendered statement pages), then converted to crore.
+class CombinedStatements12Nov(unittest.TestCase):
+    def test_ace_combined_grid_prefers_consolidated(self):
+        card = parse_document(fitz.open(FIX / "ace_q2fy27_combined.pdf"))
+        self.assertIsNotNone(card)
+        self.assertEqual(card["scope"], "CONSOLIDATED")
+        self.assertEqual(card["period"], "Q2 FY27")
+        self.assertAlmostEqual(card["metrics"]["revenue"]["cur"], 886.09, places=3)
+        self.assertAlmostEqual(card["metrics"]["revenue"]["qoq"], 785.68, places=3)
+        self.assertAlmostEqual(card["metrics"]["revenue"]["yoy"], 744.24, places=3)
+        self.assertAlmostEqual(card["metrics"]["pat"]["cur"], 164.25, places=3)
+        self.assertAlmostEqual(card["metrics"]["pat"]["qoq"], 119.49, places=3)
+        self.assertAlmostEqual(card["metrics"]["pat"]["yoy"], 90.06, places=3)
+        # EBITDA is derived: PBT before exceptional + finance + dep - other income
+        # (16,690 + 403 + 909 - 4,613) lakh = 133.89 Cr for the current quarter.
+        self.assertAlmostEqual(card["metrics"]["ebitda"]["cur"], 133.89, places=3)
+        self.assertAlmostEqual(card["metrics"]["ebitda"]["qoq"], 117.89, places=3)
+        self.assertAlmostEqual(card["metrics"]["ebitda"]["yoy"], 108.98, places=3)
+        # Must not silently report the standalone columns (revenue 883.52, PAT 162.97).
+        self.assertNotAlmostEqual(card["metrics"]["revenue"]["cur"], 883.52, places=2)
+        text = format_scorecard("Action Construction Equipment Ltd", card)
+        self.assertIn("Consolidated", text)
+        self.assertIn("₹886.09 Cr", text)
+        self.assertIn("₹164.25 Cr", text)
