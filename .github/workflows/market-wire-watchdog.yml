@@ -1,10 +1,13 @@
 name: Market wire watchdog
 
-# GitHub cron is often late or skipped. Every 15 minutes, start a live
-# posting chunk if we are inside 07:00–23:30 IST and none is running.
+# GitHub cron is UTC and best-effort (often late or skipped). Every 15 minutes,
+# start a live posting chunk if we are inside 07:00–23:30 IST and none is running.
+# Outside that window the job exits idle and does not start a shift.
+# This file was re-registered after the workflow stayed active but queued
+# zero scheduled runs for hours after it was first added (PR #6).
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '0,15,30,45 * * * *'
   workflow_dispatch:
 
 permissions:
