@@ -180,16 +180,29 @@ class SourceParserTests(unittest.TestCase):
             self.assertEqual(XFetcher(session=mock.Mock()).fetch_recent(), [])
 
     def test_rbi_speeches_from_fixture(self):
+        from sources.feed_utils import fresh_rss_date
         from sources.rbi_fetcher import RBIFetcher
         data = fx("sources", "rbi_speeches.xml", mode="rb")
 
         class Resp(io.BytesIO):
             def __enter__(self): return self
             def __exit__(self, *a): return False
-        with mock.patch("urllib.request.urlopen", return_value=Resp(data)):
+
+        # The fixture snapshot's newest pubDate is 3 Nov 2026 15:50 IST.
+        # fetch_speeches drops items older than 24 hours, so evaluate
+        # freshness on that day; "now" would make a valid fixture look empty.
+        frozen = datetime(2026, 11, 3, 16, 0, tzinfo=IST)
+
+        def fresh(value, max_age_seconds, now=None, naive_timezone=None):
+            return fresh_rss_date(value, max_age_seconds, now=frozen,
+                                  naive_timezone=naive_timezone)
+
+        with mock.patch("urllib.request.urlopen", return_value=Resp(data)), \
+             mock.patch("sources.rbi_fetcher.fresh_rss_date", side_effect=fresh):
             items = RBIFetcher().fetch_speeches()
         self.assertTrue(items)
         self.assertTrue(all(i["kind"] == "speech" for i in items))
+        self.assertTrue(any("Swaminathan" in i["title"] for i in items))
 
     def test_yahoo_daily_change_uses_closes_not_chart_previous_close(self):
         payload = json.loads(fx("sources", "yahoo_GSPC.json"))
