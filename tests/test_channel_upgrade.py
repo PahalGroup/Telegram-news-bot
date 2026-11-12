@@ -276,6 +276,14 @@ class BulletHygieneTests(unittest.TestCase):
         self.assertEqual(_period_label("₹277 Cr in Q2 FY27 vs ₹210 Cr in Q2 FY26; H1 FY27 ₹657 Cr", "FINANCIAL RESULTS"), "Q2 FY27 RESULTS")
         self.assertEqual(_period_label("PAT ₹8,943 crore in H1 FY27", "FINANCIAL RESULTS"), "H1 FY27 RESULTS")
         self.assertEqual(_period_label("PAT up 20%", "FINANCIAL RESULTS"), "FINANCIAL RESULTS")
+        # Post 6134: a prior-year comparison ("in line with Q2 FY '26") must not
+        # set the title year when the filing names H1 FY '27 as the period.
+        body = ("For H1 FY '27, revenue grew 9.7% to Rs. 335 crores. "
+                "Domestic revenue for the quarter grew approximately 36% sequentially and 27% year-on-year, "
+                "increasing its share of revenue to 19.5% from 15.5% in Q1. "
+                "Profit after tax was INR4.2 crores, in line with Q2 FY '26 with a PAT margin of 2.4%. "
+                "For H1 FY '27, revenue from operations grew 9.7%")
+        self.assertEqual(_period_label(body, "FINANCIAL RESULTS"), "H1 FY27 RESULTS")
 
 
 class GlyphTests(unittest.TestCase):

@@ -45,7 +45,9 @@ class AnnexureParser:
                     for table in tables.tables:
                         rows = table.extract()
                         from sources.disclosure_tables import disclosure_table_evidence
+                        from sources.management_tables import management_table_evidence
                         evidence.extend(disclosure_table_evidence(rows, index + 1))
+                        evidence.extend(management_table_evidence(rows, index + 1))
                         # Disclosure forms contain prose in individual cells. Keep those
                         # cells separate; never join a label to unrelated numeric columns.
                         for row in rows:

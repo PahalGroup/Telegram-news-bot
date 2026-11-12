@@ -85,11 +85,19 @@ class BSEPartialFetchTests(unittest.TestCase):
         row = {"SLONGNAME": "Example", "NEWSSUB": "Receipt of order", "NEWSID": "123",
                "NEWS_DT": datetime.now(timezone.utc).isoformat()}
         fetcher = BSEFetcher()
-        with patch("sources.bse_fetcher.requests.get", side_effect=[
-                self.response([row]), self.response(code=503), self.response()]):
+        def fake_get(*args, **kwargs):
+            page = (kwargs.get("params") or {}).get("pageno")
+            if page == 1:
+                return self.response([row])
+            if page == 2:
+                return self.response(code=503)
+            return self.response()
+        with patch("sources.bse_fetcher.requests.get", side_effect=fake_get), \
+             patch("sources.bse_fetcher.time.sleep"):
             items = fetcher.fetch_announcements(skip_pdf=True)
         self.assertEqual([item["newsid"] for item in items], ["123"])
         self.assertIn("2", fetcher.last_health["page_errors"])
+        self.assertIn(1, fetcher.last_health["pages_ok"])
 
     def test_invalid_or_future_bse_dates_are_withheld(self):
         from sources.bse_fetcher import BSEFetcher

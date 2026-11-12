@@ -5,7 +5,7 @@ from src.quality import clean, substantive, sentences
 AMOUNT = re.compile(r'(?:₹|Rs\.?|INR|USD|US\$|EUR|GBP|\$|€|£)\s*[\d,]+(?:\.\d+)?|\b[\d,.]+\s+(?:crore|lakh|million|billion)\b', re.I)
 CAPACITY = re.compile(r'\b[\d,.]+\s*(?:MW|MWh|GW|tonnes?|units|km)\b', re.I)
 ORDER_ACTION = re.compile(r'\b(?:awarded|secured|received|receives|wins?|won)\b', re.I)
-ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director)\b', re.I)
+ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director|general manager|deputy general manager|senior management|president|vice[- ]president)\b', re.I)
 PERSON = re.compile(r'\b(?:Mr|Ms|Mrs|Dr|Shri|Smt)\.?\s+[A-Z][\w-]+(?:\s+[A-Z][\w-]+)+\b')
 MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|(?:took|taken) over (?:the )?charge|ceased|cessation|retir\w*|superannu\w*|tenure extension|change in (?:the )?designation|re-?designat\w*)\b', re.I)
 def uncertain(text, action_pattern):
