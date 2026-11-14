@@ -342,8 +342,12 @@
         "match": "financial results|^result\\b",
         "rule": "result"
       },
+      "PROJECT AWARD": {
+        "match": "letter of allotment|project award|gati shakti",
+        "rule": "needs_decision"
+      },
       "ORDER WIN": {
-        "match": "award of (?:order|contract)|receipt of order|bags? .*(?:order|contract)|secures? .*(?:order|contract)|wins? .*(?:order|contract)|contract award|letter of (?:award|intent)|\\bLoA\\b|\\bLoI\\b",
+        "match": "award of (?:order|contract)|receipt of order|bags? .*(?:order|contract)|secures? .*(?:order|contract)|wins? .*(?:order|contract)|contract award|letter of (?:award|intent)|\\bLoA\\b|\\bLoI\\b|bagging(?:/receiving)? of orders?|letter of allotment|project award",
         "rule": "needs_number"
       },
       "CREDIT RATING": {
@@ -351,7 +355,7 @@
         "rule": "needs_number_or_decision"
       },
       "MANAGEMENT CHANGE": {
-        "match": "change in management|change in directorate|resignation of (?:director|chief|ceo|cfo|md|managing)|appointment of (?:director|chief|ceo|cfo|md|managing|whole)|cessation|retirement|demise|change in management control",
+        "match": "change in management|change in directorate|resignation of (?:director|chief|ceo|cfo|md|managing)|appointment of (?:director|chief|ceo|cfo|md|managing|whole)|cessation|retirement|demise|change in management control|change in directors?|changes in senior management|change in director",
         "rule": "needs_decision"
       },
       "INCORPORATION": {
@@ -393,6 +397,34 @@
       "NEW LISTING": {
         "match": "new listing",
         "rule": "needs_number"
+      },
+      "RESOLUTION PLAN": {
+        "match": "resolution plan",
+        "rule": "needs_decision"
+      },
+      "COMMERCIAL PRODUCTION": {
+        "match": "commencement of commercial production|commercialization of|commercial production",
+        "rule": "needs_decision"
+      },
+      "FINE / PENALTY": {
+        "match": "fine imposed|penalty imposed|non-compliance with",
+        "rule": "needs_decision"
+      },
+      "LAND POSSESSION": {
+        "match": "handover of .{0,40}land|possession of .{0,40}land|hands over possession",
+        "rule": "needs_decision"
+      },
+      "INVESTMENT": {
+        "match": "investment in (?:a )?subsidiary",
+        "rule": "needs_decision"
+      },
+      "ESG RATING": {
+        "match": "\\bESG rating",
+        "rule": "needs_decision"
+      },
+      "MILESTONE": {
+        "match": "technology milestone|achieves .{0,60}milestone",
+        "rule": "needs_decision"
       }
     },
     "tax_demand_match": "tax demand|demand order|show cause notice|penalty|assessment order|gst (?:demand|order)|income tax (?:demand|order)",

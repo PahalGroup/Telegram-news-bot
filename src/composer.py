@@ -63,7 +63,11 @@ def _norm(p):
 
 
 def factual(point: str) -> bool:
-    return bool(editorial.NUMBER.search(point) or editorial.PARTY.search(point) or editorial.DATE_WORDS.search(point))
+    if editorial.NUMBER.search(point) or editorial.PARTY.search(point) or editorial.DATE_WORDS.search(point):
+        return True
+    # A named person + role is a complete management fact even without a date or rupee amount.
+    from src.event_evidence import named_person, ROLE
+    return bool(named_person(point) and ROLE.search(point))
 
 
 def filing_bullets(points, limit=6):
@@ -91,7 +95,9 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
     need = MIN_BULLETS_MACRO if macro else MIN_BULLETS
     if event.label in ("ORDER WIN", "CREDIT RATING", "MANAGEMENT CHANGE", "DIVIDEND", "BONUS / SPLIT", "BUYBACK",
                        "TAX DEMAND", "DEFAULT", "ACQUISITION", "AGREEMENT", "MOU", "CORPORATE ACTION",
-                       "PREFERENTIAL ISSUE", "IPO UPDATE"):
+                       "PREFERENTIAL ISSUE", "IPO UPDATE", "INCORPORATION", "RESOLUTION PLAN",
+                       "COMMERCIAL PRODUCTION", "FINE / PENALTY", "LAND POSSESSION", "INVESTMENT",
+                       "ESG RATING", "PROJECT AWARD", "MILESTONE"):
         need = 1      # one decisive fact (amount, rating, name, action) is a complete post for these
     if len(bullets) < need:
         return None, "TOO_FEW_FACTUAL_BULLETS"

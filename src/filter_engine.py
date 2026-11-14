@@ -371,9 +371,18 @@ class FilterEngine:
             return ""
         if re.search(r'\b(?:buy-?back|buy back of (?:equity |ordinary )?shares)\b', title, re.I):
             return "CORP_RESTRUCTURE"
+        # A recordings-link or adjourned board meeting is not a results posting.
+        if re.search(
+            r'\b(?:link of recordings|audio recording of the (?:earnings |conference )?call|'
+            r'adjournment of (?:the )?board meeting)\b',
+            title, re.I,
+        ):
+            return "ROUTINE_ADMIN"
         # Merchant-banker / RTA appointments in a capital-action title are not a KMP event.
         if re.search(
-            r'\b(?:change in (?:the )?(?:management|directorate|key managerial personnel|kmp|senior management)'
+            r'\b(?:change in (?:the )?(?:management|directorate|directors?(?:\(s\))?|'
+            r'key managerial personnel|kmp|senior management(?: personnel)?)'
+            r'|changes? in senior management'
             r'|appointment of|appointed as|resignation of|resigns as|cessation of|superannuation of)\b',
             title, re.I,
         ) and not re.search(
@@ -394,12 +403,31 @@ class FilterEngine:
             r'|bonus issue|preferential (?:issue|allotment)|rights issue'
             r'|qualified institutional placement|\bQIP\b'
             r'|interim dividend|final dividend|dividend (?:of|declared|approved)'
+            r'|approves? (?:an? )?(?:interim |final |second interim )?dividend'
             r'|incorporation of|wholly owned subsidiary|resolution plan'
-            r'|commencement of commercial production|commercial production)\b',
+            r'|commencement of commercial production|commercial production'
+            r'|joint venture)\b',
             title, re.I,
         ):
             return "CORP_RESTRUCTURE"
         return ""
+
+
+    def _official_lead(self, desc: str) -> str:
+        """First official announcement line, not later PDF annexure prose."""
+        for line in (desc or "").splitlines():
+            text = line.strip()
+            if len(text) >= 20:
+                return text
+        return ""
+
+    def _is_generic_envelope(self, title: str) -> bool:
+        return bool(re.search(
+            r'announcement under regulation\s*30|press release|media release|'
+            r'board meeting outcome for outcome of board meeting|'
+            r'has informed the exchange (?:about|regarding)',
+            title or "", re.I,
+        ))
 
     def _classify_category(self, title: str, desc: str, pdf_url: str = "") -> str:
         text = f"{title} {desc} {pdf_url or ''}".lower()
@@ -421,6 +449,13 @@ class FilterEngine:
         titled = self._category_from_title(title)
         if titled:
             return titled
+        lead = self._official_lead(desc)
+        # Generic "Press Release" / "informed the Exchange" envelopes: the official
+        # one-line description outranks incidental "revenue" wording later in the PDF.
+        if self._is_generic_envelope(title) and lead:
+            titled = self._category_from_title(lead)
+            if titled:
+                return titled
 
         if re.search(r'\b(?:US\s*FDA|United States Food and Drug Administration|Form\s*483)\b', text, re.I):
             return "REGULATORY_UPDATE"
@@ -434,8 +469,16 @@ class FilterEngine:
         ]):
             return "POLICY_MACRO"
 
-        # Financial Results & Concalls
-        if any(k in text for k in [
+        # Financial Results & Concalls. A generic envelope whose official lead is
+        # not a results announcement must not become RESULTS because the PDF later
+        # mentions "revenue" or "financial year".
+        results_lead = bool(re.search(
+            r'\b(?:financial results|quarterly results|unaudited financial|audited financial|'
+            r'earnings (?:call|presentation)|q[1-4]\s*fy|financial performance|financial highlights)\b',
+            f"{title} {lead}", re.I,
+        ))
+        skip_body_results = self._is_generic_envelope(title) and lead and not results_lead
+        if not skip_body_results and (any(k in text for k in [
             "financial results", "quarterly results", "q1 results", "q2 results", "q3 results", "q4 results",
             "q1fy", "q2fy", "q3fy", "q4fy", "unaudited financial results", "audited financial results",
             "standalone pat", "consolidated pat", "net profit of rs", "net loss of rs", "ebitda margin",
@@ -443,7 +486,7 @@ class FilterEngine:
             "results for september", "results for december", "results for march", "results for june",
             "financial performance", "investors release", "investor release", "financial highlights",
             "net profit:", "revenue:", "ebitda:"
-        ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(f in text for f in ["financial", "results", "sales", "ebitda"])):
+        ]) or (("board meeting outcome" in text or "outcome of board meeting" in text) and any(f in text for f in ["financial", "results", "sales", "ebitda"]))):
             return "FINANCIAL_RESULTS"
 
         # Commercial Order Wins / Contracts / Capex
@@ -681,7 +724,8 @@ class FilterEngine:
             is_bonus = bool(re.search(r'\bbonus issue\b', combined, re.I))
             is_incorporation = bool(re.search(
                 r'\b(?:incorporation of|wholly owned subsidiary)\b', title, re.I))
-            if (not (is_buyback or is_dividend or is_bonus or is_incorporation)
+            is_jv = bool(re.search(r'\bjoint venture\b', title, re.I))
+            if (not (is_buyback or is_dividend or is_bonus or is_incorporation or is_jv)
                     and re.search(r'\b(?:acquisition of|acquires|agreement to acquire)\b', combined, re.I)):
                 from src.disclosure_evidence import acquisition
                 return acquisition(norm_company, title, desc)
