@@ -235,21 +235,25 @@ class FilterEngine:
         # 5. Extract Company Name cleanly
         company = raw_company
         if not company:
+            non_company_terms = [
+                "just in", "breaking", "update", "watch", "stocks in", "taking stock", "volume",
+                "q1", "q2", "q3", "q4", "result", "results", "earnings", "today", "live",
+                "alert", "flash", "market", "markets", "stock", "trade", "cues", "closing",
+                "opening", "sensex", "nifty", "sectoral", "brent", "gold", "silver", "crude",
+                "rupee", "currency", "fii", "dii", "top gainers", "top losers", "buzzing"
+            ]
             # Try to extract from colon / dash prefix (e.g., "Force Motors: Q2 PAT up 142%")
             for sep in [":", "–", "—", "-"]:
                 if sep in title:
                     prefix = title.split(sep)[0].strip()
-                    non_company_terms = [
-                        "just in", "breaking", "update", "watch", "stocks in", "taking stock", "volume",
-                        "q1", "q2", "q3", "q4", "result", "results", "earnings", "today", "live",
-                        "alert", "flash", "market", "markets", "stock", "trade", "cues", "closing",
-                        "opening", "sensex", "nifty", "sectoral", "brent", "gold", "silver", "crude",
-                        "rupee", "currency", "fii", "dii", "top gainers", "top losers", "buzzing"
-                    ]
                     if len(prefix.split()) <= 4 and len(prefix) <= 35:
                         if not any(k in prefix.lower() for k in non_company_terms):
                             company = prefix
                             break
+            # Prose flashes name the company as the subject, not a "Name: ..." prefix.
+            # "Zee Entertainment announces up to Rs 600 crore buyback at Rs 91 per share"
+            if not company and source in ("NEWS", "LIVEBLOG"):
+                company = self._company_from_action_prose(title, non_company_terms)
 
         # If still no company and source is NEWS/LIVEBLOG, classify as MACRO or SECTOR
         if not company:
@@ -304,6 +308,30 @@ class FilterEngine:
             "raw_subject": item.get("raw_subject", "")
         }
         return True, "", candidate
+
+    def _company_from_action_prose(self, title: str, non_company_terms) -> str:
+        """Pull the company off a NEWS/LIVEBLOG flash written as '{Name} announces {action}'."""
+        if not re.search(
+            r"\bbuy[- ]?back\b|\bdividend\b|\bbonus issue\b|\bstock split\b|"
+            r"\bsub-division\b|\bacquisition\b|\bacquires\b|\bq[1-4]\b|"
+            r"\bfinancial results\b|\bappointment\b|\bresignation\b|"
+            r"\border worth\b|\bcontract worth\b",
+            title,
+            re.I,
+        ):
+            return ""
+        m = re.match(
+            r"^([A-Z][\w&.\' ]{1,50}?)\s+"
+            r"(?:announces?|announced|approves?|approved|declares?|declared|acquires?|acquired)\b",
+            title,
+        )
+        if not m:
+            return ""
+        prefix = m.group(1).strip()
+        if 1 <= len(prefix.split()) <= 4 and len(prefix) <= 35:
+            if not any(k in prefix.lower() for k in non_company_terms):
+                return prefix
+        return ""
 
     def _parse_broker_note(self, title: str, desc: str) -> Optional[Dict[str, str]]:
         """Parses institutional research calls (e.g. Jefferies on Voltas: BUY, Target ₹1530)."""

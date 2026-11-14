@@ -55,7 +55,18 @@ def sentences(text):
     # Protect common abbreviations and decimals before identifying sentence boundaries.
     text = clean(text)
     # Strip only a recognized introductory clause; retain the factual body verbatim.
-    text = re.sub(r"^(?:\d+\.\s*)?(?:Pursuant to|In continuation (?:of|to)|With reference to).*?(?:this is to inform you that|it is informed that)\s+", "", text, flags=re.I)
+    # Common exchange letters put the fact after a Regulation 30 preface.
+    # "We wish/hereby/would like to inform you that" must be stripped too,
+    # or PLACEHOLDER still sees "pursuant to regulation" and drops the sentence.
+    text = re.sub(
+        r"^(?:\d+\.\s*)?(?:Pursuant to|In continuation (?:of|to)|With reference to).*?"
+        r"(?:this is to inform you that|it is informed that|"
+        r"we wish to inform you that|we hereby inform you that|"
+        r"we would like to inform you that)\s+",
+        "",
+        text,
+        flags=re.I,
+    )
     text = re.sub(r"\bM/s\.", "M/s<dot>", text, flags=re.I)
     protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Shri|Smt|Rs|Ltd|Pvt|Ref|No|vs)\.", r"\1<dot>", text, flags=re.I)
     return [part.replace("<dot>", ".").strip() for part in

@@ -106,6 +106,9 @@ class RealtimeDaemon:
         else:
             self.state = StateStore()
         self.filter_engine = FilterEngine()
+        # Same dict the snapshot stores, so a chunk restart cannot double-post
+        # a morning slot during its grace window.
+        self.morning_done = self.state.morning_done
 
         # Ingest Sources
         self.bse = BSEFetcher()
@@ -591,6 +594,8 @@ class RealtimeDaemon:
                 published = parse_time(item.get("published_at") or item.get("_backlog_at"))
                 if cutoff and published and published < cutoff:
                     stale.append(key)
+                    start, end = self._overnight_bounds(now)
+                    self.state.note_overnight(item, start, end)
             dropped = self.state.prune_pending(stale_ids=stale)
             if dropped:
                 logger.info("Pruned %s stale pending journal items on fresh start", dropped)
@@ -612,6 +617,8 @@ class RealtimeDaemon:
             if cutoff and published and published < cutoff:
                 self._trace("rejected", it, "BACKLOG_ON_FRESH_START")
                 self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+                start, end = self._overnight_bounds(now)
+                self.state.note_overnight(it, start, end)
                 continue
             try:
                 self._compose(it, now)
@@ -640,6 +647,9 @@ class RealtimeDaemon:
             self._cutoff = now - BACKLOG_AGE if fresh else None
             if fresh:
                 logger.info("Fresh start: items published before %s IST are treated as backlog", self._cutoff.strftime("%H:%M"))
+                from src.overnight_roundup import closed_window
+                start, end = closed_window(now, cutoff=self._cutoff, fresh_start=now)
+                self.state.begin_overnight_window(start, end, now.astimezone(IST).date().isoformat())
         return self._cutoff
 
     def _compose(self, it, now):
@@ -708,7 +718,7 @@ class RealtimeDaemon:
                 keep, why = editorial.gate(dict(it, description=evidence), event, self.rules)
                 if not keep:
                     return self._reject(it, why)
-            if not it.get("company") and candidate.get("company") and it.get("source") in ("BSE", "NSE"):
+            if not it.get("company") and candidate.get("company") and it.get("source") in ("BSE", "NSE", "NEWS", "LIVEBLOG"):
                 it = dict(it, company=candidate["company"])
             pending, why = compose_filing(it, eval_data, event or editorial.Event("UPDATE", "macro"), now, published)
             headline = eval_data.get("headline", "")
@@ -795,20 +805,59 @@ class RealtimeDaemon:
         return 1
 
     # ------------------------------------------------------------ scheduled posts
+    def _overnight_bounds(self, now):
+        from src.overnight_roundup import closed_window
+        win = getattr(self.state, "overnight_window", None) or {}
+        if win.get("start") and win.get("end"):
+            start, end = parse_time(win["start"]), parse_time(win["end"])
+            if start and end:
+                return start, end
+        cutoff = getattr(self, "_cutoff", None)
+        return closed_window(now, cutoff=cutoff, fresh_start=now)
+
     def check_morning_pack(self, now):
+        today = now.astimezone(IST).date().isoformat() if getattr(now, "tzinfo", None) else now.date().isoformat()
+        # A split roundup continues on the next cycle / chunk; do not rebuild it.
+        if self.state.overnight_pending_parts:
+            text = self.state.overnight_pending_parts[0]
+            key = f"MORNING_overnight_roundup_{today}_2"
+            if self._paced_send(text, key, now):
+                self.state.overnight_pending_parts = self.state.overnight_pending_parts[1:]
+                self.state.record_published(key, "overnight_roundup", "MORNING_PACK", ts=now.isoformat())
+                if not self.state.overnight_pending_parts:
+                    self.morning_done["overnight_roundup"] = today
+                    self.morning_done.pop("overnight_roundup_started", None)
+            return
+
         slots = morning_pack.due_slots(now, self.morning_done)
         if not slots:
             return
         from sources.market_cues import fetch_cues
-        cues = fetch_cues() if any(s != "stocks_in_focus" for s in slots) else {}
+        cues = fetch_cues() if any(s not in ("stocks_in_focus", "overnight_roundup") for s in slots) else {}
         for slot in slots[:1]:                       # one scheduled post per cycle, paced like the outbox
+            if slot == "overnight_roundup":
+                from src.overnight_roundup import build_posts
+                posts = build_posts(self.state.overnight_items, now)
+                if not posts:
+                    self.morning_done[slot] = today
+                    continue
+                text, rest = posts[0], posts[1:]
+                key = f"MORNING_{slot}_{today}_1"
+                if self._paced_send(text, key, now):
+                    self.state.record_published(key, slot, "MORNING_PACK", ts=now.isoformat())
+                    if rest:
+                        self.state.overnight_pending_parts = list(rest)
+                        self.morning_done["overnight_roundup_started"] = today
+                    else:
+                        self.morning_done[slot] = today
+                continue
             text = morning_pack.build(slot, now, cues, self.state.published_records)
             if not text:
-                self.morning_done[slot] = now.date().isoformat()
+                self.morning_done[slot] = today
                 continue
-            if self._paced_send(text, f"MORNING_{slot}_{now.date()}", now):
-                self.morning_done[slot] = now.date().isoformat()
-                self.state.record_published(f"MORNING_{slot}_{now.date()}", slot, "MORNING_PACK", ts=now.isoformat())
+            if self._paced_send(text, f"MORNING_{slot}_{today}", now):
+                self.morning_done[slot] = today
+                self.state.record_published(f"MORNING_{slot}_{today}", slot, "MORNING_PACK", ts=now.isoformat())
 
     def _paced_send(self, text, key, now):
         """Scheduled posts share the outbox's 20 s gap and never go out in quiet hours."""

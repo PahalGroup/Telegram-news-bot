@@ -185,7 +185,45 @@ class ReliabilityTests(unittest.TestCase):
             })
             self.assertFalse(passed)
 
+    def test_liveblog_prose_buyback_extracts_company(self):
+        engine = FilterEngine(config_path=str(Path(self.tmp.name) / "absent.json"))
+        title = "Zee Entertainment announces up to Rs 600 crore buyback at Rs 91 per share"
+        passed, reason, cand = engine.evaluate_stage_1({
+            "source": "LIVEBLOG",
+            "company": "",
+            "title": title,
+            "description": title,
+        })
+        self.assertTrue(passed, reason)
+        self.assertEqual(cand["company"], "Zee Entertainment")
+        self.assertEqual(cand["category"], "CORP_RESTRUCTURE")
+        ev = engine.evaluate_stage_2(cand)
+        self.assertTrue(ev["publish"])
+        self.assertGreaterEqual(ev["materiality_score"], 70)
+        self.assertIn("BUYBACK", ev["headline"])
+
+    def test_liveblog_cues_and_macro_verbs_are_unchanged(self):
+        engine = FilterEngine(config_path=str(Path(self.tmp.name) / "absent.json"))
+        for title, expect_pass, expect_company, expect_reason in [
+            ("GIFT Nifty trades lower ahead of open, signals soft start", False, "", "NEWS_LACKS_COMPANY_OR_MACRO_SIGNIFICANCE"),
+            ("Top gainers on NSE in last session", False, "", "NEWS_LACKS_COMPANY_OR_MACRO_SIGNIFICANCE"),
+            ("US Fed announces rate hike of 25 bps", True, "", ""),
+        ]:
+            passed, reason, cand = engine.evaluate_stage_1({
+                "source": "LIVEBLOG",
+                "company": "",
+                "title": title,
+                "description": title,
+            })
+            self.assertEqual(passed, expect_pass, (title, reason))
+            self.assertEqual(cand.get("company", ""), expect_company, title)
+            if not expect_pass:
+                self.assertEqual(reason, expect_reason, title)
+            if expect_pass and not expect_company:
+                self.assertEqual(cand.get("category"), "POLICY_MACRO", title)
+
     def test_shutdown_saves_state_on_interrupt(self):
+
         daemon = self.daemon()
         daemon.shift_seconds = 10
         daemon.start_time = __import__("time").time()

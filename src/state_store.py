@@ -37,7 +37,11 @@ class StateStore:
         self.event_cooldowns: Dict[str, float] = {}
         self.pending_deliveries: Dict[str, Dict[str, str]] = {}
         self.pending_items: Dict[str, Dict[str, Any]] = {}
-        
+        self.morning_done: Dict[str, str] = {}
+        self.overnight_items: List[Dict[str, Any]] = []
+        self.overnight_pending_parts: List[str] = []
+        self.overnight_window: Dict[str, str] = {}
+
         self._failed = False
         self._init_sqlite()
         self.load_state()
@@ -124,6 +128,19 @@ class StateStore:
                     self.last_cycle_at = data.get("last_cycle_at")
                     self.pending_items = {k: v for k, v in data.get("pending_items", {}).items()
                                           if k not in self.seen_ids}
+                    self.morning_done = {
+                        k: v for k, v in (data.get("morning_done") or {}).items()
+                        if isinstance(k, str) and isinstance(v, str)
+                    }
+                    items = data.get("overnight_items") or []
+                    self.overnight_items = [v for v in items if isinstance(v, dict) and v.get("id")]
+                    parts = data.get("overnight_pending_parts") or []
+                    self.overnight_pending_parts = [v for v in parts if isinstance(v, str) and v]
+                    window = data.get("overnight_window") or {}
+                    self.overnight_window = {
+                        k: v for k, v in window.items()
+                        if isinstance(k, str) and isinstance(v, str)
+                    } if isinstance(window, dict) else {}
                     logger.info(f"Loaded persistent state: {len(self.seen_ids)} IDs, {len(self.semantic_hashes)} semantic hashes, {len(self.event_cooldowns)} cooldown keys.")
             except Exception as e:
                 self._fail("Cannot trust deduplication snapshot; restore or reconcile it before delivery", e)
@@ -185,6 +202,10 @@ class StateStore:
             "event_cooldowns": dict(sorted(self.event_cooldowns.items())),
             "published_records": self.published_records[-200:],
             "last_cycle_at": self.last_cycle_at,
+            "morning_done": dict(sorted(self.morning_done.items())),
+            "overnight_items": self.overnight_items[-200:],
+            "overnight_pending_parts": list(self.overnight_pending_parts),
+            "overnight_window": dict(self.overnight_window),
         }
         temp_path = None
         try:
@@ -368,6 +389,63 @@ class StateStore:
                 conn.commit()
         except Exception as e:
             self._fail("Cannot persist deduplication ledger; delivery stopped", e)
+
+
+    def note_overnight(self, item, start=None, end=None):
+        """Remember a closed-window filing for the morning roundup. Idempotent by item id."""
+        if not isinstance(item, dict) or not item.get("id"):
+            return False
+        from src.overnight_roundup import in_closed_window, classify_kind
+        published = item.get("published_at") or item.get("_backlog_at")
+        if start is not None and end is not None and not in_closed_window(published, start, end):
+            return False
+        if classify_kind(item) is None:
+            return False
+        existing = {row.get("id") for row in self.overnight_items}
+        if item["id"] in existing:
+            # Prefer a later snapshot that carries scorecard evidence.
+            for i, row in enumerate(self.overnight_items):
+                if row.get("id") == item["id"]:
+                    if item.get("_prebuilt") and not row.get("_prebuilt"):
+                        self.overnight_items[i] = self._overnight_record(item)
+                    break
+            return False
+        self.overnight_items.append(self._overnight_record(item))
+        return True
+
+    @staticmethod
+    def _overnight_record(item):
+        fields = ("id", "source", "company", "title", "description", "subcat",
+                  "raw_subject", "published_at", "category")
+        record = {k: item[k] for k in fields if k in item and isinstance(item[k], str)}
+        record["id"] = item["id"]
+        pre = item.get("_prebuilt")
+        if isinstance(pre, dict) and pre.get("template") == "A" and isinstance(pre.get("card"), dict):
+            card = pre["card"]
+            metrics = card.get("metrics") or {}
+            if "revenue" in metrics and "pat" in metrics:
+                record["_prebuilt"] = {"template": "A", "card": {
+                    "period": card.get("period", ""),
+                    "scope": card.get("scope", ""),
+                    "metrics": {
+                        "revenue": {"cur": metrics["revenue"]["cur"]},
+                        "pat": {"cur": metrics["pat"]["cur"]},
+                    },
+                }}
+        return record
+
+    def begin_overnight_window(self, start, end, today: str):
+        """Freeze the closed window for this morning so later chunks do not widen it."""
+        if self.overnight_window.get("date") == today:
+            return
+        self.overnight_window = {
+            "date": today,
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+        }
+        # Drop leftovers from a previous morning before we start collecting today.
+        self.overnight_items = []
+        self.overnight_pending_parts = []
 
     def record_published(self, item_id: str, headline: str, category: str, market_quote_event=None, result_event=None,
                          **extra):
