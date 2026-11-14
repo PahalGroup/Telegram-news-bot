@@ -364,6 +364,43 @@ class FilterEngine:
                 }
         return None
 
+
+    def _category_from_title(self, title: str) -> str:
+        """Specific filing titles win over PDF-body vocabulary."""
+        if not title or not title.strip():
+            return ""
+        if re.search(r'\b(?:buy-?back|buy back of (?:equity |ordinary )?shares)\b', title, re.I):
+            return "CORP_RESTRUCTURE"
+        # Merchant-banker / RTA appointments in a capital-action title are not a KMP event.
+        if re.search(
+            r'\b(?:change in (?:the )?(?:management|directorate|key managerial personnel|kmp|senior management)'
+            r'|appointment of|appointed as|resignation of|resigns as|cessation of|superannuation of)\b',
+            title, re.I,
+        ) and not re.search(
+            r'\b(?:buy-?back|acquisition|qip|preferential|rights issue|public offer)\b', title, re.I,
+        ):
+            return "MANAGEMENT_CHANGE"
+        if re.search(
+            r'\b(?:fine imposed|non-compliance|penalty (?:impos|levi))\b', title, re.I,
+        ):
+            return "POLICY_MACRO"
+        if re.search(
+            r'\b(?:change in auditors?|resignation of (?:the )?(?:statutory|secretarial|internal) auditor)\b',
+            title, re.I,
+        ):
+            return "MANAGEMENT_CHANGE"
+        if re.search(
+            r'\b(?:acquisition|acquires|stake sale|stock split|sub[\s-]?division(?: of shares)?'
+            r'|bonus issue|preferential (?:issue|allotment)|rights issue'
+            r'|qualified institutional placement|\bQIP\b'
+            r'|interim dividend|final dividend|dividend (?:of|declared|approved)'
+            r'|incorporation of|wholly owned subsidiary|resolution plan'
+            r'|commencement of commercial production|commercial production)\b',
+            title, re.I,
+        ):
+            return "CORP_RESTRUCTURE"
+        return ""
+
     def _classify_category(self, title: str, desc: str, pdf_url: str = "") -> str:
         text = f"{title} {desc} {pdf_url or ''}".lower()
 
@@ -376,6 +413,14 @@ class FilterEngine:
         if re.search(r'\b(?:financial results|earnings call transcript|'
                      r'investors? presentation|earnings presentation|financial performance)\b', title, re.I):
             return "FINANCIAL_RESULTS"
+
+        # Exchange subject / filing title outranks incidental wording in the PDF body
+        # (a buyback offer that mentions "acquisition of shares", a CFO appointment
+        # annexure that mentions a working-capital facility, a board-outcome PDF
+        # that also contains the word "financial").
+        titled = self._category_from_title(title)
+        if titled:
+            return titled
 
         if re.search(r'\b(?:US\s*FDA|United States Food and Drug Administration|Form\s*483)\b', text, re.I):
             return "REGULATORY_UPDATE"
@@ -629,10 +674,18 @@ class FilterEngine:
             from src.capital_evidence import OPTIONS, SPLIT, evaluate_capital_action
             if OPTIONS.search(combined) or SPLIT.search(combined):
                 return evaluate_capital_action(norm_company, title, desc)
-            if re.search(r'\b(?:acquisition of|acquires|agreement to acquire)\b', combined, re.I):
+            # A buyback / dividend / bonus filing often mentions "acquisition of
+            # shares". Check the capital-action itself before the M&A gate.
+            is_buyback = bool(re.search(r'\bbuy-?back\b|\bbuy back of\b', combined, re.I))
+            is_dividend = bool(re.search(r'\b(?:interim |final )?dividend\b', combined, re.I))
+            is_bonus = bool(re.search(r'\bbonus issue\b', combined, re.I))
+            is_incorporation = bool(re.search(
+                r'\b(?:incorporation of|wholly owned subsidiary)\b', title, re.I))
+            if (not (is_buyback or is_dividend or is_bonus or is_incorporation)
+                    and re.search(r'\b(?:acquisition of|acquires|agreement to acquire)\b', combined, re.I)):
                 from src.disclosure_evidence import acquisition
                 return acquisition(norm_company, title, desc)
-            badge = "BUYBACK" if "buyback" in combined.lower() else (
+            badge = "BUYBACK" if is_buyback else (
                 "STOCK SPLIT" if "split" in combined.lower() else (
                     "BONUS ISSUE" if "bonus" in combined.lower() else (
                         "ACQUISITION" if "acquisition" in combined.lower() else (
@@ -710,6 +763,34 @@ class FilterEngine:
                 "key_metrics": [],
                 "summary_points": concrete_points[:5],
                 "what_it_means": ""
+            }
+
+        # Official exchange filings that record a completed decision (resolution
+        # plan approved, production commenced, subsidiary incorporated) are news
+        # even when the letter does not quote a rupee amount. Routine paperwork
+        # (taken on record, investor-meet logistics, typo corrigenda) stays out.
+        from src.editorial import DECISION
+        procedural_update = re.compile(
+            r'taken on record|limited review|trading window|'
+            r'investor (?:meet|conference|call|presentation|complaint)|'
+            r'\btypo\b|rectification|corrigendum|newspaper|'
+            r'link of recordings|earnings call (?:schedule|intimation|invite)|signed by|for and on behalf|authorised signatory',
+            re.I,
+        )
+        decision_points = [
+            point for point in clean_points(sentences(desc), limit=None)
+            if DECISION.search(point) and not procedural_update.search(point)
+        ]
+        if source in ("BSE", "NSE") and not is_generic_name and decision_points:
+            return {
+                "publish": True,
+                "materiality_score": 80,
+                "category": "MARKET_UPDATE",
+                "rejection_reason": "",
+                "headline": f"{norm_company} – CORPORATE UPDATE",
+                "key_metrics": [],
+                "summary_points": decision_points[:5],
+                "what_it_means": "",
             }
 
         return {

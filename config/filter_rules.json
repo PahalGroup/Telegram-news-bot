@@ -354,6 +354,10 @@
         "match": "change in management|change in directorate|resignation of (?:director|chief|ceo|cfo|md|managing)|appointment of (?:director|chief|ceo|cfo|md|managing|whole)|cessation|retirement|demise|change in management control",
         "rule": "needs_decision"
       },
+      "INCORPORATION": {
+        "match": "incorporation of|wholly owned subsidiary|incorporated a(?:n)?(?:\\s+wholly owned)? subsidiary",
+        "rule": "needs_decision"
+      },
       "ACQUISITION": {
         "match": "acquisition|acquire|open offer|scheme of arrangement|amalgamation|merger|diversification|disinvestment|sale of shares|offer for sale",
         "rule": "needs_number_or_decision"
@@ -371,8 +375,8 @@
         "rule": "needs_number"
       },
       "BUYBACK": {
-        "match": "buy ?back",
-        "rule": "needs_number"
+        "match": "buy[-\\s]?back",
+        "rule": "needs_number_or_decision"
       },
       "AGREEMENT": {
         "match": "memorandum of understanding|agreements?|\\bmou\\b|joint venture|partnership",

@@ -16,11 +16,12 @@ def acquisition(company, title, description):
     identities = []
     for p in points:
         m = re.search(r'\b(?:Agreement to acquire|Acquisition of)\b.*', p, re.I)
-        if m and re.search(r'\bstake in\s+[A-Z]', m.group(), re.I):
+        if m and re.search(r'\b(?:stake|shareholding|shares|equity)\s+(?:in|of)\s+[A-Z]', m.group(), re.I):
             identities.append(m.group().removesuffix('– Reg.').strip())
         elif re.match(r'Name of the target entity\s*:', p, re.I):
             identities.append(p)
-    core = [p for p in points if re.search(r'\b(?:has acquired|have acquired|acquires)\b', p, re.I)
+    core = [p for p in points if re.search(
+                r'\b(?:has acquired|have acquired|acquires|acquisition of|agreement to acquire)\b', p, re.I)
             and re.search(r'\d+(?:\.\d+)?\s*%', p)
             and not re.search(r'\b(?:not|never|if|may|might)\b', p, re.I)]
     core.sort(key=lambda p: (not bool(AMOUNT.search(p)), len(p)))

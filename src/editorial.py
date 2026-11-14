@@ -74,10 +74,11 @@ AMOUNT = re.compile(r"(?:₹|rs\.?|inr|usd|us\$|\$|eur|€)\s*[\d,]+(?:\.\d+)?\s
 NUMBER = re.compile(AMOUNT.pattern + r"|\b\d+(?:\.\d+)?\s*%|\b\d[\d,]*(?:\.\d+)?\s*(?:mw|gw|mtpa|tpa|units|shares|acres|sq\.?\s*ft)\b"
                     # Rating grades are upper-case only; case-insensitive "a"/"b"/"d" would make any sentence look factual.
                     r"|(?-i:\b(?:AAA|AA|BBB|BB)[+-]?(?![\w])\s*(?:\(\w+\))?|\b[ABCD](?:[+-]|\s*\((?:Stable|Positive|Negative)\))|\][ABCD]\b|\b(?:CRISIL|ICRA|CARE|IND|ACUITE)\s*(?:A|AA|AAA|BBB|BB)[+-]?)", re.I)
-DECISION = re.compile(r"\b(?:approved|appointed|re-?appointed|resigned|resignation|ceased?|elevated|designated|"
+DECISION = re.compile(r"\b(?:approved|approval of|appointed|appointment|re-?appointed|resigned|resignation|ceased?|cessation|elevated|designated|"
                       r"upgraded|downgraded|reaffirmed|assigned|revised|withdrawn|placed\s+on\s+(?:watch|credit\s+watch)|"
                       r"acquired?|acquisition|signed|entered\s+into|completed|allotted|raised|declared|recommended|"
                       r"awarded|received|bagged|secured|won|terminated|cancelled|"
+                      r"incorporated|incorporation|commenced|commencement|launched|"
                       r"approves?|appoints?|wins?|bags?|secures?|receives?|acquires?|signs?|declares?|raises?|allots?)\b", re.I)
 
 
