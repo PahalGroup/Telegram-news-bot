@@ -45,7 +45,7 @@ LABELS = {
     "pbt": re.compile(r"profit\s*/?\s*\(?(?:loss)?\)?\s*before\s+tax\b|"
                       r"(?:net\s+)?profit\s*/?\s*\(loss\)\s*before\s+(?:exceptional|tax|share)", re.I),
     "tax": re.compile(r"(?:tax\s+expense|current\s+tax|total\s+tax)\b", re.I),
-    "pat": re.compile(r"(?:profit|net\s+profit|\(?loss\)?)\s*/?\s*(?:\(loss\)\s*)?(?:after\s+tax|for the (?:period|quarter))", re.I),
+    "pat": re.compile(r"(?:profit|net\s+profit|\(?loss\)?)\s*/?\s*(?:\(loss\)\s*)?(?:after\s+tax|for\s*the (?:period|quarter))", re.I),
 }
 NUMBER = re.compile(r"\(?-?(?:\d{1,3}(?:,\d{2,3})+|\d+)(?:\.\d+)?\)?")
 HALF = re.compile(r"\b(?:half[\s-]?year|h1|six months?|year[\s-]?to[\s-]?date|ytd)\b", re.I)
@@ -218,7 +218,8 @@ def parse_ocr_text(text: str):
     if not text:
         return None, "OCR_EMPTY"
     scope = statement_scope(text)
-    unit = statement_unit(text) or bare_unit(text)
+    from sources.result_grid import unit_from_text
+    unit = unit_from_text(text)
     if unit is None:
         # Scanned statements usually print "Rs. in Lakhs" or "Rs. in Crore". Refuse if unknown.
         return None, "OCR_UNIT_AMBIGUOUS"
@@ -327,14 +328,109 @@ def parse_ocr_text(text: str):
     return card, ""
 
 
+GRID_DPI = 250
+
+
+def _render_png(page, work: Path, dpi=GRID_DPI) -> Path:
+    scale = dpi / 72.0
+    area = page.rect.width * page.rect.height * scale * scale
+    if area > 12_000_000:
+        scale *= (12_000_000 / area) ** 0.5
+    path = work / "page.png"
+    page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False).save(str(path))
+    return path
+
+
+def _grid_ocr_page(page, dpi=GRID_DPI):
+    """High-DPI tesseract TSV clustered into rows/columns, then the same sum checks."""
+    from sources.result_grid import (
+        cluster_rows, merge_continuation_rows, ocr_osd_rotate, ocr_tsv,
+        parse_tsv, parse_word_boxes, rows_to_text,
+    )
+    with tempfile.TemporaryDirectory(prefix="tnb-ocr-") as work:
+        png = _render_png(page, Path(work), dpi=dpi)
+        png = ocr_osd_rotate(png)
+        tsv = ocr_tsv(png, timeout=TIMEOUT + 20)
+        words = parse_tsv(tsv)
+        text = rows_to_text(merge_continuation_rows(cluster_rows(words))) if words else ""
+        if words:
+            card, reason = parse_word_boxes(words, text=text, source="ocr-grid")
+            if card:
+                return card, reason, text
+        if text:
+            card, reason = parse_ocr_text(text)
+            return card, reason, text
+        return None, "OCR_EMPTY", text
+
+
 def parse_scanned_document(doc):
-    index, text = find_statement_page(doc)
-    if index is None:
-        return None, "OCR_NO_STATEMENT_PAGE"
-    card, reason = parse_ocr_text(text)
-    if card:
-        card["page"] = index + 1
-    return card, reason
+    """Find the P&L page (keyword + header score), then table-aware OCR.
+
+    Sum checks are unchanged: a card is returned only when they pass.
+    """
+    from sources.result_grid import page_score, parse_text_layer_page
+
+    ranked = []
+    for index, page in enumerate(doc):
+        if index >= MAX_PAGES:
+            break
+        layer = page.get_text() or ""
+        ranked.append((page_score(layer), index, layer, page))
+
+    for score, index, layer, page in sorted(ranked, key=lambda r: (-r[0], r[1])):
+        if score < 6:
+            continue
+        card, reason = parse_text_layer_page(page)
+        if card:
+            card["page"] = index + 1
+            return card, reason
+        if _is_statement(layer) or score >= 8:
+            card, reason = parse_ocr_text(layer)
+            if card:
+                card["page"] = index + 1
+                return card, reason
+
+    last_reason = "OCR_NO_STATEMENT_PAGE"
+    # Image-heavy pages go straight to high-DPI TSV (skip a cheap second OCR).
+    image_pages = []
+    textish = []
+    for score, index, layer, page in ranked:
+        if len(layer.strip()) >= 400 and not page.get_images() and score < 6:
+            continue
+        if len(layer.strip()) < 400 or page.get_images():
+            image_pages.append((score, index, layer, page))
+        else:
+            textish.append((score, index, layer, page))
+
+    def consider(page, index, fallback_text=""):
+        nonlocal last_reason
+        card, reason, text = _grid_ocr_page(page)
+        if card:
+            card["page"] = index + 1
+            return card, reason
+        last_reason = reason or last_reason
+        card, reason = parse_ocr_text(text or fallback_text)
+        if card:
+            card["page"] = index + 1
+            return card, reason
+        last_reason = reason or last_reason
+        return None, last_reason
+
+    # High-DPI TSV in page order. Prefer a consolidated statement when both
+    # scopes pass checks (same rule as the text-layer scorecard).
+    found = []
+    for score, index, layer, page in image_pages + textish:
+        if page in [p for _,_,_,p in textish] and score < 6 and not _is_statement(layer):
+            continue
+        card, reason = consider(page, index, layer)
+        if card:
+            found.append(card)
+            if (card.get("scope") or "").upper() == "CONSOLIDATED":
+                break
+    if found:
+        found.sort(key=lambda c: (c.get("scope") or "").upper() != "CONSOLIDATED")
+        return found[0], ""
+    return None, last_reason
 
 
 def log_card(company, card, reason=""):

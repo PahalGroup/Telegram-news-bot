@@ -119,3 +119,117 @@ Particulars  Quarter ended 30 September 2026  Quarter ended 30 June 2026  Quarte
         self.assertTrue(card, reason)
         self.assertEqual(card["page"], 2)
         self.assertEqual(card["metrics"]["revenue"]["cur"], 100.0)
+
+from sources.result_grid import parse_word_boxes, unit_from_text, run_sum_checks, close, TOL_ABS, TOL_REL
+
+
+class TableAwareTests(unittest.TestCase):
+    def test_garbled_unit_lines(self):
+        self.assertEqual(unit_from_text("Statement of results\n(@ in lakhs)\nRevenue from operations 1.00"), "lakh")
+        self.assertEqual(unit_from_text("Statement\n(Armount in Lakhs.)\nRevenue"), "lakh")
+        self.assertEqual(unit_from_text("Particulars\n(INR in lakhs exceptas stated)\nRevenue"), "lakh")
+        self.assertEqual(unit_from_text("Amounts\nin Rs. Crs\nRevenue from operations"), "crore")
+
+    def test_word_grid_recovers_columns_and_passes_checks(self):
+        # Synthetic boxes in a 6-column SEBI layout (cur, qoq, yoy, half, half-yoy, year).
+        def row(y, label, nums, x0=20):
+            words = [(x0, y, x0 + 8 * len(label), y + 10, label)]
+            x = 280
+            for n in nums:
+                t = f"{n:.2f}"
+                words.append((x, y, x + 50, y + 10, t))
+                x += 70
+            return words
+        words = [
+            (20, 10, 400, 20, "Unaudited Consolidated Financial Results"),
+            (20, 24, 140, 34, "(Rs. in Crore)"),
+            (280, 36, 340, 46, "30.09.2026"),
+            (350, 36, 410, 46, "30.06.2026"),
+            (420, 36, 480, 46, "30.09.2025"),
+            (490, 36, 550, 46, "30.09.2026"),
+        ]
+        for y, label, nums in (
+            (60, "Revenue from operations", (100, 90, 80, 190)),
+            (75, "Other income", (5, 4, 3, 9)),
+            (90, "Total income", (105, 94, 83, 199)),
+            (105, "Profit before tax", (20, 18, 15, 38)),
+            (120, "Tax expense", (5, 4.5, 3.75, 9.5)),
+            (135, "Profit after tax", (15, 13.5, 11.25, 28.5)),
+        ):
+            words.extend(row(y, label, nums))
+        card, reason = parse_word_boxes(words)
+        self.assertTrue(card, reason)
+        self.assertEqual(card["metrics"]["revenue"]["cur"], 100.0)
+        self.assertEqual(card["metrics"]["pat"]["cur"], 15.0)
+        self.assertEqual(card["metrics"]["revenue"]["qoq"], 90.0)
+        self.assertEqual(card["source"], "ocr-grid")
+
+    def test_numbers_on_next_line_are_merged(self):
+        words = [
+            (20, 10, 400, 20, "Unaudited Standalone Financial Results for the quarter ended 30 September 2026"),
+            (20, 24, 140, 34, "(Rs. in Crore)"),
+            (20, 60, 200, 70, "Revenue from operations"),
+            (280, 80, 330, 90, "100.00"),
+            (350, 80, 400, 90, "90.00"),
+            (420, 80, 470, 90, "80.00"),
+            (20, 100, 160, 110, "Profit after tax"),
+            (280, 120, 330, 130, "15.00"),
+            (350, 120, 400, 130, "13.50"),
+            (420, 120, 470, 130, "11.25"),
+        ]
+        card, reason = parse_word_boxes(words)
+        self.assertTrue(card, reason)
+        self.assertEqual(card["metrics"]["revenue"]["cur"], 100.0)
+        self.assertEqual(card["metrics"]["pat"]["cur"], 15.0)
+
+    def test_grid_still_withholds_failed_income_check(self):
+        def row(y, label, nums):
+            words = [(20, y, 20 + 8 * len(label), y + 10, label)]
+            x = 280
+            for n in nums:
+                words.append((x, y, x + 50, y + 10, f"{n:.2f}"))
+                x += 70
+            return words
+        words = [
+            (20, 10, 400, 20, "Unaudited Standalone Financial Results"),
+            (20, 24, 140, 34, "(Rs. in Crore)"),
+        ]
+        words.extend(row(60, "Revenue from operations", (100, 90, 80)))
+        words.extend(row(75, "Other income", (5, 4, 3)))
+        words.extend(row(90, "Total income", (80, 94, 83)))  # broken: 100+5 != 80
+        words.extend(row(105, "Profit after tax", (15, 13.5, 11.25)))
+        card, reason = parse_word_boxes(words)
+        self.assertIsNone(card)
+        self.assertEqual(reason, "OCR_CHECK_TOTAL_INCOME")
+
+    def test_sum_check_tolerances_unchanged(self):
+        self.assertEqual(TOL_ABS, 1.0)
+        self.assertEqual(TOL_REL, 0.002)
+        self.assertTrue(close(100.0, 100.2))
+        self.assertFalse(close(100.0, 101.1))
+
+    def test_net_profit_forthe_period_and_serial(self):
+        """OCR often prints 'forthe' and a leading '1' before the revenue label."""
+        def row(y, label, nums):
+            words = [(20, y, 20 + 7 * len(label), y + 10, label)] if not label[0].isdigit() else []
+            if label[:2].isdigit() or (label and label[0].isdigit()):
+                # "1 Revenue from operations"
+                words = [(20, y, 28, y + 10, "1"), (36, y, 220, y + 10, label.split(" ", 1)[1])]
+            x = 280
+            for n in nums:
+                words.append((x, y, x + 50, y + 10, f"{n:.2f}"))
+                x += 70
+            return words
+        words = [
+            (20, 10, 400, 20, "Unaudited Standalone Financial Results"),
+            (20, 24, 140, 34, "(Rs. in Crore)"),
+        ]
+        words.extend(row(60, "1 Revenue from operations", (100, 90, 80)))
+        words.extend([(20, 90, 220, 100, "VIL Net Profit forthe period"),
+                      (280, 90, 330, 100, "15.00"), (350, 90, 400, 100, "13.50"),
+                      (420, 90, 470, 100, "11.25")])
+        from sources.result_grid import parse_word_boxes
+        card, reason = parse_word_boxes(words)
+        self.assertTrue(card, reason)
+        self.assertEqual(card["metrics"]["revenue"]["cur"], 100.0)
+        self.assertEqual(card["metrics"]["pat"]["cur"], 15.0)
