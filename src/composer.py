@@ -20,10 +20,8 @@ MIN_BULLETS_MACRO = 1
 
 
 def _link(url) -> str:
-    p = urlparse(str(url or ""))
-    if p.scheme == "https" and p.hostname:
-        return f'<a href="{html.escape(url, quote=True)}">Source</a>'
-    return ""
+    from src.post_style import link
+    return link(url)
 
 
 BOILERPLATE = re.compile(r"limited review report|taken on record|annexure\s*[-–]?\s*[a-z]\b|"
@@ -156,16 +154,17 @@ def compose_prebuilt(item, now: datetime, published=None) -> tuple[Optional[Pend
         text = format_scorecard(item.get("company", ""), pre["card"])
         if not text:
             return None, "SCORECARD_INCOMPLETE"
-        lines = text.split("\n")
-        hdr = "\n".join(lines[:2])                   # header + scope line
-        bullets = [l[2:] for l in lines[2:]]
+        from src.post_style import strip_marker
+        lines = [l for l in text.split("\n") if l.strip()]
+        hdr = lines[0]
+        bullets = [strip_marker(l) for l in lines[1:]]
         return Pending(item["id"], item.get("company", ""), "RESULTS", hdr, bullets, now, published, tail), "OK"
     if t == "C":
         from src.concall_summary import format_concall
         text = format_concall(item.get("company", ""), pre["points"])
         lines = text.split("\n")
         return Pending(item["id"], item.get("company", ""), "EARNINGS CALL", lines[0],
-                       [l[2:] for l in lines[1:] if l.startswith("• ")], now, published, tail), "OK"
+                       [l[2:] if l.startswith(("• ", "- ")) else l for l in lines[1:] if l.startswith(("• ", "- "))], now, published, tail), "OK"
     if t == "E":
         text = editorial.format_deal(pre["deal"])
         lines = text.split("\n")
@@ -181,5 +180,5 @@ def compose_prebuilt(item, now: datetime, published=None) -> tuple[Optional[Pend
     if t == "RAW":       # IPO listing/allotment posts already in final HTML
         lines = pre["text"].split("\n")
         return Pending(item["id"], item.get("company", ""), pre["event"], lines[0],
-                       [l[2:] for l in lines[1:] if l.startswith("• ")], now, published, tail), "OK"
+                       [l[2:] if l.startswith(("• ", "- ")) else l for l in lines[1:] if l.startswith(("• ", "- "))], now, published, tail), "OK"
     return None, "UNKNOWN_TEMPLATE"

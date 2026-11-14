@@ -146,9 +146,9 @@ def summarise(text: str, max_points=6, min_points=4) -> List[str]:
 def format_concall(company: str, points: List[str], period: str = "", link: str = None) -> str:
     from src.editorial import header
     label = f"EARNINGS CALL {period}".strip()
-    lines = [header(company, label)] + [f"• {html.escape(p.rstrip('.'))}" for p in points]
+    lines = [header(company, label)] + [f"- {html.escape(p.rstrip('.'))}" for p in points]
     if link:
-        lines.append(f'<a href="{html.escape(link, quote=True)}">Source</a>')
+        lines.append(f'<a href="{html.escape(link, quote=True)}">Filing</a>')
     return "\n".join(lines)
 
 

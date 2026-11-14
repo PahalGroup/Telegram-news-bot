@@ -41,9 +41,9 @@ class RealStatements(unittest.TestCase):
     def test_hand_values(self):
         card = parse_document(fitz.open(FIX / "chambal_ccd9.pdf"))
         text = format_scorecard("Chambal Fertilisers & Chemicals Ltd", card)
-        self.assertIn("<b>Chambal Fertilisers &amp; Chemicals Ltd – Q2 FY27 RESULTS</b>\n<i>Standalone</i>", text)
-        self.assertIn("• Revenue: ₹6,999.46 Cr ↑9.1% YoY | ↑39.2% QoQ", text)
-        self.assertIn("• Net Profit: ₹634.95 Cr ↑5.5% YoY | ↓9.7% QoQ", text)
+        self.assertIn("<b>Chambal Fertilisers &amp; Chemicals Ltd – Q2 FY27 (STANDALONE)</b>", text)
+        self.assertIn("- Revenue: ₹6,999.46 Cr | YoY ↑ 9.1% | QoQ ↑ 39.2%", text)
+        self.assertIn("- Net Profit: ₹634.95 Cr | YoY ↑ 5.5% | QoQ ↓ 9.7%", text)
 
 
 class Wording(unittest.TestCase):
@@ -55,13 +55,13 @@ class Wording(unittest.TestCase):
         self.assertEqual(change(5.0, -2.0, profit=True), "vs loss ₹2.00 Cr")
         self.assertEqual(change(-1.0, 3.0, profit=True), "vs profit ₹3.00 Cr")
         self.assertEqual(change(-1.0, -3.0), "vs -₹3.00 Cr")
-        self.assertEqual(change(110, 100), "↑10.0%")
-        self.assertEqual(change(90, 100), "↓10.0%")
+        self.assertEqual(change(110, 100), "↑ 10.0%")
+        self.assertEqual(change(90, 100), "↓ 10.0%")
 
     def test_loss_line(self):
         card = {"scope": "STANDALONE", "period": "Q2 FY27", "metrics": {
             "revenue": {"cur": 10, "yoy": 8}, "pat": {"cur": -0.5, "yoy": -1.2}}}
-        self.assertIn("• Net Loss: ₹0.50 Cr vs loss ₹1.20 Cr YoY", format_scorecard("X Ltd", card))
+        self.assertIn("- Net Loss: ₹0.50 Cr | vs loss ₹1.20 Cr YoY", format_scorecard("X Ltd", card))
 
     def test_company_name(self):
         self.assertEqual(company_name("Zydus Wellness Ltd-$"), "ZYDUS WELLNESS")
@@ -90,6 +90,6 @@ class CombinedStatements12Nov(unittest.TestCase):
         # Must not silently report the standalone columns (revenue 883.52, PAT 162.97).
         self.assertNotAlmostEqual(card["metrics"]["revenue"]["cur"], 883.52, places=2)
         text = format_scorecard("Action Construction Equipment Ltd", card)
-        self.assertIn("Consolidated", text)
+        self.assertIn("(CONSOLIDATED)", text)
         self.assertIn("₹886.09 Cr", text)
         self.assertIn("₹164.25 Cr", text)

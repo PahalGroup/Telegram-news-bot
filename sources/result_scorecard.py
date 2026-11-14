@@ -506,7 +506,7 @@ def change(cur, prev, profit=False):
     if cur > 0 and prev > 0:
         pct = (cur - prev) / prev * 100
         arrow = "↑" if pct > 0 else ("↓" if pct < 0 else "")
-        return f"{arrow}{abs(pct):.1f}%"
+        return f"{arrow} {abs(pct):.1f}%"
     if profit:
         return ("vs loss " if prev < 0 else "vs profit ") + f"₹{indian_number(abs(prev))} Cr"
     return "vs " + money(prev)
@@ -521,9 +521,9 @@ def metric_line(label, m):
         if key in m:
             text = change(cur, m[key], profit)
             if text:
-                parts.append(f"{text} {tag}")
+                parts.append(f"{text} {tag}" if text.startswith("vs ") else f"{tag} {text}")
     amount = f"₹{indian_number(abs(cur))} Cr" if profit else money(cur)
-    return f"• {name}: {amount}" + (" " + " | ".join(parts) if parts else "")
+    return f"- {name}: {amount}" + (" | " + " | ".join(parts) if parts else "")
 
 
 def company_name(raw):
@@ -539,18 +539,19 @@ def format_scorecard(company, card):
     if "revenue" not in m or "pat" not in m:
         return ""
     from src.editorial import header
-    lines = [header(company, f"{card['period']} RESULTS"), f"<i>{card['scope'].title()}</i>"]
+    scope = (card.get("scope") or "").strip().upper()
+    label = f"{card['period']} ({scope})" if scope else f"{card['period']} RESULTS"
+    lines = [header(company, label)]
+    lines.append(metric_line("Net Profit", m["pat"]))
     lines.append(metric_line("Revenue", m["revenue"]))
     if "ebitda" in m:
         lines.append(metric_line("EBITDA", m["ebitda"]))
-    lines.append(metric_line("Net Profit", m["pat"]))
-    if "ebitda" in m:
         rev = m["revenue"]
         cur = m["ebitda"]["cur"] / rev["cur"] * 100
         py = m["ebitda"]["yoy"] / rev["yoy"] * 100
-        lines.append(f"• EBITDA Margin: {cur:.1f}% vs {py:.1f}% YoY")
-    elif m["pat"]["cur"] > 0:
+        lines.append(f"- EBITDA Margin: {cur:.1f}% vs {py:.1f}% YoY")
+    elif m["pat"]["cur"] > 0 and "yoy" in m["pat"] and "yoy" in m["revenue"]:
         rev = m["revenue"]
-        lines.append(f"• Net Margin: {m['pat']['cur'] / rev['cur'] * 100:.1f}% vs "
+        lines.append(f"- Net Margin: {m['pat']['cur'] / rev['cur'] * 100:.1f}% vs "
                      f"{m['pat']['yoy'] / rev['yoy'] * 100:.1f}% YoY")
     return "\n".join(lines)
