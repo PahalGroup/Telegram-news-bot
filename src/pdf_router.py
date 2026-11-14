@@ -32,6 +32,14 @@ def extract(pdf_url, kind="", session=None):
         card = parse_document(doc)
         if card and "revenue" in card["metrics"] and "pat" in card["metrics"]:
             return {"template": "A", "card": card}, ["scorecard"]
+        # Scanned statement pages: local tesseract only, and only if sum checks pass.
+        from sources.result_ocr import parse_scanned_document, test_mode, log_card
+        ocr_card, reason = parse_scanned_document(doc)
+        if test_mode():
+            log_card("", ocr_card, reason)
+            return "", []      # test mode never posts
+        if ocr_card and "revenue" in ocr_card["metrics"] and "pat" in ocr_card["metrics"]:
+            return {"template": "A", "card": ocr_card}, ["scorecard"]
         # Unusual grids are withheld rather than guessed. A results letter with
         # explicit prose figures can still travel as annexure evidence.
         evidence = AnnexureParser.extract_evidence(data)
