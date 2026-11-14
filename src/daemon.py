@@ -704,7 +704,7 @@ class RealtimeDaemon:
                 keep, why = editorial.gate(dict(it, description=evidence), event, self.rules)
                 if not keep:
                     return self._reject(it, why)
-            if not it.get("company") and candidate.get("company") and it.get("source") in ("BSE", "NSE"):
+            if not it.get("company") and candidate.get("company") and it.get("source") in ("BSE", "NSE", "NEWS", "LIVEBLOG"):
                 it = dict(it, company=candidate["company"])
             pending, why = compose_filing(it, eval_data, event or editorial.Event("UPDATE", "macro"), now, published)
             headline = eval_data.get("headline", "")
