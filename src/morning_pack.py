@@ -7,18 +7,26 @@ from datetime import datetime, time, timedelta
 
 from src.scheduler import IST
 
-SLOTS = {"opening_cues": time(7, 15), "stocks_in_focus": time(8, 45), "preopen": time(9, 5)}
+SLOTS = {"opening_cues": time(7, 15), "overnight_roundup": time(7, 15),
+         "stocks_in_focus": time(8, 45), "preopen": time(9, 5)}
+WEEKEND_SLOTS = frozenset({"overnight_roundup"})
 SLOT_GRACE = timedelta(minutes=15)
 
 
 def due_slots(now: datetime, done: dict) -> list[str]:
-    """Slots whose time has come today (weekdays only) and which were not posted yet."""
+    """Slots whose time has come today and which were not posted yet.
+
+    Opening Cues, Stocks in Focus and pre-open stay weekdays only. The overnight
+    filings roundup also runs on Saturday and Sunday.
+    """
     now = now.astimezone(IST)
-    if now.weekday() >= 5:
-        return []
     today = now.date().isoformat()
     out = []
     for name, t in SLOTS.items():
+        if now.weekday() >= 5 and name not in WEEKEND_SLOTS:
+            continue
+        if done.get("overnight_roundup_started") == today and name == "overnight_roundup":
+            continue
         start = datetime.combine(now.date(), t, IST)
         if start <= now <= start + SLOT_GRACE and done.get(name) != today:
             out.append(name)
@@ -105,11 +113,16 @@ def preopen(cues: dict, now: datetime) -> str | None:
     return "\n".join(lines)
 
 
-def build(slot: str, now: datetime, cues: dict, records: list[dict]) -> str | None:
+def build(slot: str, now: datetime, cues: dict, records: list[dict],
+          overnight_items: list[dict] | None = None) -> str | None:
     if slot == "opening_cues":
         return opening_cues(cues, now)
     if slot == "stocks_in_focus":
         return stocks_in_focus(records, now)
     if slot == "preopen":
         return preopen(cues, now)
+    if slot == "overnight_roundup":
+        from src.overnight_roundup import build_posts
+        posts = build_posts(overnight_items or [], now)
+        return posts[0] if posts else None
     raise ValueError(slot)
