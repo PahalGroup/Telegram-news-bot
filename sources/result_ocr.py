@@ -32,6 +32,8 @@ STATEMENT = re.compile(
 )
 SKIP = re.compile(
     r"independent auditor.?s review|we have reviewed the accompanying|"
+    r"we draw (?:your )?attention|emphasis of matter|basis for (?:qualified |adverse )?opinion|"
+    r"other matters?\s*:|list of (?:subsidiaries|associates)|"
     r"cash flow statement|statement of (?:assets|cash flows)|segment[\s-]?wise|"
     r"statement of assets (?:and|&) liabilities|notes to the (?:unaudited )?financial",
     re.I,
@@ -81,7 +83,15 @@ def ocr_page(page) -> str:
 def _is_statement(text: str) -> bool:
     if not text or SKIP.search(text):
         return False
-    return bool(STATEMENT.search(text))
+    if not STATEMENT.search(text):
+        return False
+    # Auditor cover notes often name "the statement of financial results"
+    # without a P&L grid. Prefer a page that actually tabulates operations.
+    if re.search(r"(?:total\s+)?(?:revenue|income)\s+from\s+operations", text, re.I):
+        return True
+    # A clean header still counts if several period columns are visible.
+    nums = len(re.findall(r"\d[\d,]*\.\d{2}", text))
+    return nums >= 8
 
 
 def find_statement_page(doc):
@@ -181,6 +191,29 @@ def _pick_columns(kinds, n):
     return idx
 
 
+def _drop_serial_columns(values: dict) -> dict:
+    """Drop a leading serial/line-number column (1, 2, 16) so the first figure is the quarter."""
+    def serial(row):
+        if not row or len(row) < 2:
+            return False
+        first, second = row[0], row[1]
+        return (
+            abs(first - round(first)) < 1e-9
+            and 1 <= first <= 40
+            and (second >= 50 or second >= 10 * max(abs(first), 1))
+        )
+    revenue = values.get("revenue") or []
+    if not serial(revenue) and sum(serial(v) for v in values.values()) < 2:
+        return values
+    out = {}
+    for key, row in values.items():
+        if row and abs(row[0] - round(row[0])) < 1e-9 and 0 <= row[0] <= 40:
+            out[key] = row[1:]
+        else:
+            out[key] = row
+    return out
+
+
 def parse_ocr_text(text: str):
     if not text:
         return None, "OCR_EMPTY"
@@ -213,6 +246,7 @@ def parse_ocr_text(text: str):
         if len(nums) < 1:
             continue
         values[label_key] = nums
+    values = _drop_serial_columns(values)
     if "revenue" not in values or "pat" not in values:
         return None, "OCR_MISSING_REVENUE_OR_PAT"
     n = min(len(v) for v in values.values())
