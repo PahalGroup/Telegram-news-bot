@@ -128,6 +128,7 @@ ENUM = re.compile(r"^(?:[\(\[]?(?:[a-h]|[ivx]{1,4}|\d{1,2})[\)\].]|\d{1,2}|[ivx]
 
 def _strip_enum(label):
     label = re.sub(r"\s+", " ", label).strip()
+    label = re.sub(r"^[^A-Za-z(]+", "", label)
     for _ in range(2):
         label = ENUM.sub("", label)
     return label
@@ -186,7 +187,8 @@ def parse_page(page, doc_has_consolidated=True):
         scope = "standalone"
     if scope is None:
         return _fail(1)
-    unit = statement_unit(head) or statement_unit(text) or bare_unit(text)
+    from sources.result_grid import unit_from_text
+    unit = statement_unit(head) or statement_unit(text) or bare_unit(text) or unit_from_text(text)
     if unit is None:
         return _fail(3)
     lines = _lines(page)
@@ -375,7 +377,8 @@ def parse_statement_table(page):
     Prefers the consolidated column group when both scopes are on the page.
     """
     text = page.get_text()
-    unit = statement_unit(text[:3000]) or statement_unit(text) or bare_unit(text)
+    from sources.result_grid import unit_from_text
+    unit = statement_unit(text[:3000]) or statement_unit(text) or bare_unit(text) or unit_from_text(text)
     if unit is None:
         return _fail(3)
     try:
@@ -476,6 +479,15 @@ def parse_document(doc, max_pages=12):
             card = parse_statement_table(doc[i])
         if card:
             found.append(card)
+    if not found:
+        from sources.result_grid import parse_text_layer_page, page_score
+        for i in range(min(len(doc), 16)):
+            text = doc[i].get_text() or ""
+            if page_score(text) < 6 and not re.search(r"revenue from operations", text, re.I):
+                continue
+            card, _ = parse_text_layer_page(doc[i])
+            if card and "revenue" in card["metrics"] and "pat" in card["metrics"]:
+                found.append(card)
     if not found:
         return None
     found.sort(key=lambda c: c["scope"] != "CONSOLIDATED")
