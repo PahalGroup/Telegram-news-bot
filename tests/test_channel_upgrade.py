@@ -226,11 +226,12 @@ class MorningPackTests(unittest.TestCase):
         return c
 
     def test_slots(self):
-        self.assertEqual(morning_pack.due_slots(at(7, 15), {}), ["opening_cues"])
-        self.assertEqual(morning_pack.due_slots(at(7, 16), {"opening_cues": "2026-11-04"}), [])
+        self.assertEqual(morning_pack.due_slots(at(7, 15), {}), ["opening_cues", "overnight_roundup"])
+        self.assertEqual(morning_pack.due_slots(at(7, 16), {"opening_cues": "2026-11-04"}), ["overnight_roundup"])
         self.assertEqual(morning_pack.due_slots(at(8, 50), {}), ["stocks_in_focus"])
         self.assertEqual(morning_pack.due_slots(at(9, 5), {}), ["preopen"])
-        self.assertEqual(morning_pack.due_slots(at(7, 15, day=7), {}), [])   # Saturday
+        self.assertEqual(morning_pack.due_slots(at(7, 15, day=7), {}), ["overnight_roundup"])  # Saturday
+        self.assertEqual(morning_pack.due_slots(at(7, 16, day=7), {"overnight_roundup": "2026-11-07"}), [])
 
     def test_opening_cues_arrows_match_sign(self):
         post = morning_pack.opening_cues(self.cues(), at(7, 15))
