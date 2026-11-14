@@ -70,9 +70,8 @@ Source
 ```
 Polyplex Corporation Ltd – MANAGEMENT CHANGE
 
-- Remuneration Committee, in their meeting held on November 13, 2026, have considered and approved the appointment of Ms. Shubha Singh (ICSI Membership No. A16735) as the Company Secretary and Compliance Officer of the Company, designated as a Key Managerial Personnel, with effect from December 01, 2026.
-- Appointment of Ms. Shubha Singh as Company Secretary and Compliance Officer of the Company, designated as a Key Managerial Personnel, with effect from December 01, 2026.
+- Ms. Shubha Singh appointed as Company Secretary and Compliance Officer, effective December 01, 2026
 Filing
 ```
 
-The facts are unchanged; only the chrome (blank line, dash bullets, Filing label) is new.
+Results samples keep the same figures, with the new chrome only. The management sample keeps the same person, role and effective date, written in our own words; the two near-duplicate legal sentences are reduced to one short bullet.

@@ -64,23 +64,23 @@ def factual(point: str) -> bool:
     return bool(editorial.NUMBER.search(point) or editorial.PARTY.search(point) or editorial.DATE_WORDS.search(point))
 
 
-def filing_bullets(points, limit=6):
-    out, seen = [], set()
+def filing_bullets(points, limit=6, management=False):
+    from src.post_style import shorten_management, dedupe_bullets
+    out = []
     for raw in points:
         p = _clean(raw)
-        n = _norm(p)
+        if management:
+            p = shorten_management(p)
         if len(p) < 12 or editorial.JUNK_IN_POST.search(p) or BOILERPLATE.search(p) or not factual(p):
             continue
-        if any(n in o or o in n for o in seen):       # near-duplicate of a bullet already kept
-            continue
-        seen.add(n)
         out.append(p)
-    return out[:limit]
+    return dedupe_bullets(out)[:limit]
 
 
 def compose_filing(item, eval_data, event: editorial.Event, now: datetime, published=None) -> tuple[Optional[Pending], str]:
     company = item.get("company") or eval_data.get("company") or ""
-    bullets = filing_bullets(eval_data.get("summary_points") or [])
+    bullets = filing_bullets(eval_data.get("summary_points") or [],
+                             management=event.label in ("MANAGEMENT CHANGE", "MANAGEMENT UPDATE"))
     if event.label in ("FINANCIAL RESULTS", "RESULTS") and item.get("source") not in ("RBI", "PIB", "X"):
         # A results post for an Indian listed company reports rupee figures; EUR/USD-only
         # bullets come from a foreign subsidiary's release attached to the filing.
