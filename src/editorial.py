@@ -75,16 +75,38 @@ NUMBER = re.compile(AMOUNT.pattern + r"|\b\d+(?:\.\d+)?\s*%|\b\d[\d,]*(?:\.\d+)?
                     # Rating grades are upper-case only; case-insensitive "a"/"b"/"d" would make any sentence look factual.
                     r"|(?-i:\b(?:AAA|AA|BBB|BB)[+-]?(?![\w])\s*(?:\(\w+\))?|\b[ABCD](?:[+-]|\s*\((?:Stable|Positive|Negative)\))|\][ABCD]\b|\b(?:CRISIL|ICRA|CARE|IND|ACUITE)\s*(?:A|AA|AAA|BBB|BB)[+-]?)", re.I)
 DECISION = re.compile(r"\b(?:approved|approval of|appointed|appointment|re-?appointed|resigned|resignation|ceased?|cessation|elevated|designated|"
-                      r"upgraded|downgraded|reaffirmed|assigned|revised|withdrawn|placed\s+on\s+(?:watch|credit\s+watch)|"
+                      r"upgraded|downgraded|reaffirmed|assigned|assignment of|affirmation of|revised|withdrawn|placed\s+on\s+(?:watch|credit\s+watch)|"
                       r"acquired?|acquisition|signed|entered\s+into|completed|allotted|raised|declared|recommended|"
                       r"awarded|received|bagged|secured|won|terminated|cancelled|"
                       r"incorporated|incorporation|commenced|commencement|launched|"
+                      r"change in directors?|change in (?:the )?(?:management|directorate|senior management)|"
+                      r"imposition|imposed|handover|hands over|memorandum of understanding|\bmou\b|"
+                      r"achieves?|achieved|"
                       r"approves?|appoints?|wins?|bags?|secures?|receives?|acquires?|signs?|declares?|raises?|allots?)\b", re.I)
+
+
+def _envelope_title(title: str) -> bool:
+    return bool(re.search(
+        r'announcement under regulation\s*30|press release|media release|'
+        r'has informed the exchange (?:about|regarding)|'
+        r'bagging(?:/receiving)? of order',
+        title or "", re.I,
+    ))
 
 
 def classify(item, rules) -> Event:
     sub = f"{item.get('subcat') or ''}"
-    text = f"{item.get('title') or ''} {item.get('subject') or ''} {sub}"
+    title = item.get('title') or ''
+    text = f"{title} {item.get('subject') or ''} {sub}"
+    # Generic exchange envelopes hide the event in the official description line.
+    if _envelope_title(title):
+        lead = ""
+        for line in (item.get("description") or "").splitlines():
+            if len(line.strip()) >= 20:
+                lead = line.strip()
+                break
+        if lead:
+            text = f"{text} {lead}"
     for pattern in rules["always_drop"]:
         # Check each field on its own so anchors mean "the whole sub-category".
         # An outcome/result filing's title can mention a record date or AGM in
@@ -190,9 +212,11 @@ def header(company: str, event_label: str) -> str:
 
 
 PARTY = re.compile(r"\b[A-Z][\w&.]*(?:\s+[A-Z][\w&.]*)*\s+(?:Ltd|Limited|Bank|Corporation|Ministry|Authority|"
-                   r"Railways?|Board|Inc|LLC|GmbH|Pvt|Private|Government|Council|Agency|Fund|Trust)\b|"
+                   r"Railways?|Board|Inc|LLC|GmbH|Pvt|Private|Government|Council|Agency|Fund|Trust|"
+                   r"Terminal|Hospital|Centre|Center)\b|"
+                   r"\bMinistry of [A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*\b|"
                    r"\b(?:CRISIL|ICRA|CARE|India Ratings|Acuite|Brickwork|NHAI|NTPC|ONGC|BHEL|DRDO|ISRO|"
-                   r"Indian (?:Army|Navy|Air Force|Railways))\b")
+                   r"Indian (?:Army|Navy|Air Force|Railways)|MCA)\b")
 DATE_WORDS = re.compile(r"\b\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|"
                         r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}|"
                         r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b|\bFY\s?\d{2}\b|\bQ[1-4]\b", re.I)
