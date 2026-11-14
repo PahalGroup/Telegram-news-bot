@@ -59,7 +59,10 @@ class Formatter:
         url = raw.get("source_url") or raw.get("pdf_url") or ""
         parsed = urlparse(url)
         if parsed.scheme == "https" and parsed.hostname:
-            post += '\n<a href="' + html.escape(url, quote=True) + '">Source</a>'
+            from src.post_style import link
+            tail = link(url)
+            if tail:
+                post += "\n" + tail
         return post if len(post.encode("utf-16-le")) // 2 <= cls.MAX_TELEGRAM_LEN else ""
 
     @classmethod
@@ -93,7 +96,7 @@ class Formatter:
                 clean_pt = cls.sanitize(pt.strip())
                 if clean_pt:
                     if not clean_pt.startswith(("•", "-", "▪️")):
-                        lines.append(f"• {clean_pt}")
+                        lines.append(f"- {clean_pt}")
                     else:
                         lines.append(clean_pt)
 
@@ -112,25 +115,23 @@ class Formatter:
         # 3. Financial Results Scorecard (Exact Match with Reference Channel)
         if category == "FINANCIAL_RESULTS" and any(pt.startswith(("Net Profit:", "Revenue:", "EBITDA:")) for pt in summary_points):
             clean_hl = cls.sanitize(headline)
-            lines = [f"<b>{clean_hl}</b>\n"]
+            from src.post_style import render
+            pts = []
             for pt in summary_points:
                 clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
                 if clean_pt:
-                    lines.append(clean_pt)
-            return "\n\n".join([lines[0].strip()] + lines[1:]).strip()
+                    pts.append(clean_pt)
+            return render(f"<b>{clean_hl}</b>", pts)
 
         # 4. Standard Corporate Filings & Results
+        from src.post_style import render
         clean_hl = cls.sanitize(headline)
-        lines = [f"<b>{clean_hl}</b>"]
+        pts = []
         for pt in summary_points:
             clean_pt = re.sub(r'[,;:\-\s]+$', '', cls.sanitize(pt.strip()))
             if clean_pt:
-                if not clean_pt.startswith(("•", "-", "▪️")):
-                    lines.append(f"• {clean_pt}")
-                else:
-                    lines.append(clean_pt)
-
-        return "\n".join(lines).strip()
+                pts.append(clean_pt)
+        return render(f"<b>{clean_hl}</b>", pts)
 
     @classmethod
     def format_fii_dii(cls, date_str: str, fii_net: float, dii_net: float) -> str:
@@ -234,7 +235,7 @@ class Formatter:
         ]
         substantive_lines = []
         for l in lines[1:]: # skip headline
-            if l == "Source" or PLACEHOLDER.search(l):
+            if l in ("Source", "Filing") or PLACEHOLDER.search(l):
                 continue
             if not any(re.search(pat, l, re.IGNORECASE) for pat in boilerplate_patterns):
                 substantive_lines.append(l)

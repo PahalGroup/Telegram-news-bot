@@ -58,10 +58,8 @@ class Pending:
     meta: dict = field(default_factory=dict)       # delivery bookkeeping per source item
 
     def text(self):
-        body = [self.header] + [f"• {b}" for b in self.bullets]
-        if self.tail:
-            body.append(self.tail)
-        return "\n".join(body)
+        from src.post_style import render
+        return render(self.header, self.bullets, self.tail)
 
 
 class Outbox:

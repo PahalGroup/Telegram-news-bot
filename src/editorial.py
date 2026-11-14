@@ -215,10 +215,8 @@ def pick_bullets(text: str, limit=6) -> List[str]:
 
 
 def format_event(company, event_label, bullets, link=None):
-    lines = [header(company, event_label)] + [f"• {html.escape(b)}" for b in bullets]
-    if link:
-        lines.append(f'<a href="{html.escape(link, quote=True)}">Source</a>')
-    return "\n".join(lines)
+    from src.post_style import render, link as filing_link
+    return render(header(company, event_label), [html.escape(b) for b in bullets], filing_link(link) if link else "")
 
 
 def format_deal(deal):
@@ -228,19 +226,17 @@ def format_deal(deal):
     from sources.result_scorecard import indian_number
     return "\n".join([
         header(deal["company"], deal["kind"]),
-        f"• {html.escape(deal['client'].title())} {side} {qty}",
-        f"• Avg price ₹{indian_number(deal['price'])} | Value ₹{indian_number(deal['value_cr'])} Cr",
-        f"• NSE {deal['kind'].lower()} on {deal['date']}",
+        f"- {html.escape(deal['client'].title())} {side} {qty}",
+        f"- Avg price ₹{indian_number(deal['price'])} | Value ₹{indian_number(deal['value_cr'])} Cr",
+        f"- NSE {deal['kind'].lower()} on {deal['date']}",
     ])
 
 
 def format_macro(source_label, title, bullets=(), link=None):
     """RBI / PIB / FinMin / official-handle posts."""
-    lines = [f"<b>{html.escape(source_label.upper())} – {html.escape(title.strip())}</b>"]
-    lines += [f"• {html.escape(b)}" for b in bullets]
-    if link:
-        lines.append(f'<a href="{html.escape(link, quote=True)}">Source</a>')
-    return "\n".join(lines)
+    from src.post_style import render, link as filing_link
+    return render(f"<b>{html.escape(source_label.upper())} – {html.escape(title.strip())}</b>",
+                  [html.escape(b) for b in bullets], filing_link(link) if link else "")
 
 
 PROCEDURAL_POST = re.compile(r"board\s+meeting\s+(?:to\s+be\s+held|intimation|scheduled)|trading\s+window|"
