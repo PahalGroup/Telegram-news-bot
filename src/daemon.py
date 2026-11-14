@@ -944,9 +944,15 @@ def main():
     parser = argparse.ArgumentParser(description="Pahal Market Wire Production Daemon")
     parser.add_argument("--once", action="store_true", help="Run a single polling cycle and exit")
     parser.add_argument("--dry-run", action="store_true", help="Evaluate and format without publishing to Telegram")
+    parser.add_argument("--ocr-test", action="store_true",
+                        help="Log OCR-extracted figures only; never post (implies --dry-run)")
     parser.add_argument("--duration", type=int, default=3240, help="Shift duration in seconds (default: 54 min = 3240s)")
     args = parser.parse_args()
 
+    if args.ocr_test:
+        import os
+        os.environ["MARKET_WIRE_OCR_TEST"] = "1"
+        args.dry_run = True
     daemon = RealtimeDaemon(dry_run=args.dry_run, shift_seconds=args.duration)
     if args.once:
         logger.info("Executing single pass (--once)...")

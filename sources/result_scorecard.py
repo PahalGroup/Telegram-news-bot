@@ -30,13 +30,13 @@ ROWS = {
 }
 
 
-UNIT_PHRASE = re.compile(r"(?:₹|`|\brs\b\.?|\binr\b|rupees|amount|figures|\bin\b|\()[^\n\d]{0,20}?\b(crores?|cr|lakhs?|lacs?|lakh|millions?|mn|thousands?)\b", re.I)
+UNIT_PHRASE = re.compile(r"(?:₹|`|\brs\b\.?|\binr\b|rupees|amount|figures|\bin\b|\()[^\n\d]{0,20}?\b(crores?|crs?|lakhs?|lacs?|lakh|millions?|mn|thousands?)\b|(?:amounts?\s+in\s+)?(?:₹|rs\.?|inr|rupees)\s+(crs?|crores?|lakhs?|lacs?|millions?)\b", re.I)
 
 
 def statement_unit(text):
     units = set()
     for m in UNIT_PHRASE.finditer(text):
-        u = m.group(1).lower()
+        u = next(g.lower() for g in m.groups() if g)
         units.add("crore" if u.startswith("cr") else "lakh" if u.startswith(("lak", "lac")) else
                   "million" if u.startswith(("mil", "mn")) else "thousand")
     return units.pop() if len(units) == 1 else None
@@ -46,7 +46,7 @@ def bare_unit(text):
     """A unit printed on its own, e.g. a column note 'Crores' beside a rupee glyph."""
     found = set()
     for line in text.splitlines()[:40]:
-        m = re.fullmatch(r"\W*(?:\S\s*)?(?:in\s+)?(crores?|lakhs?|lacs?|millions?)\W*", line.strip(), re.I)
+        m = re.fullmatch(r"\W*(?:\S\s*)?(?:amounts?\s+)?(?:in\s+)?(?:(?:rs\.?|inr|rupees)\s+)?(crores?|crs?|lakhs?|lacs?|millions?)\W*", line.strip(), re.I)
         if m:
             u = m.group(1).lower()
             found.add("crore" if u.startswith("cr") else "lakh" if u.startswith(("lak", "lac")) else "million")
