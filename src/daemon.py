@@ -417,7 +417,11 @@ class RealtimeDaemon:
             if bullets:
                 self._pdf_outcomes["extracted"] += 1
                 self._trace("pdf_extracted", item, evidence_points=len(bullets))
-                item["description"] = "\n".join(bullets)
+                original = (item.get("description") or "").strip()
+                merged = list(bullets)
+                if original and original not in merged:
+                    merged = [original] + merged
+                item["description"] = "\n".join(merged)
                 ready.append(item)
             else:
                 if not failed:

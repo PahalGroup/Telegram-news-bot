@@ -30,9 +30,12 @@ def extract(pdf_url, kind="", session=None):
     if kind == "RESULTS":
         from sources.result_scorecard import parse_document
         card = parse_document(doc)
-        if not card or "revenue" not in card["metrics"] or "pat" not in card["metrics"]:
-            return "", []      # scans and unusual layouts are withheld, never guessed
-        return {"template": "A", "card": card}, ["scorecard"]
+        if card and "revenue" in card["metrics"] and "pat" in card["metrics"]:
+            return {"template": "A", "card": card}, ["scorecard"]
+        # Unusual grids are withheld rather than guessed. A results letter with
+        # explicit prose figures can still travel as annexure evidence.
+        evidence = AnnexureParser.extract_evidence(data)
+        return "", [e["text"] for e in evidence] if evidence else ("", [])
     from src.concall_summary import summarise_pdf
     points = summarise_pdf(doc)
     if not points:

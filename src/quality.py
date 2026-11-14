@@ -56,7 +56,8 @@ def sentences(text):
     text = clean(text)
     # Strip only a recognized introductory clause; retain the factual body verbatim.
     text = re.sub(r"^(?:\d+\.\s*)?(?:Pursuant to|In continuation (?:of|to)|With reference to).*?(?:this is to inform you that|it is informed that)\s+", "", text, flags=re.I)
-    protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Shri|Smt|Rs|Ltd|Ref|No|vs)\.", r"\1<dot>", text, flags=re.I)
+    text = re.sub(r"\bM/s\.", "M/s<dot>", text, flags=re.I)
+    protected = re.sub(r"\b(Mr|Mrs|Ms|Dr|Shri|Smt|Rs|Ltd|Pvt|Ref|No|vs)\.", r"\1<dot>", text, flags=re.I)
     return [part.replace("<dot>", ".").strip() for part in
             re.split(r"[•▪●✓\uf0b7\uf0a7]+|(?<=[.!?])\s+(?=[A-Z])", protected) if part.strip()]
 

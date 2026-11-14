@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 from src import editorial
 from src.scheduler import Pending
 
-MIN_BULLETS = 3
+MIN_BULLETS = 2
 MIN_BULLETS_MACRO = 1
 
 
@@ -90,8 +90,9 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
     macro = not company or item.get("source") in ("RBI", "NEWS", "LIVEBLOG", "PIB", "X")
     need = MIN_BULLETS_MACRO if macro else MIN_BULLETS
     if event.label in ("ORDER WIN", "CREDIT RATING", "MANAGEMENT CHANGE", "DIVIDEND", "BONUS / SPLIT", "BUYBACK",
-                       "TAX DEMAND", "DEFAULT"):
-        need = 1      # one decisive fact (amount, rating, name) is a complete post for these
+                       "TAX DEMAND", "DEFAULT", "ACQUISITION", "AGREEMENT", "MOU", "CORPORATE ACTION",
+                       "PREFERENTIAL ISSUE", "IPO UPDATE"):
+        need = 1      # one decisive fact (amount, rating, name, action) is a complete post for these
     if len(bullets) < need:
         return None, "TOO_FEW_FACTUAL_BULLETS"
     m = re.match(r"^(.+?)\s+–\s+(.+)$", eval_data.get("headline") or "")

@@ -5,9 +5,28 @@ from src.quality import clean, substantive, sentences
 AMOUNT = re.compile(r'(?:₹|Rs\.?|INR|USD|US\$|EUR|GBP|\$|€|£)\s*[\d,]+(?:\.\d+)?|\b[\d,.]+\s+(?:crore|lakh|million|billion)\b', re.I)
 CAPACITY = re.compile(r'\b[\d,.]+\s*(?:MW|MWh|GW|tonnes?|units|km)\b', re.I)
 ORDER_ACTION = re.compile(r'\b(?:awarded|secured|received|receives|wins?|won)\b', re.I)
-ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director|general manager|deputy general manager|senior management|president|vice[- ]president)\b', re.I)
-PERSON = re.compile(r'\b(?:Mr|Ms|Mrs|Dr|Shri|Smt)\.?\s+[A-Z][\w-]+(?:\s+[A-Z][\w-]+)+\b')
-MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|(?:took|taken) over (?:the )?charge|ceased|cessation|retir\w*|superannu\w*|tenure extension|change in (?:the )?designation|re-?designat\w*)\b', re.I)
+ROLE = re.compile(r'\b(?:director|CEO|CFO|chief .*?officer|company secretary|chairman|chairperson|managing director|general manager|deputy general manager|senior management|president|vice[- ]president|statutory auditor|secretarial auditor|internal auditor|auditors?)\b', re.I)
+# Honorific optional; initials such as "J. Rama Prasad" or "Mr. J Rama Prasad" count.
+# Role phrases ("Chief Financial Officer") must not count as a person's name.
+_HONORIFIC = r'(?:Mr|Ms|Mrs|Dr|Shri|Smt|Sri|Prof|Kum)\.?'
+_NAME_TOKEN = r"[A-Z](?:\.|[A-Za-z][\w'-]*)"
+_NAME = _NAME_TOKEN + r'(?:\s+' + _NAME_TOKEN + r')+'
+_ROLE_AS_NAME = re.compile(
+    r'\b(?:chief|officer|director|secretary|chairman|chairperson|president|manager|'
+    r'company|board|key|managerial|personnel|financial)\b', re.I)
+PERSON = re.compile(
+    rf'(?:(?i:{_HONORIFIC})\s+{_NAME})'               # Mr. J Rama Prasad
+    rf'|(?:{_NAME}\s+(?i:as)\s+(?:(?i:the)\s+)?)'  # J Rama Prasad as CFO
+    rf'|(?:{_NAME}\s*[,(\[]\s*(?i:DIN)\b)'        # Rama Prasad (DIN:
+)
+
+def named_person(text: str) -> bool:
+    for match in PERSON.finditer(text or ''):
+        if not _ROLE_AS_NAME.search(match.group(0)):
+            return True
+    return False
+
+MANAGEMENT_ACTION = re.compile(r'\b(?:appointed|appointment|resign\w*|assumed charge|(?:took|taken) over (?:the )?charge|ceased|cessation|retir\w*|superannu\w*|tenure extension|change in (?:the )?(?:designation|auditors?)|re-?designat\w*)\b', re.I)
 def uncertain(text, action_pattern):
     # Reference numbers are not negation. Otherwise unresolved negative claims
     # remain withheld; modality must qualify the event, not a later delivery term.
@@ -55,7 +74,7 @@ def evaluate_event(category, company, title, description):
         label, reason = 'FINANCING', 'FINANCING_REQUIRES_ACTION_AND_AMOUNT'
     elif category == 'MANAGEMENT_CHANGE':
         chosen = [p for p in points if ROLE.search(p) and MANAGEMENT_ACTION.search(p)
-                  and PERSON.search(p) and not uncertain(p, MANAGEMENT_ACTION.pattern)]
+                  and named_person(p) and not uncertain(p, MANAGEMENT_ACTION.pattern)]
         label, reason = 'MANAGEMENT UPDATE', 'MANAGEMENT_REQUIRES_NAMED_PERSON_ROLE_AND_ACTION'
     else:
         raise ValueError('Unsupported evidence category')
