@@ -57,6 +57,8 @@ from sources.pib_fetcher import PIBFetcher
 from sources.x_fetcher import XFetcher
 from src import editorial, morning_pack
 from src.composer import compose_filing, compose_prebuilt
+from src.description_merge import flatten_points, merge_exchange_description
+from src.result_events import is_near_duplicate_result
 from src.scheduler import IST, Outbox, fresh_enough, in_active_window, parse_time
 
 # Seconds between polls for slower sources (exchange feeds poll every cycle).
@@ -421,10 +423,10 @@ class RealtimeDaemon:
                 self._pdf_outcomes["extracted"] += 1
                 self._trace("pdf_extracted", item, evidence_points=len(bullets))
                 original = (item.get("description") or "").strip()
-                merged = list(bullets)
-                if original and original not in merged:
-                    merged = [original] + merged
-                item["description"] = "\n".join(merged)
+                # Keep the exchange description for classify/gate. Prepend it to
+                # post text only when it is a clean complete sentence; fragments
+                # stay in description for gating but compose drops them.
+                item["description"] = merge_exchange_description(original, flatten_points(bullets))
                 ready.append(item)
             else:
                 if not failed:
@@ -729,6 +731,10 @@ class RealtimeDaemon:
             self._trace("duplicate", it, "FORMATTED_POST")
             self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
             return
+        if is_near_duplicate_result(pending, it, self.state.published_records):
+            self._trace("duplicate", it, "NEAR_DUPLICATE_RESULT")
+            self.state.mark_seen(item_id, it.get("source", "UNKNOWN"))
+            return
         pending.meta = {item_id: {"source": it.get("source", "UNKNOWN"), "event_fp": event_fp, "post_fp": post_fp,
                                   "company": norm_company, "category": category, "headline": headline,
                                   "result_event": result_event, "market_quote_event": market_quote_event}}
@@ -764,6 +770,14 @@ class RealtimeDaemon:
             return 0
         primary = p.ids[0]
         post_fp = fingerprint("", text)
+        it = {"id": primary, "company": p.company, "category": p.event,
+              "source": p.meta.get(primary, {}).get("source", "UNKNOWN")}
+        if is_near_duplicate_result(p, it, self.state.published_records):
+            self._trace("duplicate", it, "NEAR_DUPLICATE_RESULT")
+            for iid in p.ids:
+                src = p.meta.get(iid, {}).get("source", it["source"])
+                self.state.mark_seen(iid, src)
+            return 0
         if not self.dry_run:
             self.state.begin_delivery(primary, post_fp)
             try:
@@ -798,7 +812,7 @@ class RealtimeDaemon:
                                     m.get("category", p.event), market_quote_event=m.get("market_quote_event"),
                                     result_event=m.get("result_event"), ts=now.isoformat(),
                                     company=p.company if m.get("source") in ("BSE", "NSE", "NSE_DEALS") else None,
-                                    event=p.event.split("|")[0], lead=lead)
+                                    event=p.event.split("|")[0], lead=lead, body="\n".join(plain))
         if not self.dry_run:
             self.state.complete_delivery(primary)
         self._trace("dispatched", {"id": primary}, merged=len(p.ids))

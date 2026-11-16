@@ -13,6 +13,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from src import editorial
+from src.description_merge import is_clean_sentence, tidy_point
 from src.scheduler import Pending
 
 MIN_BULLETS = 2
@@ -69,8 +70,11 @@ def factual(point: str) -> bool:
 def filing_bullets(points, limit=6):
     out, seen = [], set()
     for raw in points:
-        p = _clean(raw)
+        p = tidy_point(_clean(raw))
         n = _norm(p)
+        # Mid-sentence exchange fragments must not lead (or fill) a post.
+        if not is_clean_sentence(p):
+            continue
         if len(p) < 12 or editorial.JUNK_IN_POST.search(p) or BOILERPLATE.search(p) or not factual(p):
             continue
         if any(n in o or o in n for o in seen):       # near-duplicate of a bullet already kept
@@ -116,6 +120,24 @@ def compose_filing(item, eval_data, event: editorial.Event, now: datetime, publi
                    tail=_link(item.get("source_url") or item.get("pdf_url"))), "OK"
 
 
+
+_CMP_BEFORE = re.compile(
+    r"(?:compared\s+to|compared\s+with|versus|\bvs\.?|v/s|against|in\s+line\s+with|"
+    r"as\s+against|year[- ]?ago)\b",
+    re.I,
+)
+
+
+def _is_comparison_period(text: str, start: int, end: int) -> bool:
+    """True when this Q/H FY token is only a prior-period comparator, not the filing period."""
+    window = text[max(0, start - 100):start]
+    if _CMP_BEFORE.search(window):
+        return True
+    if re.match(r"\s*(?:year[- ]?ago|respectively)\b", text[end:end + 24], re.I):
+        return True
+    return False
+
+
 def _period_label(text, default, when=None):
     """'Q2 FY27 RESULTS' / 'H1 FY27 RESULTS' from the period the bullets name; otherwise the
     latest quarter that had ended before the filing (results are filed within ~60 days)."""
@@ -123,9 +145,12 @@ def _period_label(text, default, when=None):
     for m in re.finditer(r"\b(?:([QH][1-4])|([1-4])([QH]))\s?['’]?\s?FY\s?'?((?:20)?\d{2})(?:\s?[-–]\s?(\d{2}))?\b", text, re.I):
         per = (m.group(1) or (m.group(3) + m.group(2))).upper()
         yr = m.group(5) or m.group(4)[-2:]
+        if _is_comparison_period(text, m.start(), m.end()):
+            continue
         found.add((per, yr))
     # A prior-year quarter used only as a comparison (e.g. "in line with Q2 FY '26")
-    # must not beat a current-year period (e.g. "H1 FY '27") for the title year.
+    # must not beat a current-year period (e.g. "H1 FY '27") for the title year,
+    # and must not become the title when it is the only year named.
     pick = None
     if found:
         latest = max(int(f[1]) for f in found)
