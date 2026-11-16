@@ -6,8 +6,12 @@ name: Market wire watchdog
 # This file was re-registered after the workflow stayed active but queued
 # zero scheduled runs for hours after it was first added (PR #6).
 on:
+  # Off-peak minutes: GitHub drops or delays many :00/:15/:30/:45 crons. Dense
+  # around 07:00 IST, then every 30 minutes; ensure_shift.py skips if a shift runs.
   schedule:
-    - cron: '0,15,30,45 * * * *'
+    - cron: '33,41,53 1 * * *'   # 07:03, 07:11, 07:23 IST
+    - cron: '7,19 2 * * *'       # 07:37, 07:49 IST
+    - cron: '17,47 2-17 * * *'   # every 30 min, 07:47-23:17 IST
   workflow_dispatch:
 
 permissions:
