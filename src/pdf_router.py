@@ -35,7 +35,7 @@ def extract(pdf_url, kind="", session=None):
         # Unusual grids are withheld rather than guessed. A results letter with
         # explicit prose figures can still travel as annexure evidence.
         evidence = AnnexureParser.extract_evidence(data)
-        return "", [e["text"] for e in evidence] if evidence else ("", [])
+        return "", [e["text"] for e in evidence]
     from src.concall_summary import summarise_pdf
     points = summarise_pdf(doc)
     if not points:

@@ -77,3 +77,79 @@ def select_new_result_points(points, company, item, records):
     event = {'version': 1, 'company': entity, 'publication_epoch': published.timestamp(),
              'facts': facts} if facts else None
     return selected, event, updated
+
+
+_HTML_TAG = re.compile(r'<[^>]+>')
+_SOURCE_LINK = re.compile(r'<a\s+href=.*?</a>', re.I | re.S)
+_PERIOD = re.compile(r'\b([QH][1-4])\s*FY\s*(\d{2})\b', re.I)
+# Figures with a unit, a percent, a decimal, or a large integer that is not a year.
+_AMOUNT = re.compile(
+    r'(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?:\s*(crore|crs?\b|lakh|mn\b|million|bn\b|billion|%))?',
+    re.I,
+)
+
+
+def result_amounts(text: str) -> set:
+    """Numeric figures from a results post, ignoring dates, years, and the Source URL."""
+    raw = _SOURCE_LINK.sub(' ', str(text or ''))
+    raw = _HTML_TAG.sub(' ', raw)
+    out = set()
+    for m in _AMOUNT.finditer(raw):
+        intpart = m.group(1).replace(',', '')
+        frac = m.group(2)
+        unit = m.group(3)
+        try:
+            whole = int(intpart)
+        except ValueError:
+            continue
+        if not unit and frac is None and (whole <= 31 or 1900 <= whole <= 2100):
+            continue
+        value = float(intpart + ('.' + frac if frac else ''))
+        out.add(round(value, 2))
+    return out
+
+
+def _period_token(text: str) -> str:
+    m = _PERIOD.search(str(text or ''))
+    return f"{m.group(1).upper()}FY{m.group(2)}" if m else ""
+
+
+def _record_text(record: dict) -> str:
+    return "\n".join(str(record.get(k) or "") for k in ("body", "lead", "headline", "event"))
+
+
+def is_near_duplicate_result(pending, item, records) -> bool:
+    """True when this results post restates figures already sent for the same company and period.
+
+    NSE vs BSE near-copies often differ by one press-release line and the Source URL, so
+    exact post fingerprints miss them. A genuine update that mostly adds new figures is kept.
+    """
+    event = (getattr(pending, "event", None) or "")
+    category = (item or {}).get("category") or ""
+    if "RESULT" not in event.upper() and "RESULT" not in str(category).upper():
+        return False
+    entity = company_key(getattr(pending, "company", None) or (item or {}).get("company") or "")
+    if not entity:
+        return False
+    period = (_period_token(event) or _period_token(getattr(pending, "header", ""))
+              or _period_token(" ".join(getattr(pending, "bullets", []) or [])))
+    nums = result_amounts(pending.text() if hasattr(pending, "text") else "")
+    if len(nums) < 3:
+        return False
+    for record in list(records or [])[-200:]:
+        rec_co = company_key(record.get("company") or "")
+        if rec_co != entity:
+            continue
+        rec_event = (record.get("event") or record.get("headline") or record.get("category") or "")
+        if "RESULT" not in rec_event.upper() and "RESULT" not in str(record.get("category") or "").upper():
+            continue
+        rec_period = _period_token(rec_event) or _period_token(record.get("headline") or "")
+        if period and rec_period and period != rec_period:
+            continue
+        prior = result_amounts(_record_text(record))
+        if len(prior) < 3:
+            continue
+        # Almost every figure in the new post was already reported → near copy, not an update.
+        if len(nums & prior) / len(nums) >= 0.8:
+            return True
+    return False

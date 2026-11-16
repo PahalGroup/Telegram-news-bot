@@ -25,6 +25,7 @@ logging.disable(logging.WARNING)
 from sources.annexure_parser import AnnexureParser
 from sources.result_scorecard import parse_document
 from src import composer, editorial
+from src.description_merge import flatten_points, merge_exchange_description
 from src.filter_engine import FilterEngine
 
 AUDIT = Path("/workspace/tnb-audit")
@@ -109,10 +110,7 @@ def evaluate_item(engine, rules, item, cache):
     item = dict(item)
     if bullets:
         original = (item.get("description") or "").strip()
-        merged = list(bullets)
-        if original and original not in merged:
-            merged = [original] + merged
-        item["description"] = "\n".join(merged)
+        item["description"] = merge_exchange_description(original, flatten_points(bullets))
     published = None
     raw = item.get("published_at")
     if raw:
